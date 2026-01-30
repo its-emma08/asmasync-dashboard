@@ -1,0 +1,49 @@
+/* Relies on Tailwind mostly, utility styles similar to dashboard home */
+
+.risk-badge {
+    /* Base style handled by tailwind classes in template, just colors here */
+}
+
+.risk-green {
+    background-color: #4CAF50;
+}
+
+.risk-yellow {
+    background-color: #FFC107;
+    color: #3e3e3e;
+}
+
+.risk-red {
+    background-color: #F44336;
+}
+
+/* Loading Shade */
+.loading-shade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 56px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rate-limit-reached {
+    max-width: 360px;
+    text-align: center;
+}
+
+/* Ensure Mat Card has relative positioning for loading shade */
+mat-card {
+    position: relative;
+    overflow: hidden;
+    /* Prevent shade overflow */
+}
+
+/* Adjust button alignment in filters */
+.filters-container button {
+    height: 56px;
+}

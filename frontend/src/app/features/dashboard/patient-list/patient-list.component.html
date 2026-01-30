@@ -1,0 +1,122 @@
+<div class="patients-container p-6">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Listado de Pacientes</h1>
+        <p class="text-gray-500">Gestión y monitoreo de pacientes asignados.</p>
+    </div>
+
+    <mat-card>
+        <mat-card-content>
+
+            <!-- Filters -->
+            <div class="filters-container flex flex-col md:flex-row gap-4 mb-4 items-center">
+
+                <mat-form-field appearance="outline" class="w-full md:w-1/3">
+                    <mat-label>Buscar paciente</mat-label>
+                    <input matInput [formControl]="searchControl" placeholder="Nombre...">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full md:w-1/3">
+                    <mat-label>Nivel de Riesgo</mat-label>
+                    <mat-select [formControl]="riskFilterControl">
+                        <mat-option *ngFor="let risk of riskLevels" [value]="risk.value">
+                            {{risk.viewValue}}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <button mat-stroked-button color="primary" (click)="clearFilters()" class="h-[56px] -mt-[22px]">
+                    <mat-icon>filter_list_off</mat-icon>
+                    Limpiar
+                </button>
+
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="loading-shade" *ngIf="isLoadingResults || isRateLimitReached">
+                <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
+                <div class="rate-limit-reached" *ngIf="isRateLimitReached">
+                    No se pudieron cargar los datos. Intenta de nuevo más tarde.
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container overflow-auto">
+                <table mat-table [dataSource]="data" matSort matSortActive="riskLevel" matSortDisableClear
+                    matSortDirection="desc" class="w-full">
+
+                    <!-- ID Column -->
+                    <ng-container matColumnDef="id">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear> ID </th>
+                        <td mat-cell *matCellDef="let row"> #{{row.id}} </td>
+                    </ng-container>
+
+                    <!-- Full Name Column -->
+                    <ng-container matColumnDef="fullName">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Completo </th>
+                        <td mat-cell *matCellDef="let row" class="font-medium"> {{row.fullName}} </td>
+                    </ng-container>
+
+                    <!-- Age Column -->
+                    <ng-container matColumnDef="age">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Edad </th>
+                        <td mat-cell *matCellDef="let row"> {{row.age}} años </td>
+                    </ng-container>
+
+                    <!-- Risk Level Column -->
+                    <ng-container matColumnDef="riskLevel">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Riesgo </th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white"
+                                [ngClass]="getRiskClass(row.riskLevel)">
+                                {{ getRiskLabel(row.riskLevel) }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- PEF Column -->
+                    <ng-container matColumnDef="currentPEF">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> FEM Actual </th>
+                        <td mat-cell *matCellDef="let row">
+                            <strong>{{row.currentPEF}}</strong> <span class="text-gray-500 text-xs">L/min</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- SpO2 Column -->
+                    <ng-container matColumnDef="currentSpO2">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> SpO2 </th>
+                        <td mat-cell *matCellDef="let row">
+                            <span [class.text-red-500]="row.currentSpO2 < 90">{{row.currentSpO2}}%</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Created Column -->
+                    <ng-container matColumnDef="lastUpdate">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear> Última Act. </th>
+                        <td mat-cell *matCellDef="let row"> {{row.lastUpdate | date:'medium'}} </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef> Acciones </th>
+                        <td mat-cell *matCellDef="let row">
+                            <button mat-icon-button color="primary" [routerLink]="['/dashboard/patients', row.id]"
+                                matTooltip="Ver historial">
+                                <mat-icon>visibility</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>
+                </table>
+            </div>
+
+            <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 50]"
+                aria-label="Select page of patients"></mat-paginator>
+
+        </mat-card-content>
+    </mat-card>
+</div>

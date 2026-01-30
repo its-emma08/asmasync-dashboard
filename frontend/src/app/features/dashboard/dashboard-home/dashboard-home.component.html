@@ -1,0 +1,153 @@
+<div class="dashboard-container p-6">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Panel de Control</h1>
+        <p class="text-gray-500">Resumen de monitoreo de pacientes</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+        <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+        <strong class="font-bold">Error!</strong>
+        <span class="block sm:inline"> {{ error }}</span>
+    </div>
+
+    <div *ngIf="!isLoading && !error">
+
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Card 1: Total Patients -->
+            <mat-card class="kpi-card border-l-4 border-blue-600">
+                <mat-card-content class="flex items-center p-4">
+                    <div class="rounded-full bg-blue-100 p-3 mr-4">
+                        <mat-icon class="text-blue-600 scale-150">people</mat-icon>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-gray-800">{{ metrics.totalPatients }}</div>
+                        <div class="text-sm text-gray-500 font-medium">Total Pacientes</div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Card 2: Critical Alerts -->
+            <mat-card class="kpi-card border-l-4 border-red-500">
+                <mat-card-content class="flex items-center p-4">
+                    <div class="rounded-full bg-red-100 p-3 mr-4">
+                        <mat-icon class="text-red-500 scale-150">warning</mat-icon>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-gray-800">{{ metrics.criticalAlerts }}</div>
+                        <div class="text-sm text-gray-500 font-medium">Alertas Críticas</div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Card 3: Moderate Risk -->
+            <mat-card class="kpi-card border-l-4 border-yellow-500">
+                <mat-card-content class="flex items-center p-4">
+                    <div class="rounded-full bg-yellow-100 p-3 mr-4">
+                        <mat-icon class="text-yellow-600 scale-150">info</mat-icon>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-gray-800">{{ metrics.moderateRisk }}</div>
+                        <div class="text-sm text-gray-500 font-medium">Riesgo Moderado</div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Card 4: Interventions -->
+            <mat-card class="kpi-card border-l-4 border-green-500">
+                <mat-card-content class="flex items-center p-4">
+                    <div class="rounded-full bg-green-100 p-3 mr-4">
+                        <mat-icon class="text-green-600 scale-150">check_circle</mat-icon>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-gray-800">{{ metrics.interventionsToday }}</div>
+                        <div class="text-sm text-gray-500 font-medium">Intervenciones Hoy</div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- Charts & Tables Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Risk Distribution Chart (33% width on large screens) -->
+            <mat-card class="lg:col-span-1 h-full">
+                <mat-card-header>
+                    <mat-card-title class="text-lg">Distribución de Riesgo</mat-card-title>
+                </mat-card-header>
+                <mat-card-content class="p-4 flex justify-center items-center h-64">
+                    <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType">
+                    </canvas>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Priority Patients Table (66% width on large screens) -->
+            <mat-card class="lg:col-span-2 h-full">
+                <mat-card-header>
+                    <mat-card-title class="text-lg">Pacientes Prioritarios</mat-card-title>
+                </mat-card-header>
+                <mat-card-content class="overflow-auto">
+                    <table mat-table [dataSource]="priorityPatients" class="w-full">
+
+                        <!-- Full Name Column -->
+                        <ng-container matColumnDef="fullName">
+                            <th mat-header-cell *matHeaderCellDef> Nombre </th>
+                            <td mat-cell *matCellDef="let patient" class="font-medium"> {{patient.fullName}} </td>
+                        </ng-container>
+
+                        <!-- Risk Level Column -->
+                        <ng-container matColumnDef="riskLevel">
+                            <th mat-header-cell *matHeaderCellDef> Riesgo </th>
+                            <td mat-cell *matCellDef="let patient">
+                                <span
+                                    class="px-2 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider"
+                                    [ngClass]="getRiskClass(patient.riskLevel)">
+                                    {{ getRiskLabel(patient.riskLevel) }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- PEF Column -->
+                        <ng-container matColumnDef="currentPEF">
+                            <th mat-header-cell *matHeaderCellDef> FEM (L/min) </th>
+                            <td mat-cell *matCellDef="let patient"> {{patient.currentPEF}} </td>
+                        </ng-container>
+
+                        <!-- Last Update -->
+                        <ng-container matColumnDef="lastUpdate">
+                            <th mat-header-cell *matHeaderCellDef> Última Act. </th>
+                            <td mat-cell *matCellDef="let patient"> {{patient.lastUpdate | date:'short'}} </td>
+                        </ng-container>
+
+                        <!-- Actions -->
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef> Acciones </th>
+                            <td mat-cell *matCellDef="let patient">
+                                <button mat-button color="primary" [routerLink]="['/dashboard/patients', patient.id]">
+                                    Ver Detalle
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>
+                    </table>
+
+                    <div *ngIf="priorityPatients.length === 0" class="p-4 text-center text-gray-500">
+                        No hay pacientes prioritarios en este momento.
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+        </div>
+
+    </div>
+</div>

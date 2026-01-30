@@ -1,0 +1,36 @@
+/* Tailwind utility classes handles most layout.
+   Adding specific badge colors that match the Traffic Light system requirements exact hex codes 
+*/
+
+.kpi-card {
+    transition: transform 0.2s;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.risk-badge {
+    color: white;
+}
+
+.risk-green {
+    background-color: #4CAF50;
+}
+
+.risk-yellow {
+    background-color: #FFC107;
+    color: #3e3e3e;
+    /* Darker text for readability on yellow */
+}
+
+.risk-red {
+    background-color: #F44336;
+}
+
+/* Material overrides if necessary */
+.mat-column-actions {
+    width: 120px;
+    text-align: right;
+}
