@@ -1,0 +1,11 @@
+/* Basic styling, mostly handled by tailwind in template */
+
+.alert-item {
+    transition: background-color 0.2s;
+}
+
+/* Override padding for cleaner list look */
+:host ::ng-deep .mat-mdc-list-item-icon-container {
+    align-self: flex-start;
+    margin-top: 16px;
+}

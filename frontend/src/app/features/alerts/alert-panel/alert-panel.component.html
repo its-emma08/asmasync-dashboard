@@ -1,0 +1,75 @@
+<div class="alert-panel-container h-full flex flex-col p-6">
+
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Centro de Alertas</h1>
+            <p class="text-gray-500">Gestión de notificaciones e incidentes en tiempo real.</p>
+        </div>
+
+        <button mat-stroked-button color="primary" (click)="markAllAsRead()">
+            <mat-icon>done_all</mat-icon>
+            Marcar todas como vistas
+        </button>
+    </div>
+
+    <mat-chip-listbox aria-label="Alert filters" class="mb-4">
+        <mat-chip-option [selected]="activeFilter === 'all'" (click)="filter('all')"
+            color="primary">Todas</mat-chip-option>
+        <mat-chip-option [selected]="activeFilter === 'critical'" (click)="filter('critical')" color="warn">Solo
+            Críticas</mat-chip-option>
+        <mat-chip-option [selected]="activeFilter === 'moderate'" (click)="filter('moderate')" color="accent">Solo
+            Moderadas</mat-chip-option>
+        <mat-chip-option [selected]="activeFilter === 'unread'" (click)="filter('unread')">No Vistas</mat-chip-option>
+    </mat-chip-listbox>
+
+    <div class="flex-1 overflow-auto bg-white rounded-lg shadow-sm border border-gray-200 relative">
+
+        <div *ngIf="loading" class="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80 z-10">
+            <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <mat-list>
+            <mat-list-item *ngFor="let alert of filteredAlerts"
+                class="alert-item border-l-4 mb-2 hover:bg-gray-50 cursor-pointer" [ngClass]="{
+                               'border-red-500': alert.type === 'critical', 
+                               'border-yellow-500': alert.type === 'moderate',
+                               'bg-blue-50': !alert.isRead
+                           }" (click)="navigateToPatient(alert.patientId)">
+
+                <mat-icon matListItemIcon [class]="alert.type === 'critical' ? 'text-red-500' : 'text-yellow-600'">
+                    {{ alert.type === 'critical' ? 'warning' : 'info' }}
+                </mat-icon>
+
+                <div matListItemTitle class="font-bold flex items-center gap-2">
+                    {{ alert.patientName }}
+                    <span *ngIf="!alert.isRead"
+                        class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full">NUEVA</span>
+                </div>
+
+                <div matListItemLine class="text-gray-700">
+                    {{ alert.message }}
+                </div>
+
+                <div matListItemLine class="text-xs text-gray-500 mt-1">
+                    {{ alert.timestamp | date:'short' }}
+                </div>
+
+                <div matListItemMeta class="flex items-center gap-2">
+                    <button mat-icon-button color="primary" (click)="markAsRead(alert, $event)"
+                        matTooltip="Marcar como vista" *ngIf="!alert.isRead">
+                        <mat-icon>check_circle_outline</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="$event.stopPropagation(); navigateToPatient(alert.patientId)">
+                        <mat-icon>arrow_forward</mat-icon>
+                    </button>
+                </div>
+            </mat-list-item>
+        </mat-list>
+
+        <div *ngIf="!loading && filteredAlerts.length === 0"
+            class="h-full flex flex-col items-center justify-center text-gray-400">
+            <mat-icon class="text-6xl mb-4 scale-150 opacity-50">notifications_off</mat-icon>
+            <p class="text-lg">No hay alertas para mostrar 🎉</p>
+        </div>
+    </div>
+</div>
