@@ -1,0 +1,19 @@
+<mat-sidenav-container class="dashboard-container">
+
+    <!-- Sidebar -->
+    <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile" [fixedInViewport]="isMobile"
+        class="dashboard-sidenav">
+        <app-sidebar (closeSidebar)="onSidebarClose()"></app-sidebar>
+    </mat-sidenav>
+
+    <!-- Contenido Principal -->
+    <mat-sidenav-content>
+        <app-navbar (toggleSidebar)="toggleSidenav()"></app-navbar>
+
+        <main class="dashboard-content">
+            <router-outlet></router-outlet>
+        </main>
+
+    </mat-sidenav-content>
+
+</mat-sidenav-container>

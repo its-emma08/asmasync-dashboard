@@ -1,0 +1,32 @@
+<mat-nav-list>
+    <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
+        (click)="onClose()">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Dashboard</span>
+    </a>
+
+    <a mat-list-item routerLink="/dashboard/patients" routerLinkActive="active-link" (click)="onClose()">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Pacientes</span>
+    </a>
+
+    <a mat-list-item routerLink="/dashboard/alerts" routerLinkActive="active-link" (click)="onClose()">
+        <mat-icon matListItemIcon [matBadge]="(unreadAlerts$ | async) || 0"
+            [matBadgeHidden]="(unreadAlerts$ | async) === 0" matBadgeColor="warn"
+            matBadgeSize="small">notifications</mat-icon>
+        <span matListItemTitle>Alertas</span>
+    </a>
+
+    <a mat-list-item routerLink="/dashboard/reports" routerLinkActive="active-link" (click)="onClose()">
+        <mat-icon matListItemIcon>assessment</mat-icon>
+        <span matListItemTitle>Reportes</span>
+    </a>
+
+    <mat-divider></mat-divider>
+
+    <a mat-list-item routerLink="/dashboard/interventions/new" routerLinkActive="active-link" (click)="onClose()">
+        <mat-icon matListItemIcon>medical_services</mat-icon>
+        <span matListItemTitle>Nueva Intervención</span>
+    </a>
+
+</mat-nav-list>

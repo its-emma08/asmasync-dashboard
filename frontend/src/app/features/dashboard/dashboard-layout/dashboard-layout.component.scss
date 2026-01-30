@@ -1,0 +1,21 @@
+.dashboard-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.dashboard-sidenav {
+    width: 250px;
+    background-color: white;
+    border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-content {
+    padding: 20px;
+    margin-top: 64px;
+    /* Altura del Navbar */
+    min-height: calc(100vh - 64px);
+    background-color: #fafafa;
+}
