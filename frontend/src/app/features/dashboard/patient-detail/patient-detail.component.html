@@ -1,0 +1,211 @@
+<div class="patient-detail-container pb-20" *ngIf="!loading && patient; else loadingTpl">
+
+    <!-- 1. Header del Paciente -->
+    <mat-card class="mb-6 overflow-hidden">
+        <div class="patient-header p-6 flex flex-col md:flex-row items-center gap-6"
+            [ngClass]="getRiskColorClass(patient.riskLevel)">
+
+            <!-- Avatar -->
+            <div
+                class="avatar-container bg-white rounded-full h-32 w-32 flex items-center justify-center shadow-lg text-4xl font-bold text-gray-600">
+                {{ patient.fullName.charAt(0) }}
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 text-center md:text-left text-white">
+                <h1 class="text-3xl font-bold mb-2">{{ patient.fullName }}</h1>
+
+                <div class="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+                    <mat-chip-listbox>
+                        <mat-chip-option selected color="accent">Edad: {{ patient.age }} años</mat-chip-option>
+                        <mat-chip-option>ID: #{{ patient.id }}</mat-chip-option>
+                    </mat-chip-listbox>
+                </div>
+
+                <div class="text-lg font-medium opacity-90 mb-1">
+                    Última Crisis: {{ '2025-01-10' | date:'mediumDate' }}
+                    <!-- Mocked for now if not in patient object -->
+                </div>
+            </div>
+
+            <!-- Risk Badge -->
+            <div
+                class="risk-badge-large bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 text-white text-center border border-white border-opacity-30">
+                <mat-icon class="scale-150 mb-2">warning</mat-icon>
+                <div class="text-xl font-bold tracking-wide">{{ getRiskLabel(patient.riskLevel) }}</div>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- 2. Métricas Vitales -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <mat-card *ngFor="let metric of vitalMetrics">
+            <mat-card-content class="p-6 flex items-center">
+                <div class="rounded-full bg-gray-100 p-4 mr-4">
+                    <mat-icon [class]="metric.colorClass" class="scale-150">{{ metric.icon }}</mat-icon>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-500 uppercase font-bold">{{ metric.label }}</div>
+                    <div class="text-3xl font-bold text-gray-800">
+                        {{ metric.value }} <span class="text-lg text-gray-400 font-normal">{{ metric.unit }}</span>
+                    </div>
+                    <div *ngIf="metric.subtext" class="text-xs text-gray-500 mt-1">
+                        {{ metric.subtext }}
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- 3. Grid Gráfico y Timeline -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        <!-- Chart -->
+        <mat-card class="lg:col-span-2">
+            <mat-card-header>
+                <mat-card-title>Tendencia FEM (Últimos 7 días)</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="h-[400px] p-4">
+                <canvas baseChart [data]="pefChartData" [options]="pefChartOptions" [type]="pefChartType"></canvas>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Symptoms Timeline -->
+        <mat-card class="lg:col-span-1">
+            <mat-card-header>
+                <mat-card-title>Historial de Síntomas</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="timeline-container h-[400px] overflow-y-auto p-4">
+                <div class="timeline">
+                    <div class="timeline-item relative pl-8 pb-6 border-l-2 border-gray-200"
+                        *ngFor="let symptom of symptoms">
+                        <div class="absolute -left-[9px] top-0 bg-white p-1 rounded-full border border-gray-200">
+                            <mat-icon [style.color]="getSeverityColor(symptom.severity)" class="text-sm scale-75">{{
+                                getSymptomIcon(symptom.type) }}</mat-icon>
+                        </div>
+                        <div class="text-xs text-gray-400 mb-1">{{ symptom.timestamp | date:'short' }}</div>
+                        <div class="font-bold text-gray-800 capitalize">{{ symptom.type.replace('_', ' ') }}</div>
+                        <div class="text-sm text-gray-600">{{ symptom.description }}</div>
+                        <div class="mt-1">
+                            <span
+                                class="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-500 uppercase tracking-wide">{{
+                                symptom.severity }}</span>
+                        </div>
+                    </div>
+
+                    <div *ngIf="symptoms.length === 0" class="text-center text-gray-400 mt-10">
+                        No hay síntomas recientes.
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- 4. Historial de Crisis -->
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>Historial de Crisis</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="overflow-x-auto">
+            <table mat-table [dataSource]="crisisHistory" class="w-full"
+                *ngIf="crisisHistory.length > 0; else noCrisis">
+
+                <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef> Fecha </th>
+                    <td mat-cell *matCellDef="let row"> {{row.date | date:'mediumDate'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="severity">
+                    <th mat-header-cell *matHeaderCellDef> Severidad </th>
+                    <td mat-cell *matCellDef="let row">
+                        <span [style.color]="getSeverityColor(row.severity)"
+                            class="font-bold uppercase">{{row.severity}}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="hospitalized">
+                    <th mat-header-cell *matHeaderCellDef> Hospitalizado </th>
+                    <td mat-cell *matCellDef="let row"> {{row.hospitalized ? 'Sí' : 'No'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="duration">
+                    <th mat-header-cell *matHeaderCellDef> Duración </th>
+                    <td mat-cell *matCellDef="let row"> {{row.duration}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="trigger">
+                    <th mat-header-cell *matHeaderCellDef> Desencadenante </th>
+                    <td mat-cell *matCellDef="let row"> {{row.trigger || 'No identificado'}} </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedCrisisColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedCrisisColumns;"></tr>
+            </table>
+
+            <ng-template #noCrisis>
+                <div class="flex flex-col items-center justify-center p-8 text-gray-500">
+                    <mat-icon class="text-4xl text-green-500 mb-2 scale-150">check_circle</mat-icon>
+                    <p>Sin crisis registradas recientemente.</p>
+                </div>
+            </ng-template>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- 5. Historial de Intervenciones -->
+    <mat-card class="mt-6 mb-20">
+        <mat-card-header>
+            <mat-card-title>Historial de Intervenciones</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="overflow-x-auto">
+            <table mat-table [dataSource]="interventions" class="w-full"
+                *ngIf="interventions.length > 0; else noInterventions">
+
+                <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef> Fecha </th>
+                    <td mat-cell *matCellDef="let row"> {{row.createdAt | date:'short'}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef> Tipo </th>
+                    <td mat-cell *matCellDef="let row">
+                        {{ row.type.replace('_', ' ') | titlecase }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef> Descripción </th>
+                    <td mat-cell *matCellDef="let row" [matTooltip]="row.description">
+                        {{ (row.description.length > 50) ? (row.description | slice:0:50) + '...' : row.description }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="followUp">
+                    <th mat-header-cell *matHeaderCellDef> Seguimiento </th>
+                    <td mat-cell *matCellDef="let row"> {{row.nextFollowUp | date:'shortDate'}} </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['date', 'type', 'description', 'followUp']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['date', 'type', 'description', 'followUp'];"></tr>
+            </table>
+
+            <ng-template #noInterventions>
+                <div class="flex flex-col items-center justify-center p-8 text-gray-500">
+                    <p>No hay intervenciones registradas para este paciente.</p>
+                </div>
+            </ng-template>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- FAB -->
+    <button mat-fab class="intervention-fab" color="primary" (click)="openInterventionForm()"
+        matTooltip="Registrar Intervención">
+        <mat-icon>add</mat-icon>
+    </button>
+
+</div>
+
+<ng-template #loadingTpl>
+    <div class="h-full w-full flex items-center justify-center p-20">
+        <mat-spinner></mat-spinner>
+    </div>
+</ng-template>

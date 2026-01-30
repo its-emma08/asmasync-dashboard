@@ -1,0 +1,23 @@
+.risk-header-green {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+}
+
+.risk-header-yellow {
+    background: linear-gradient(135deg, #FFC107 0%, #FF8F00 100%);
+}
+
+.risk-header-red {
+    background: linear-gradient(135deg, #F44336 0%, #C62828 100%);
+}
+
+.intervention-fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 100;
+}
+
+/* Timeline tweaks */
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
