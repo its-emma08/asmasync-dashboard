@@ -13,6 +13,14 @@ class AlertCreate(AlertBase):
 class AlertUpdate(BaseModel):
     is_viewed: bool
 
+class PatientSummary(BaseModel):
+    id: int
+    full_name: str
+    risk_level: str
+
+    class Config:
+        from_attributes = True
+
 class Alert(AlertBase):
     id: int
     patient_id: int
@@ -20,6 +28,7 @@ class Alert(AlertBase):
     created_at: datetime
     viewed_at: Optional[datetime] = None
     viewed_by: Optional[int] = None
+    patient: Optional[PatientSummary] = None
 
     class Config:
         from_attributes = True

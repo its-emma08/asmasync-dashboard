@@ -1,0 +1,68 @@
+<div class="widget-content-wrapper h-full flex flex-col bg-white p-5 rounded-3xl relative overflow-hidden">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4 z-10 relative">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <mat-icon class="scale-90">calendar_month</mat-icon>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-800 leading-tight">Agenda</h3>
+                <p class="text-xs text-slate-500 font-medium">Próximos eventos</p>
+            </div>
+        </div>
+        <button mat-icon-button class="text-slate-400 hover:text-indigo-600 transition-colors">
+            <mat-icon>add</mat-icon>
+        </button>
+    </div>
+
+    <!-- Calendar List -->
+    <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar z-10 relative space-y-3"
+        *ngIf="appointments$ | async as appointments">
+
+        <!-- Empty State -->
+        <div *ngIf="appointments.length === 0" class="flex flex-col items-center justify-center h-full text-slate-400">
+            <mat-icon class="text-slate-300 text-4xl mb-2">event_busy</mat-icon>
+            <p class="text-xs font-medium">Sin citas hoy</p>
+        </div>
+
+        <!-- Appointment Item -->
+        <div *ngFor="let apt of appointments"
+            class="group flex items-center gap-4 p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-indigo-100 hover:shadow-md transition-all duration-300 cursor-pointer">
+
+            <!-- Date Badge -->
+            <div
+                class="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-sm group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-colors">
+                <span class="text-[10px] font-bold uppercase text-slate-400 group-hover:text-indigo-400">{{ apt.month
+                    }}</span>
+                <span class="text-xl font-black text-slate-700 leading-none group-hover:text-indigo-600">{{ apt.day
+                    }}</span>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-bold text-slate-700 truncate group-hover:text-indigo-700 transition-colors">{{
+                    apt.title }}</h4>
+                <div class="flex items-center gap-2 mt-1">
+                    <span
+                        class="inline-flex items-center text-[11px] font-medium text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-100">
+                        <mat-icon class="tiny-icon mr-1 text-slate-400">schedule</mat-icon>
+                        {{ apt.time }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div class="mt-4 z-10 relative">
+        <button mat-stroked-button color="primary"
+            class="w-full rounded-xl border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700">
+            Ver Calendario Completo
+        </button>
+    </div>
+
+    <!-- Decoration -->
+    <div
+        class="absolute -bottom-10 -right-10 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none">
+    </div>
+</div>

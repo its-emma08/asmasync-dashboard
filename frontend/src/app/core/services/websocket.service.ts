@@ -14,15 +14,26 @@ export class WebSocketService {
 
     constructor(private authService: AuthService) { }
 
+    private isMockMode = false;
+
     connect(): void {
-        const token = this.authService.getToken();
-        if (!token) {
-            console.warn('No token available for WebSocket');
+        // Kill Switch: Environment or Dynamic Failure
+        // Check environment FIRST. If mock mode, do absolute nothing.
+        if (environment.mockMode) {
+            console.debug('WebSocketService: Aborted connect() due to Environment Mock Mode');
             return;
         }
 
-        // Append token to URL (common practice for WS auth if headers not supported clearly in browser API)
-        // Or send as first message. Using query param for this implementation.
+        if (this.isMockMode) {
+            console.debug('WebSocket disabled (Dynamic Mock Mode Active)');
+            return;
+        }
+
+        const token = this.authService.getToken();
+        if (!token) {
+            return;
+        }
+
         const wsUrl = `${environment.wsUrl}?token=${token}`;
 
         this.socket = new WebSocket(wsUrl);
@@ -41,10 +52,16 @@ export class WebSocketService {
         };
 
         this.socket.onerror = (error) => {
-            console.error('Error en WebSocket:', error);
+            console.warn('WebSocket connection failed. Switching to Mock Mode.');
+            this.isMockMode = true; // Stop future attempts
         };
 
         this.socket.onclose = (event) => {
+            if (this.isMockMode) {
+                console.log('WebSocket closed. Mock Mode active, not reconnecting.');
+                return;
+            }
+
             console.log('WebSocket desconectado. Intentando reconectar...', event);
             if (!event.wasClean) {
                 setTimeout(() => this.connect(), this.reconnectInterval);
@@ -62,8 +79,7 @@ export class WebSocketService {
     send(message: any): void {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(message));
-        } else {
-            console.warn('WebSocket no conectado, no se pudo enviar mensaje');
         }
+        // Silent noop when not connected — no console noise
     }
 }

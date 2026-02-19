@@ -1,10 +1,13 @@
 export interface Alert {
     id: number;
-    patientId: number;
-    patientName: string;
-    type: 'critical' | 'moderate';
+    patient_id: number;
+    alert_type: 'critical' | 'moderate' | 'info';
     message: string;
-    timestamp: Date;
-    isRead: boolean;
-    severity: 'high' | 'medium';
+    is_viewed: boolean;
+    created_at: string;
+    patient?: {
+        id: number;
+        full_name: string;
+        risk_level: string;
+    };
 }

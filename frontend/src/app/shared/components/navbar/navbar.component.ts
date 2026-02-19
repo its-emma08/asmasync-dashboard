@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -7,10 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
-import { AlertService } from '../../../core/services/alert.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Observable } from 'rxjs';
-import { User } from '../../../core/services/auth.service';
 
 @Component({
     selector: 'app-navbar',
@@ -28,34 +25,34 @@ import { User } from '../../../core/services/auth.service';
     styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
-    @Output() toggleSidebar = new EventEmitter<void>();
-
-    unreadAlerts$: Observable<number>;
-    currentUser$: Observable<User | null>;
+    @Input() userName: string = 'Admin';
+    @Input() alertCount: number = 0;
+    @Output() menuToggle = new EventEmitter<void>();
 
     constructor(
-        private alertService: AlertService,
         private authService: AuthService,
         private router: Router
-    ) {
-        this.unreadAlerts$ = this.alertService.unreadCount$;
-        this.currentUser$ = this.authService.currentUser$;
+    ) { }
+
+    onMenuToggle(): void {
+        this.menuToggle.emit();
     }
 
-    onLogout(): void {
-        this.authService.logout();
-    }
-
-    onToggleSidebar(): void {
-        this.toggleSidebar.emit();
-    }
-
-    goToAlerts(): void {
+    navigateToAlerts(): void {
         this.router.navigate(['/dashboard/alerts']);
     }
 
-    markAllAsRead(): void {
-        // En un caso real, llamaríamos al servicio para marcar todas
-        this.alertService.updateUnreadCount(0);
+    navigateToProfile(): void {
+        // Implement profile route when ready
+        console.log('Navigate to Profile');
+    }
+
+    navigateToSettings(): void {
+        // Implement settings route when ready
+        console.log('Navigate to Settings');
+    }
+
+    logout(): void {
+        this.authService.logout();
     }
 }

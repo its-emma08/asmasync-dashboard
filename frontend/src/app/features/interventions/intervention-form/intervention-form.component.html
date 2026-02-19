@@ -15,7 +15,7 @@
                         <mat-label>Paciente</mat-label>
                         <mat-select formControlName="patientId">
                             <mat-option *ngFor="let patient of patients" [value]="patient.id">
-                                {{patient.fullName}} - #{{patient.id}}
+                                {{patient.full_name}} - #{{patient.id}}
                             </mat-option>
                         </mat-select>
                         <mat-error *ngIf="interventionForm.get('patientId')?.hasError('required')">

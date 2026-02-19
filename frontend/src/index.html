@@ -1,13 +1,393 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
-  <title>Dashboard</title>
+  <title>AsmaSync - Dashboard Médico</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    /* AsmaSync — Premium Light Loading Screen */
+    .app-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 40%, #f1f5f9 100%);
+      font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+    }
+
+    /* Subtle floating dots */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      opacity: 0.25;
+    }
+
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #00B5AD;
+      border-radius: 50%;
+      animation: floatUp 14s infinite;
+    }
+
+    .particle:nth-child(1) {
+      left: 8%;
+      animation-delay: 0s;
+      animation-duration: 11s;
+    }
+
+    .particle:nth-child(2) {
+      left: 22%;
+      animation-delay: 2s;
+      animation-duration: 13s;
+    }
+
+    .particle:nth-child(3) {
+      left: 38%;
+      animation-delay: 4s;
+      animation-duration: 10s;
+    }
+
+    .particle:nth-child(4) {
+      left: 52%;
+      animation-delay: 1s;
+      animation-duration: 12s;
+    }
+
+    .particle:nth-child(5) {
+      left: 68%;
+      animation-delay: 3.5s;
+      animation-duration: 9s;
+    }
+
+    .particle:nth-child(6) {
+      left: 82%;
+      animation-delay: 5s;
+      animation-duration: 14s;
+    }
+
+    .particle:nth-child(7) {
+      left: 92%;
+      animation-delay: 1.5s;
+      animation-duration: 11s;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+      }
+
+      30% {
+        opacity: 0.6;
+      }
+
+      100% {
+        transform: translateY(-20vh) scale(1);
+        opacity: 0;
+      }
+    }
+
+    /* 3D Stethoscope + Heartbeat Container */
+    .logo-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    /* Teal pulse rings */
+    .pulse-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 181, 173, 0.25);
+      opacity: 0;
+      animation: ringExpand 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .pulse-ring:nth-child(2) {
+      animation-delay: -1s;
+    }
+
+    .pulse-ring:nth-child(3) {
+      animation-delay: -2s;
+    }
+
+    @keyframes ringExpand {
+      0% {
+        width: 80%;
+        height: 80%;
+        opacity: 1;
+        border-width: 3px;
+      }
+
+      100% {
+        width: 260%;
+        height: 260%;
+        opacity: 0;
+        border-width: 1px;
+      }
+    }
+
+    /* 3D-ish Stethoscope Icon — CSS Only */
+    .stethoscope-icon {
+      width: 100px;
+      height: 100px;
+      position: relative;
+      z-index: 5;
+      animation: breathe3d 3s ease-in-out infinite;
+    }
+
+    /* Glass circle base */
+    .stetho-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00B5AD 0%, #00897B 100%);
+      box-shadow:
+        0 8px 32px rgba(0, 181, 173, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Heartbeat SVG inside */
+    .heartbeat-line {
+      width: 40px;
+      height: 20px;
+    }
+
+    .heartbeat-line path {
+      stroke: white;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      animation: drawBeat 2s ease-in-out infinite;
+    }
+
+    @keyframes drawBeat {
+      0% {
+        stroke-dashoffset: 80;
+      }
+
+      50% {
+        stroke-dashoffset: 0;
+      }
+
+      100% {
+        stroke-dashoffset: -80;
+      }
+    }
+
+    /* Tubes coming out of circle */
+    .stetho-tube-left,
+    .stetho-tube-right {
+      position: absolute;
+      width: 3px;
+      height: 30px;
+      border-radius: 2px;
+      background: linear-gradient(to top, #00B5AD, #00897B);
+      box-shadow: 0 2px 6px rgba(0, 181, 173, 0.2);
+    }
+
+    .stetho-tube-left {
+      top: 2px;
+      left: 32px;
+      transform: rotate(-20deg);
+    }
+
+    .stetho-tube-right {
+      top: 2px;
+      right: 32px;
+      transform: rotate(20deg);
+    }
+
+    /* Earbuds */
+    .stetho-bud {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00B5AD;
+      position: absolute;
+      top: -2px;
+      box-shadow: 0 1px 4px rgba(0, 181, 173, 0.3);
+    }
+
+    .stetho-bud.left {
+      left: 28px;
+    }
+
+    .stetho-bud.right {
+      right: 28px;
+    }
+
+    @keyframes breathe3d {
+
+      0%,
+      100% {
+        transform: scale(1) translateY(0);
+        filter: drop-shadow(0 6px 20px rgba(0, 181, 173, 0.2));
+      }
+
+      50% {
+        transform: scale(1.04) translateY(-4px);
+        filter: drop-shadow(0 12px 30px rgba(0, 181, 173, 0.35));
+      }
+    }
+
+    /* Text */
+    .loading-text {
+      margin-top: 32px;
+      color: #0f172a;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: fadeText 2s ease-in-out infinite alternate;
+      z-index: 10;
+    }
+
+    .loading-subtitle {
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      z-index: 10;
+    }
+
+    .loading-status {
+      color: #94a3b8;
+      font-size: 12px;
+      margin-top: 6px;
+      font-weight: 500;
+      z-index: 10;
+    }
+
+    @keyframes fadeText {
+      from {
+        opacity: 0.6;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      width: 240px;
+      height: 3px;
+      background: rgba(0, 181, 173, 0.12);
+      border-radius: 3px;
+      margin-top: 24px;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00B5AD 0%, #4ADE80 100%);
+      border-radius: 3px;
+      animation: progress 2s ease-in-out infinite;
+    }
+
+    @keyframes progress {
+      0% {
+        width: 0%;
+        opacity: 0.4;
+      }
+
+      50% {
+        width: 70%;
+        opacity: 1;
+      }
+
+      100% {
+        width: 100%;
+        opacity: 0.4;
+      }
+    }
+  </style>
 </head>
-<body>
-  <app-root></app-root>
+
+<body style="background-color: #f8fafc; margin: 0; padding: 0;">
+  <app-root>
+    <div class="app-loading">
+      <!-- Floating particles -->
+      <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+      </div>
+
+      <!-- 3D Stethoscope Logo -->
+      <div class="logo-container">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+
+        <div class="stethoscope-icon">
+          <div class="stetho-bud left"></div>
+          <div class="stetho-bud right"></div>
+          <div class="stetho-tube-left"></div>
+          <div class="stetho-tube-right"></div>
+          <div class="stetho-circle">
+            <!-- Heartbeat line -->
+            <svg class="heartbeat-line" viewBox="0 0 40 20">
+              <path d="M0 10 L8 10 L12 2 L16 18 L20 6 L24 14 L28 10 L40 10" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="loading-text">AsmaSync</div>
+      <div class="loading-subtitle">Plataforma de Monitoreo Inteligente</div>
+      <div class="loading-status">Iniciando aplicación...</div>
+
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+  </app-root>
 </body>
+
 </html>

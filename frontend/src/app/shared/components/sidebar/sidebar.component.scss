@@ -1,11 +1,12 @@
-.active-link {
-    background-color: rgba(25, 118, 210, 0.1);
-    /* Azul claro */
-    color: #1976D2;
-    /* Azul primario */
+/* Sidebar Styles - Now mostly handled by Tailwind in HTML */
+:host {
+    display: block;
+    height: 100%;
 }
 
-/* Ajustes opcionales para iconos */
+/* Material Icon Alignment */
 mat-icon {
-    margin-right: 8px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 }

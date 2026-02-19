@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func, case
 from app.models.patient import Patient, RiskLevel
+from app.models.measurement import Measurement
 from app.schemas.patient import PatientCreate, PatientUpdate
 from typing import List, Optional, Tuple
 
@@ -48,7 +49,33 @@ class PatientService:
         )
         
         result = await db.execute(query)
-        return result.scalars().all(), total_count
+        patients = result.scalars().all()
+        
+        # Populate current metrics (This is N+1 but acceptable for limit=10)
+        for p in patients:
+            # Get latest PEF
+            pef_res = await db.execute(
+                select(Measurement)
+                .filter(Measurement.patient_id == p.id, Measurement.measurement_type == 'pef')
+                .order_by(Measurement.measured_at.desc())
+                .limit(1)
+            )
+            latest_pef = pef_res.scalars().first()
+            if latest_pef:
+                p.current_pef = int(latest_pef.value)
+
+            # Get latest SpO2
+            spo2_res = await db.execute(
+                select(Measurement)
+                .filter(Measurement.patient_id == p.id, Measurement.measurement_type == 'spo2')
+                .order_by(Measurement.measured_at.desc())
+                .limit(1)
+            )
+            latest_spo2 = spo2_res.scalars().first()
+            if latest_spo2:
+                p.current_spo2 = int(latest_spo2.value)
+
+        return patients, total_count
 
     @staticmethod
     async def get(db: AsyncSession, id: int) -> Optional[Patient]:

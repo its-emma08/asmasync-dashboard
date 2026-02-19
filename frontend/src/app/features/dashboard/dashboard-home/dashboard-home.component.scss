@@ -1,36 +1,454 @@
-/* Tailwind utility classes handles most layout.
-   Adding specific badge colors that match the Traffic Light system requirements exact hex codes 
-*/
+/* ============================================
+   Dashboard — Clinical Clean Layout (Grid Refactor)
+   ============================================ */
 
-.kpi-card {
-    transition: transform 0.2s;
+:host {
+    display: block;
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
 }
 
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Container */
+.dashboard-container {
+    padding: 24px 32px;
+    min-height: 100vh;
+    position: relative;
+    max-width: 100%;
 }
 
-.risk-badge {
+/* Loading / Error states */
+.loading-state,
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    text-align: center;
+}
+
+/* ============================================
+   GRID SYSTEM (Native CSS Grid)
+   ============================================ */
+.widget-grid {
+    display: grid;
+    /* 4 Columns for Desktop */
+    grid-template-columns: repeat(4, 1fr);
+    /* Standard row height + gap */
+    grid-auto-rows: minmax(180px, auto);
+    gap: 24px;
+    width: 100%;
+}
+
+@media (max-width: 1024px) {
+    .widget-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* Tablet: 2 cols */
+    }
+}
+
+@media (max-width: 768px) {
+    .widget-grid {
+        grid-template-columns: 1fr;
+        /* Mobile: 1 col */
+    }
+}
+
+/* ============================================
+   WIDGET WRAPPER (Host styling)
+   ============================================ */
+/* Force standard behavior on the custom element wrapper */
+app-dashboard-widget {
+    display: block;
+    height: 100%;
+    width: 100%;
+    min-height: 100%;
+    /* Ensure content inside expands */
+
+    /* Default Span: 1 Column */
+    grid-column: span 1;
+}
+
+/* SPANNING UTILITIES (Applied via class binding in HTML) */
+.col-span-4 {
+    grid-column: span 4;
+}
+
+.col-span-3 {
+    grid-column: span 3;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.col-span-1 {
+    grid-column: span 1;
+}
+
+.row-span-2 {
+    grid-row: span 2;
+}
+
+.row-span-1 {
+    grid-row: span 1;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1024px) {
+
+    .col-span-4,
+    .col-span-3 {
+        grid-column: span 2;
+    }
+
+    /* Max 2 cols on tablet */
+}
+
+@media (max-width: 768px) {
+
+    .col-span-4,
+    .col-span-3,
+    .col-span-2 {
+        grid-column: span 1;
+    }
+
+    /* Stack on mobile */
+}
+
+/* ============================================
+   Specific Widget Tweaks
+   ============================================ */
+/* Chart Container Fix for Chart.js */
+::ng-deep .chart-container {
+    position: relative;
+    height: 100% !important;
+    width: 100% !important;
+    min-height: 300px;
+    /* Ensure chart has height */
+}
+
+/* KPI Group - Internal Layout */
+::ng-deep app-kpi-group-widget {
+    display: block;
+    height: 100%;
+}
+
+
+/* Container */
+.dashboard-container {
+    padding: 24px 32px;
+    min-height: 100vh;
+    position: relative;
+    max-width: 100%;
+}
+
+/* Loading / Error states */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+}
+
+.loading-text {
+    color: #94a3b8;
+    margin-top: 16px;
+    font-weight: 500;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ef4444;
+    margin-bottom: 16px;
+}
+
+.error-state h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 16px;
+}
+
+.dashboard-content {
+    /* Natural flow */
+    padding-bottom: 96px;
+}
+
+/* ============================================
+   Magnetic Grid System (Restored & Cleaned)
+   ============================================ */
+
+.widget-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* Enforce 4 Cols */
+    grid-auto-rows: 160px;
+    /* Standardize height for rowSpan logic */
+    gap: 24px;
+    position: relative;
+    padding-bottom: 200px;
+    grid-auto-flow: row dense;
+}
+
+/* ... (keep existing spans) ... */
+
+/* ============================================
+   CDK Drag & Drop — Magnetic Snapping
+   ============================================ */
+/* ============================================
+   CDK Drag & Drop — Magnetic Snapping
+   ============================================ */
+.cdk-drag-preview {
+    /* CRITICAL: Do NOT force width/height to 100% or it will fill the screen/body */
+    box-sizing: border-box !important;
+
+    /* Visuals - Glassmorphism Card during drag */
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25) !important;
+    border: 2px solid #00B5AD !important;
+
+    /* PREVENT GHOSTING & layout shifts */
+    margin: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+
+    /* FORCE DIMENSIONS TO BE REASONABLE */
+    max-width: 400px !important;
+    max-height: 400px !important;
+    display: block !important;
+}
+
+/* Force the internal host to NOT be 100% of viewport */
+.cdk-drag-preview app-dashboard-widget {
+    width: 100% !important;
+    height: 100% !important;
+    /* This will now be relative to the preview's max-width/height */
+}
+
+.cdk-drag-placeholder {
+    background: rgba(0, 181, 173, 0.05);
+    border: 2px dashed rgba(0, 181, 173, 0.3);
+    border-radius: 24px;
+    opacity: 0.6;
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Staggered Entrance Animation for Widgets */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+app-dashboard-widget {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Stagger delays for up to 12 items */
+app-dashboard-widget:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+app-dashboard-widget:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+app-dashboard-widget:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+app-dashboard-widget:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+app-dashboard-widget:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+app-dashboard-widget:nth-child(6) {
+    animation-delay: 0.3s;
+}
+
+app-dashboard-widget:nth-child(7) {
+    animation-delay: 0.35s;
+}
+
+app-dashboard-widget:nth-child(8) {
+    animation-delay: 0.4s;
+}
+
+app-dashboard-widget:nth-child(9) {
+    animation-delay: 0.45s;
+}
+
+app-dashboard-widget:nth-child(10) {
+    animation-delay: 0.5s;
+}
+
+app-dashboard-widget:nth-child(11) {
+    animation-delay: 0.55s;
+}
+
+app-dashboard-widget:nth-child(12) {
+    animation-delay: 0.6s;
+}
+
+.cdk-drag-placeholder {
+    background: rgba(0, 181, 173, 0.05);
+    border: 2px dashed rgba(0, 181, 173, 0.3);
+    border-radius: 24px;
+    opacity: 0.6;
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging app-dashboard-widget:not(.cdk-drag-placeholder) {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ============================================
+   Add Widget Placeholder
+   ============================================ */
+.add-widget-placeholder {
+    grid-column: span 4;
+    min-height: 160px;
+    border: 2px dashed #e2e8f0;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.add-widget-placeholder:hover {
+    border-color: #00B5AD;
+    color: #00B5AD;
+    background: rgba(0, 181, 173, 0.03);
+}
+
+.add-widget-placeholder mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+}
+
+/* ============================================
+   Floating Edit FAB
+   ============================================ */
+.edit-fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 100;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: #0f172a;
     color: white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.risk-green {
-    background-color: #4CAF50;
+.edit-fab:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.risk-yellow {
-    background-color: #FFC107;
-    color: #3e3e3e;
-    /* Darker text for readability on yellow */
+.edit-fab:active {
+    transform: scale(0.95);
 }
 
-.risk-red {
-    background-color: #F44336;
+.edit-fab mat-icon {
+    font-size: 22px;
 }
 
-/* Material overrides if necessary */
-.mat-column-actions {
-    width: 120px;
-    text-align: right;
+/* Active state — teal brand with pulse ring */
+.edit-fab.is-active {
+    background: #00B5AD;
+    animation: fab-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fab-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 181, 173, 0.4), 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(0, 181, 173, 0), 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+}
+
+/* Menu header */
+.menu-header {
+    display: block;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* KPI specifics */
+.kpi-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }

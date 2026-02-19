@@ -1,65 +1,357 @@
-<div class="report-container p-6 flex justify-center">
-    <mat-card class="w-full max-w-2xl">
-        <mat-card-header class="mb-4 border-b pb-4">
-            <mat-icon mat-card-avatar class="scale-150 ml-2 mt-2 text-blue-600">picture_as_pdf</mat-icon>
-            <mat-card-title class="ml-4 text-2xl">Generador de Reportes</mat-card-title>
-            <mat-card-subtitle class="ml-4">Descargue informes detallados en formato PDF</mat-card-subtitle>
-        </mat-card-header>
+<div class="report-builder-layout">
 
-        <mat-card-content>
-            <form [formGroup]="reportForm" class="flex flex-col gap-4 mt-4">
+    <!-- ===== LEFT: CONFIGURATION SIDEBAR (TABBED) ===== -->
+    <div class="config-sidebar">
+        <mat-tab-group animationDuration="0ms" class="sidebar-tabs" [(selectedIndex)]="activeSectionTab">
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Tipo de Reporte</mat-label>
-                    <mat-select formControlName="reportType">
-                        <mat-option value="individual">Reporte Individual de Paciente</mat-option>
-                        <mat-option value="weekly">Reporte Semanal de Actividad</mat-option>
-                        <!-- <mat-option value="adherence">Reporte de Adherencia</mat-option> -->
-                    </mat-select>
-                </mat-form-field>
+            <!-- TAB 1: DISEÑO (The Look) -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">palette</mat-icon>
+                    <span class="tab-label">Diseño</span>
+                </ng-template>
+                <div class="sidebar-content">
 
-                <div *ngIf="reportForm.get('reportType')?.value === 'individual'">
-                    <mat-form-field appearance="outline" class="w-full">
-                        <mat-label>Seleccionar Paciente</mat-label>
-                        <mat-select formControlName="patientId">
-                            <mat-option *ngFor="let p of patients" [value]="p.id">
-                                {{p.fullName}} (ID: {{p.id}})
-                            </mat-option>
-                        </mat-select>
-                        <mat-error *ngIf="reportForm.get('patientId')?.hasError('required')">
-                            Debe seleccionar un paciente
-                        </mat-error>
-                    </mat-form-field>
-                </div>
+                    <!-- Paper Size (CRITICAL) -->
+                    <div class="config-section">
+                        <label class="section-label">Tamaño de Hoja</label>
+                        <mat-button-toggle-group class="w-full paper-size-toggle" [value]="config.paperSize"
+                            (change)="config.paperSize = $event.value">
+                            <mat-button-toggle value="letter">Carta</mat-button-toggle>
+                            <mat-button-toggle value="a4">A4</mat-button-toggle>
+                            <mat-button-toggle value="legal">Oficio</mat-button-toggle>
+                        </mat-button-toggle-group>
+                    </div>
 
-                <div class="flex gap-4">
-                    <mat-form-field appearance="outline" class="w-full">
-                        <mat-label>Fecha Inicio</mat-label>
-                        <input matInput [matDatepicker]="startPicker" formControlName="dateRangeStart">
-                        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #startPicker></mat-datepicker>
-                    </mat-form-field>
+                    <mat-divider></mat-divider>
 
-                    <mat-form-field appearance="outline" class="w-full">
-                        <mat-label>Fecha Fin</mat-label>
-                        <input matInput [matDatepicker]="endPicker" formControlName="dateRangeEnd">
-                        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #endPicker></mat-datepicker>
-                    </mat-form-field>
-                </div>
+                    <!-- Institution & Branding -->
+                    <div class="config-section">
+                        <label class="section-label">Marca Institucional</label>
+                        <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                            <mat-label>Título del Reporte</mat-label>
+                            <input matInput [(ngModel)]="config.title" (ngModelChange)="saveSettings()">
+                        </mat-form-field>
 
-                <div class="actions mt-6 flex justify-end">
-                    <button mat-raised-button color="primary" class="px-8 py-2" (click)="generateReport()"
-                        [disabled]="reportForm.invalid || generating">
-                        <div class="flex items-center gap-2">
-                            <mat-spinner *ngIf="generating" diameter="20" color="accent"></mat-spinner>
-                            <mat-icon *ngIf="!generating">download</mat-icon>
-                            <span>{{ generating ? 'Generando...' : 'Descargar PDF' }}</span>
+                        <!-- FOLIO FIX -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                                <mat-label>Folio Personalizado</mat-label>
+                                <input matInput [(ngModel)]="config.customFolio" placeholder="Ej: A-2024-001"
+                                    (ngModelChange)="saveSettings()">
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                                <mat-label>Institución</mat-label>
+                                <input matInput [(ngModel)]="config.institutionName" (ngModelChange)="saveSettings()">
+                            </mat-form-field>
                         </div>
-                    </button>
+
+                        <div class="color-pickers">
+                            <div class="color-field">
+                                <label>Primario</label>
+                                <input type="color" [(ngModel)]="config.primaryColor" (ngModelChange)="saveSettings()">
+                            </div>
+                            <div class="color-field">
+                                <label>Acento</label>
+                                <input type="color" [(ngModel)]="config.accentColor" (ngModelChange)="saveSettings()">
+                            </div>
+                        </div>
+
+                        <div class="file-upload-row">
+                            <button mat-stroked-button (click)="fileInput.click()" class="w-full">
+                                <mat-icon>upload</mat-icon> Logo Institucional
+                            </button>
+                            <input #fileInput type="file" (change)="onLogoSelected($event)" style="display: none"
+                                accept="image/*">
+                        </div>
+                        <div class="toggle-row mt-2">
+                            <span>Marca de Agua</span>
+                            <mat-slide-toggle [(ngModel)]="config.showWatermark" color="primary"></mat-slide-toggle>
+                        </div>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <!-- TAB 2: DATOS CLÍNICOS (In-Situ Edit) -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">medical_services</mat-icon>
+                    <span class="tab-label">Datos</span>
+                </ng-template>
+                <div class="sidebar-content">
+
+                    <!-- Patient Selector -->
+                    <div class="config-section">
+                        <label class="section-label">Paciente Base</label>
+                        <mat-form-field appearance="outline" class="w-full dense-field">
+                            <mat-select [disabled]="isLoadingPatients" [value]="config.patientId"
+                                (selectionChange)="selectPatient($event.value)" placeholder="Seleccionar Paciente">
+                                <mat-option *ngFor="let p of patients" [value]="p.id">
+                                    {{p.full_name}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <mat-divider></mat-divider>
+
+                    <!-- Live Editing Form -->
+                    <div class="config-section" *ngIf="editedPatient">
+                        <label class="section-label">Edición In-Situ (Solo Reporte)</label>
+
+                        <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                            <mat-label>Diagnóstico Actual</mat-label>
+                            <input matInput [(ngModel)]="editedPatient.asthma_type">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                            <mat-label>Alergias</mat-label>
+                            <mat-chip-grid #chipGrid aria-label="Enter allergies">
+                                <mat-chip-row *ngFor="let allergy of editedPatient.allergies"
+                                    (removed)="removeAllergy(allergy)">
+                                    {{allergy}}
+                                    <button matChipRemove [attr.aria-label]="'remove ' + allergy">
+                                        <mat-icon>cancel</mat-icon>
+                                    </button>
+                                </mat-chip-row>
+                                <input placeholder="Agregar alergia..." [matChipInputFor]="chipGrid"
+                                    (matChipInputTokenEnd)="addAllergy($event)" />
+                            </mat-chip-grid>
+                        </mat-form-field>
+
+                        <!-- Medications (text for now for speed) -->
+                        <!-- Ideally a list builder, but sticking to prompt requirements for agility -->
+                    </div>
+                    <div class="config-section" *ngIf="!editedPatient">
+                        <p class="text-sm text-gray-500 italic">Seleccione un paciente para editar sus datos.</p>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <!-- TAB 3: CONTENIDO (The Meat) -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon class="tab-icon">article</mat-icon>
+                    <span class="tab-label">Contenido</span>
+                </ng-template>
+                <div class="sidebar-content">
+
+                    <!-- Section Toggles -->
+                    <div class="config-section">
+                        <label class="section-label">Secciones Visibles</label>
+                        <div cdkDropList (cdkDropListDropped)="dropSection($event)" class="section-list">
+                            <div *ngFor="let section of config.sections" cdkDrag class="section-item">
+                                <div class="section-drag-handle" cdkDragHandle>
+                                    <mat-icon>drag_indicator</mat-icon>
+                                </div>
+                                <mat-checkbox [(ngModel)]="section.enabled" color="primary" class="section-checkbox">
+                                    {{section.label}}
+                                </mat-checkbox>
+                            </div>
+                        </div>
+                    </div>
+
+                    <mat-divider></mat-divider>
+
+                    <!-- Rich Text Areas -->
+                    <div class="config-section">
+                        <label class="section-label">Redacción Médica</label>
+
+                        <mat-form-field appearance="outline" class="w-full mb-3">
+                            <mat-label>Notas de Evolución</mat-label>
+                            <textarea matInput [(ngModel)]="config.evolutionNotes" rows="6"
+                                placeholder="Escriba aquí..."></textarea>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="w-full">
+                            <mat-label>Recomendaciones / Plan</mat-label>
+                            <textarea matInput [(ngModel)]="config.recommendations" rows="4"
+                                placeholder="Recomendaciones finales..."></textarea>
+                        </mat-form-field>
+                    </div>
+
+                </div>
+            </mat-tab>
+
+        </mat-tab-group>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="sidebar-footer">
+            <button mat-raised-button color="primary" class="export-btn" (click)="downloadPDF()"
+                [disabled]="isGenerating || !selectedPatient">
+                <mat-icon>{{ isGenerating ? 'hourglass_empty' : 'download' }}</mat-icon>
+                {{ isGenerating ? 'Generando PDF...' : 'Descargar Reporte' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== RIGHT: LIVE PREVIEW AREA ===== -->
+    <div class="preview-area">
+        <div class="preview-toolbar">
+            <span class="preview-tite">Vista Previa ({{ config.paperSize | uppercase }})</span>
+            <div class="zoom-controls">
+                <!-- Future zoom controls -->
+            </div>
+        </div>
+
+        <div class="preview-scroll-container">
+            <!-- A4/LETTER PAGE CONTAINER -->
+            <!-- Note: class binding for size -->
+            <div class="print-page" [ngClass]="'page-' + config.paperSize" #reportContent
+                [style.--primary-color]="config.primaryColor" [style.--accent-color]="config.accentColor"
+                *ngIf="selectedPatient">
+
+                <!-- 1. WATERMARK -->
+                <div *ngIf="config.showWatermark && institutionLogo" class="watermark-layer"
+                    [style.background-image]="'url(' + institutionLogo + ')'"></div>
+
+                <!-- 2. HEADER -->
+                <header class="report-header" *ngIf="config.showHeader">
+                    <div class="logo-area" *ngIf="institutionLogo">
+                        <img [src]="institutionLogo" alt="Logo">
+                    </div>
+                    <div class="header-info">
+                        <h1 class="institution-name">{{ config.institutionName }}</h1>
+                        <h2 class="dept-name">DIRECCIÓN DE NEUMOLOGÍA Y CONTROL DE ASMA</h2>
+                    </div>
+                    <div class="header-meta">
+                        <div class="meta-row"><strong>EMISIÓN:</strong> {{ today | date:'dd/MM/yyyy' }}</div>
+                        <div class="meta-row"><strong>FOLIO:</strong> 002394</div>
+                    </div>
+                </header>
+
+                <div class="report-title-bar">
+                    {{ config.title }}
                 </div>
 
-            </form>
-        </mat-card-content>
-    </mat-card>
+                <!-- 3. CONTENT SECTIONS -->
+                <div class="report-body">
+
+                    <ng-container *ngFor="let section of getSortedSections()">
+
+                        <!-- IDENTIFICATION -->
+                        <div *ngIf="section.id === 'identification' && editedPatient"
+                            class="report-section identification-section">
+                            <div class="section-title">FICHA DE IDENTIFICACIÓN</div>
+                            <div class="grid-form">
+                                <div class="field">
+                                    <label>PACIENTE:</label>
+                                    <span>{{ editedPatient.full_name | uppercase }}</span>
+                                </div>
+                                <div class="field">
+                                    <label>EDAD:</label>
+                                    <span>{{ computedAge }} AÑOS</span>
+                                </div>
+                                <div class="field">
+                                    <label>SEXO:</label>
+                                    <span>{{ editedPatient.gender === 'male' ? 'MASCULINO' : 'FEMENINO' }}</span>
+                                </div>
+                                <div class="field">
+                                    <label>EXPEDIENTE:</label>
+                                    <span>#{{ editedPatient.id }}</span>
+                                </div>
+                                <div class="field col-span-2">
+                                    <label>CURP:</label>
+                                    <span>{{ computedCurp }}</span>
+                                </div>
+                                <div class="field col-span-2">
+                                    <label>DIAGNÓSTICO:</label>
+                                    <!-- Live Binding to Edited Patient -->
+                                    <span class="editable-highlight">{{ editedPatient.asthma_type | uppercase }}</span>
+                                </div>
+                                <div class="field col-span-2">
+                                    <label>ALERGIAS:</label>
+                                    <span *ngIf="editedPatient.allergies?.length">
+                                        {{ editedPatient.allergies.join(', ') }}
+                                    </span>
+                                    <span *ngIf="!editedPatient.allergies?.length">NEGADAS</span>
+                                </div>
+                                <div class="field">
+                                    <label>RIESGO:</label>
+                                    <span class="risk-badge" [ngClass]="editedPatient.riskLevel">{{
+                                        getRiskLabel(editedPatient.riskLevel) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VITALS -->
+                        <div *ngIf="section.id === 'vitals' && editedPatient" class="report-section vitals-section">
+                            <div class="vitals-grid">
+                                <div class="vital-card">
+                                    <span class="value">{{ editedPatient.latest_pef }}</span>
+                                    <span class="unit">L/min</span>
+                                    <span class="label">Último FEM</span>
+                                </div>
+                                <div class="vital-card">
+                                    <span class="value">{{ editedPatient.personal_best_pef || '--' }}</span>
+                                    <span class="unit">L/min</span>
+                                    <span class="label">Mejor Personal</span>
+                                </div>
+                                <div class="vital-card">
+                                    <span class="value">{{ editedPatient.currentSpO2 || '--' }}</span>
+                                    <span class="unit">%</span>
+                                    <span class="label">SpO2 (Sat)</span>
+                                </div>
+                                <div class="vital-card">
+                                    <span class="value">98</span>
+                                    <span class="unit">lpm</span>
+                                    <span class="label">Frec. Cardiaca</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CHART SECTION (FIXED) -->
+                        <div *ngIf="section.id === 'charts'" class="report-section">
+                            <div class="section-title">HISTORIAL DE FLUJO ESPIRATORIO (PEF)</div>
+                            <div id="chartContainer" class="chart-wrapper"
+                                style="height: 300px; width: 100%; position: relative;">
+                                <canvas *ngIf="!chartImageSrc" id="reportChartCanvas"></canvas>
+                                <img *ngIf="chartImageSrc" [src]="chartImageSrc" alt="Chart Snapshot"
+                                    style="width: 100%; height: 100%; object-fit: contain;">
+                            </div>
+                        </div>
+
+                        <!-- NOTES -->
+                        <div *ngIf="section.id === 'notes'" class="report-section">
+                            <div class="section-title">NOTAS DE EVOLUCIÓN</div>
+                            <div class="notes-content">
+                                {{ config.evolutionNotes }}
+                            </div>
+                        </div>
+
+                        <!-- RECOMMENDATIONS -->
+                        <div *ngIf="section.id === 'recommendations'" class="report-section">
+                            <div class="section-title">RECOMENDACIONES</div>
+                            <div class="notes-content">
+                                {{ config.recommendations }}
+                            </div>
+                        </div>
+
+                        <!-- SIGNATURES -->
+                        <div *ngIf="section.id === 'signatures'" class="report-section signatures-section">
+                            <div class="signature-box">
+                                <div class="sig-line"></div>
+                                <p>DR. JUAN PÉREZ</p>
+                                <small>NEUMÓLOGO CERTIFICADO</small>
+                            </div>
+                            <div class="signature-box">
+                                <div class="sig-line"></div>
+                                <p>FIRMA DEL PACIENTE</p>
+                            </div>
+                        </div>
+
+                    </ng-container>
+
+                </div>
+
+                <!-- 4. FOOTER -->
+                <footer class="report-footer" *ngIf="config.showFooter">
+                    <p>{{ config.institutionName }} - Reporte Generado por AsmaSync v2.0</p>
+                    <p class="disclaimer">Este documento es una herramienta de apoyo clínico y no sustituye el juicio
+                        médico profesional.</p>
+                </footer>
+
+            </div>
+        </div>
+    </div>
 </div>

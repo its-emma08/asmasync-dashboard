@@ -1,32 +1,39 @@
-<mat-nav-list>
-    <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
-        (click)="onClose()">
-        <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
-    </a>
+<div
+    class="h-full w-[260px] bg-white/80 backdrop-blur-xl p-6 flex flex-col justify-between border-r border-gray-100 flex-shrink-0 z-50 relative">
+    <div>
+        <div class="flex items-center gap-2 mb-10 text-brand-cyan font-bold text-xl">
+            <mat-icon class="text-2xl h-6 w-6">lungs</mat-icon> AsmaSync
+        </div>
+        <nav class="space-y-4">
+            <a routerLink="/dashboard" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
+                [routerLinkActiveOptions]="{exact: true}"
+                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+                <mat-icon class="text-lg w-5 h-5">grid_view</mat-icon> Dashboard
+            </a>
+            <a routerLink="/dashboard/alerts" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
+                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+                <mat-icon class="text-lg w-5 h-5">notifications</mat-icon> Alertas
+            </a>
+            <a routerLink="/dashboard/patients" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
+                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+                <mat-icon class="text-lg w-5 h-5">people</mat-icon> Pacientes
+            </a>
+            <a routerLink="/dashboard/reports" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
+                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+                <mat-icon class="text-lg w-5 h-5">description</mat-icon> Reportes
+            </a>
+        </nav>
+    </div>
 
-    <a mat-list-item routerLink="/dashboard/patients" routerLinkActive="active-link" (click)="onClose()">
-        <mat-icon matListItemIcon>people</mat-icon>
-        <span matListItemTitle>Pacientes</span>
-    </a>
-
-    <a mat-list-item routerLink="/dashboard/alerts" routerLinkActive="active-link" (click)="onClose()">
-        <mat-icon matListItemIcon [matBadge]="(unreadAlerts$ | async) || 0"
-            [matBadgeHidden]="(unreadAlerts$ | async) === 0" matBadgeColor="warn"
-            matBadgeSize="small">notifications</mat-icon>
-        <span matListItemTitle>Alertas</span>
-    </a>
-
-    <a mat-list-item routerLink="/dashboard/reports" routerLinkActive="active-link" (click)="onClose()">
-        <mat-icon matListItemIcon>assessment</mat-icon>
-        <span matListItemTitle>Reportes</span>
-    </a>
-
-    <mat-divider></mat-divider>
-
-    <a mat-list-item routerLink="/dashboard/interventions/new" routerLinkActive="active-link" (click)="onClose()">
-        <mat-icon matListItemIcon>medical_services</mat-icon>
-        <span matListItemTitle>Nueva Intervención</span>
-    </a>
-
-</mat-nav-list>
+    <div class="border-t pt-6">
+        <nav class="space-y-2 text-gray-500 text-sm flex flex-col items-start">
+            <a routerLink="/dashboard/help"
+                class="flex items-center gap-2 hover:text-brand-cyan transition-colors mt-2">
+                <mat-icon class="text-lg w-5 h-5 scale-75">help_outline</mat-icon> Ayuda
+            </a>
+            <a routerLink="/dashboard/settings" class="flex items-center gap-2 hover:text-brand-cyan transition-colors">
+                <mat-icon class="text-lg w-5 h-5 scale-75">settings</mat-icon> Configuración
+            </a>
+        </nav>
+    </div>
+</div>

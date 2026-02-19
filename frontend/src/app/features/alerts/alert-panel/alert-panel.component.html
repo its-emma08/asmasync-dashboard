@@ -1,75 +1,142 @@
-<div class="alert-panel-container h-full flex flex-col p-6">
+<div class="h-full flex flex-col p-6 space-y-6">
 
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <!-- Header & Actions -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Centro de Alertas</h1>
-            <p class="text-gray-500">Gestión de notificaciones e incidentes en tiempo real.</p>
+            <h1 class="text-2xl font-bold text-brand-dark">Centro de Alertas</h1>
+            <p class="text-gray-500 text-sm">Monitorización de pacientes en riesgo</p>
         </div>
 
-        <button mat-stroked-button color="primary" (click)="markAllAsRead()">
-            <mat-icon>done_all</mat-icon>
-            Marcar todas como vistas
+        <div class="flex gap-3">
+            <div class="relative">
+                <input type="text" placeholder="Buscar paciente..." [(ngModel)]="activeFilter" disabled
+                    class="pl-9 pr-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/20 text-sm">
+                <mat-icon class="absolute left-3 top-2.5 text-gray-400 text-sm scale-75">search</mat-icon>
+            </div>
+            <button
+                class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors">
+                <mat-icon class="scale-75 inline-block mr-1 align-middle">filter_list</mat-icon> Filtros
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex gap-2 bg-gray-100/50 p-1 rounded-2xl w-fit">
+        <button (click)="filter('all')"
+            [class]="activeFilter === 'all' ? 'bg-white text-brand-dark shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+            class="px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            <mat-icon class="scale-75">{{ filterIcons.all }}</mat-icon>
+            Todas ({{allPatients.length}})
+        </button>
+        <button (click)="filter('critical')"
+            [class]="activeFilter === 'critical' ? 'bg-white text-brand-coral shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+            class="px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            <mat-icon class="scale-75 text-brand-coral">{{ filterIcons.critical }}</mat-icon>
+            Críticas
+        </button>
+        <button (click)="filter('moderate')"
+            [class]="activeFilter === 'moderate' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+            class="px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+            <mat-icon class="scale-75 text-yellow-600">{{ filterIcons.moderate }}</mat-icon>
+            Moderadas
         </button>
     </div>
 
-    <mat-chip-listbox aria-label="Alert filters" class="mb-4">
-        <mat-chip-option [selected]="activeFilter === 'all'" (click)="filter('all')"
-            color="primary">Todas</mat-chip-option>
-        <mat-chip-option [selected]="activeFilter === 'critical'" (click)="filter('critical')" color="warn">Solo
-            Críticas</mat-chip-option>
-        <mat-chip-option [selected]="activeFilter === 'moderate'" (click)="filter('moderate')" color="accent">Solo
-            Moderadas</mat-chip-option>
-        <mat-chip-option [selected]="activeFilter === 'unread'" (click)="filter('unread')">No Vistas</mat-chip-option>
-    </mat-chip-listbox>
-
-    <div class="flex-1 overflow-auto bg-white rounded-lg shadow-sm border border-gray-200 relative">
-
-        <div *ngIf="loading" class="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80 z-10">
+    <!-- Patient Grid -->
+    <div class="flex-1 overflow-y-auto">
+        <div *ngIf="loading" class="flex justify-center items-center h-64">
             <mat-spinner diameter="40"></mat-spinner>
         </div>
 
-        <mat-list>
-            <mat-list-item *ngFor="let alert of filteredAlerts"
-                class="alert-item border-l-4 mb-2 hover:bg-gray-50 cursor-pointer" [ngClass]="{
-                               'border-red-500': alert.type === 'critical', 
-                               'border-yellow-500': alert.type === 'moderate',
-                               'bg-blue-50': !alert.isRead
-                           }" (click)="navigateToPatient(alert.patientId)">
+        <div *ngIf="!loading && filteredPatients.length === 0"
+            class="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
+            <mat-icon class="text-6xl mb-4">check_circle_outline</mat-icon>
+            <p class="text-lg font-medium">No hay alertas en esta categoría</p>
+        </div>
 
-                <mat-icon matListItemIcon [class]="alert.type === 'critical' ? 'text-red-500' : 'text-yellow-600'">
-                    {{ alert.type === 'critical' ? 'warning' : 'info' }}
-                </mat-icon>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+            <div *ngFor="let p of filteredPatients"
+                class="glass-card bg-white p-5 rounded-3xl border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative group">
 
-                <div matListItemTitle class="font-bold flex items-center gap-2">
-                    {{ alert.patientName }}
-                    <span *ngIf="!alert.isRead"
-                        class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full">NUEVA</span>
+                <!-- Status Badge -->
+                <div class="absolute top-5 right-5 z-10">
+                    <span
+                        [class]="getRiskClass(p.riskLevel) + ' px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5'">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+                        {{ getRiskLabel(p.riskLevel) }}
+                    </span>
                 </div>
 
-                <div matListItemLine class="text-gray-700">
-                    {{ alert.message }}
+                <!-- Patient Header -->
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="relative">
+                        <img [src]="p.profilePicture" class="w-14 h-14 rounded-2xl object-cover bg-gray-100"
+                            (error)="$event.target.style.display='none'">
+                        <mat-icon class="text-gray-300 text-4xl" style="position:absolute">account_circle</mat-icon>
+                        <div class="absolute -bottom-1 -right-1 bg-white p-0.5 rounded-full">
+                            <mat-icon
+                                class="text-brand-cyan text-xs scale-75 bg-cyan-50 rounded-full w-4 h-4 flex items-center justify-center">male</mat-icon>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-brand-dark text-base leading-tight">{{ p.full_name }}</h3>
+                        <p class="text-xs text-gray-400 font-medium">ID: {{ p.id }} • {{ p.date_of_birth | age }} Años
+                        </p>
+                    </div>
                 </div>
 
-                <div matListItemLine class="text-xs text-gray-500 mt-1">
-                    {{ alert.timestamp | date:'short' }}
+                <!-- Vitals Grid -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">PEF Actual</p>
+                        <div class="flex items-end gap-1">
+                            <span class="text-xl font-bold text-brand-dark">{{ p.latest_pef }}</span>
+                            <span class="text-[10px] text-gray-400 mb-1">L/min</span>
+                        </div>
+                        <p class="text-[10px] text-red-500 font-bold mt-1">▼ 35% vs Mejor</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">SpO2</p>
+                        <div class="flex items-end gap-1">
+                            <span class="text-xl font-bold text-brand-dark">{{ p.currentSpO2 }}</span>
+                            <span class="text-[10px] text-gray-400 mb-1">%</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1">Normal</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">F. Resp</p>
+                        <div class="flex items-end gap-1">
+                            <span class="text-xl font-bold text-brand-dark">{{ p.respiratoryRate }}</span>
+                            <span class="text-[10px] text-gray-400 mb-1">rpm</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Última Act.</p>
+                        <p class="text-xs font-bold text-brand-dark mt-1">{{ p.lastUpdate | safeDate:'shortTime' }}</p>
+                        <p class="text-[10px] text-gray-400">{{ p.lastUpdate | safeDate }}</p>
+                    </div>
                 </div>
 
-                <div matListItemMeta class="flex items-center gap-2">
-                    <button mat-icon-button color="primary" (click)="markAsRead(alert, $event)"
-                        matTooltip="Marcar como vista" *ngIf="!alert.isRead">
-                        <mat-icon>check_circle_outline</mat-icon>
+                <!-- Actions -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button [routerLink]="['/dashboard/patients', p.id]"
+                        class="bg-cyan-50 text-brand-cyan hover:bg-cyan-100 text-xs font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                        Ver Expediente
                     </button>
-                    <button mat-icon-button (click)="$event.stopPropagation(); navigateToPatient(alert.patientId)">
-                        <mat-icon>arrow_forward</mat-icon>
+                    <button (click)="markAsResolved(p)"
+                        class="bg-green-50 text-green-600 hover:bg-green-100 text-xs font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                        <mat-icon class="scale-75">check_circle</mat-icon> Atendido
                     </button>
                 </div>
-            </mat-list-item>
-        </mat-list>
+                <!-- Call Action -->
+                <div class="mt-4 grid grid-cols-1 border-t border-gray-100 pt-3">
+                    <button
+                        class="w-full border border-brand-coral/20 text-brand-coral hover:bg-brand-coral/10 text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                        <mat-icon class="scale-75">call</mat-icon> Llamar al Paciente
+                    </button>
+                </div>
+            </div>
 
-        <div *ngIf="!loading && filteredAlerts.length === 0"
-            class="h-full flex flex-col items-center justify-center text-gray-400">
-            <mat-icon class="text-6xl mb-4 scale-150 opacity-50">notifications_off</mat-icon>
-            <p class="text-lg">No hay alertas para mostrar 🎉</p>
         </div>
     </div>
 </div>

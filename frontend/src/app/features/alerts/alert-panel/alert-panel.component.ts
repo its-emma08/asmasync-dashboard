@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -10,10 +10,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { AgePipe } from '../../../shared/pipes/age-pipe';
+import { SafeDatePipe } from '../../../shared/pipes/safe-date.pipe';
 
-import { AlertService } from '../../../core/services/alert.service';
+import { PatientService } from '../../../core/services/patient.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { Alert } from '../../../core/models/alert.model';
+import { Patient } from '../../../core/models/patient.model';
 
 @Component({
     selector: 'app-alert-panel',
@@ -27,7 +31,11 @@ import { Alert } from '../../../core/models/alert.model';
         MatButtonModule,
         MatIconModule,
         MatTooltipModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
+        MatSnackBarModule,
+        FormsModule,
+        AgePipe,
+        SafeDatePipe
     ],
     templateUrl: './alert-panel.component.html',
     styleUrls: ['./alert-panel.component.scss']
@@ -35,118 +43,96 @@ import { Alert } from '../../../core/models/alert.model';
 export class AlertPanelComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
-    alerts: Alert[] = [];
-    filteredAlerts: Alert[] = [];
+    // Static configuration for filters to prevent NG0100
+    filterIcons = {
+        all: 'list',
+        critical: 'warning',
+        moderate: 'error_outline'
+    };
+
+    allPatients: Patient[] = [];
+    filteredPatients: Patient[] = [];
     loading = true;
-    activeFilter = 'all'; // 'all', 'critical', 'moderate', 'unread'
+    activeFilter: 'all' | 'critical' | 'moderate' = 'all';
 
     constructor(
-        private alertService: AlertService,
+        private patientService: PatientService,
         private wsService: WebSocketService,
-        private router: Router
-    ) { }
+        private router: Router,
+        private snackBar: MatSnackBar,
+        private cd: ChangeDetectorRef
+    ) {
+        // Initialize with empty/default to be safe
+        this.allPatients = [];
+        this.filteredPatients = [];
+    }
 
     ngOnInit(): void {
-        this.requestNotificationPermission();
-        this.loadAlerts();
-        this.setupRealtimeUpdates();
+        this.loadPatients();
     }
 
-    requestNotificationPermission(): void {
-        if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();
-        }
-    }
-
-    loadAlerts(): void {
+    loadPatients(): void {
         this.loading = true;
-        this.alertService.getAlerts()
+        this.patientService.getAllPatients()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (data) => {
-                    this.alerts = data;
+                next: (patients) => {
+                    // Start with all high risk patients
+                    this.allPatients = patients.filter(p => p.riskLevel === 'red' || p.riskLevel === 'yellow');
                     this.filter(this.activeFilter);
                     this.loading = false;
+                    this.cd.markForCheck();
                 },
                 error: (err) => {
                     console.error(err);
                     this.loading = false;
+                    this.cd.markForCheck();
                 }
             });
     }
 
-    setupRealtimeUpdates(): void {
-        this.wsService.messages$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((msg) => {
-                if (msg.type === 'new_alert') {
-                    // Add new alert to top
-                    const newAlert: Alert = msg.data;
-                    this.alerts.unshift(newAlert);
-                    this.filter(this.activeFilter);
-
-                    if (newAlert.type === 'critical') {
-                        this.showBrowserNotification(newAlert);
-                    }
-                }
-            });
-    }
-
-    showBrowserNotification(alert: Alert): void {
-        if ('Notification' in window && Notification.permission === 'granted') {
-            const notification = new Notification('AsmaSync - Alerta Crítica', {
-                body: `${alert.patientName}: ${alert.message}`,
-                icon: '/assets/logo.png', // Assuming logo exists
-                tag: 'asmasync-alert',
-                requireInteraction: true
-            });
-
-            notification.onclick = () => {
-                window.focus();
-                this.router.navigate(['/dashboard/patients', alert.patientId]);
-                notification.close();
-            };
-        }
-    }
-
-    filter(type: string): void {
+    filter(type: 'all' | 'critical' | 'moderate'): void {
         this.activeFilter = type;
-        switch (type) {
-            case 'critical':
-                this.filteredAlerts = this.alerts.filter(a => a.type === 'critical');
-                break;
-            case 'moderate':
-                this.filteredAlerts = this.alerts.filter(a => a.type === 'moderate');
-                break;
-            case 'unread':
-                this.filteredAlerts = this.alerts.filter(a => !a.isRead);
-                break;
-            default:
-                this.filteredAlerts = this.alerts;
+        if (type === 'all') {
+            this.filteredPatients = this.allPatients;
+        } else if (type === 'critical') {
+            this.filteredPatients = this.allPatients.filter(p => p.riskLevel === 'red');
+        } else if (type === 'moderate') {
+            this.filteredPatients = this.allPatients.filter(p => p.riskLevel === 'yellow');
         }
     }
 
-    markAsRead(alert: Alert, event: Event): void {
-        event.stopPropagation();
-        if (alert.isRead) return;
-
-        this.alertService.markAsRead(alert.id).subscribe(() => {
-            alert.isRead = true;
-            this.filter(this.activeFilter); // Refresh filter just in case 'unread' is active
-        });
-    }
-
-    markAllAsRead(): void {
-        // In real app, implementing a bulk endpoint in service is better. 
-        // For now, iterate or minimal implementation
-        const unread = this.alerts.filter(a => !a.isRead);
-        unread.forEach(a => {
-            this.alertService.markAsRead(a.id).subscribe(() => a.isRead = true);
-        });
-    }
-
-    navigateToPatient(patientId: number): void {
+    navigateToPatient(patientId: string | number): void {
         this.router.navigate(['/dashboard/patients', patientId]);
+    }
+
+    markAsResolved(patient: Patient): void {
+        this.patientService.resolveAlert(patient.id).subscribe(success => {
+            if (success) {
+                this.snackBar.open('Alerta marcada como atendida', 'OK', { duration: 3000 });
+                // Remove from local list visually
+                this.allPatients = this.allPatients.filter(p => p.id !== patient.id);
+                this.filter(this.activeFilter);
+            } else {
+                this.snackBar.open('Error al actualizar estado', 'Error', { duration: 3000 });
+            }
+        });
+    }
+
+    getRiskLabel(level: string): string {
+        switch (level) {
+            case 'red': return 'Crítico';
+            case 'yellow': return 'Moderado';
+            default: return level;
+        }
+    }
+
+    getRiskClass(level: string): string {
+        switch (level) {
+            case 'red': return 'bg-red-50 text-brand-coral border-red-100';
+            case 'yellow': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
+            default: return 'bg-gray-50 text-gray-500';
+        }
     }
 
     ngOnDestroy(): void {

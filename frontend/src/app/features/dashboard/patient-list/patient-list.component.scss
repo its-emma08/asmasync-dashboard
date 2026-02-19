@@ -4,17 +4,19 @@
     /* Base style handled by tailwind classes in template, just colors here */
 }
 
-.risk-green {
-    background-color: #4CAF50;
+.risk-badge.stable {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
 }
 
-.risk-yellow {
-    background-color: #FFC107;
-    color: #3e3e3e;
+.risk-badge.moderate {
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
 }
 
-.risk-red {
-    background-color: #F44336;
+.risk-badge.critical {
+    background-color: var(--color-error-bg);
+    color: var(--color-error);
 }
 
 /* Loading Shade */

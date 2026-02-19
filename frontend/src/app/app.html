@@ -1,1 +1,7 @@
-<router-outlet></router-outlet>
+@if (isLoading()) {
+<app-loading-screen [progress]="loadingProgress()"></app-loading-screen>
+}
+
+<div class="app-container" [@routeAnimations]="getRouteAnimationData(outlet)">
+    <router-outlet #outlet="outlet"></router-outlet>
+</div>

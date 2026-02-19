@@ -1,50 +1,147 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title class="text-center w-full mb-4">
-        <h1 class="text-2xl font-bold text-primary">AsmaSync</h1>
-        <p class="text-sm text-gray-500">Monitoreo de Pacientes Asmáticos</p>
-      </mat-card-title>
-    </mat-card-header>
+<div
+  class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-teal-700 to-cyan-800 relative overflow-hidden">
 
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-        
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Correo Electrónico</mat-label>
-          <input matInput formControlName="email" type="email" placeholder="enfermeria@hospital.com">
-          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-            El correo es obligatorio
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+  <!-- Background Abstract Shapes -->
+  <div class="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-cyan-500/20 rounded-full blur-3xl animate-pulse">
+  </div>
+  <div class="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-teal-400/20 rounded-full blur-3xl"></div>
+
+  <div
+    class="w-full max-w-5xl bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row z-10 min-h-[650px] animate-fade-in-up"
+    [class.shake-card]="triggerShake()">
+
+    <!-- Left Side: Branding (Desktop Only) -->
+    <div class="hidden lg:flex w-1/2 bg-slate-50 relative items-center justify-center p-12 overflow-hidden">
+      <!-- Decorative Pattern -->
+      <div class="absolute inset-0 opacity-[0.03]"
+        style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+      <div
+        class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-teal-100 to-transparent rounded-bl-full opacity-50">
+      </div>
+      <div
+        class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-100 to-transparent rounded-tr-full opacity-50">
+      </div>
+
+      <div class="text-center relative z-10 max-w-md">
+        <div
+          class="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto mb-8 flex items-center justify-center transform rotate-3 hover:rotate-6 transition-transform duration-500">
+          <mat-icon class="text-6xl text-brand-cyan w-16 h-16 scale-150">lungs</mat-icon>
+        </div>
+        <h2 class="text-3xl font-bold text-slate-800 mb-4 tracking-tight">AsmaSync Dashboard</h2>
+        <div class="space-y-4">
+          <p class="text-slate-500 text-lg leading-relaxed">
+            Plataforma integral para el monitoreo y gestión de pacientes asmáticos.
+          </p>
+          <div class="flex gap-3 justify-center pt-4">
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100">
+              <mat-icon class="text-green-500 scale-75">check_circle</mat-icon>
+              <span class="text-xs font-bold text-slate-600">Alertas Real-time</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100">
+              <mat-icon class="text-blue-500 scale-75">show_chart</mat-icon>
+              <span class="text-xs font-bold text-slate-600">Análisis Predictivo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Login Form -->
+    <div class="w-full lg:w-1/2 p-8 md:p-16 flex flex-col justify-center relative bg-white">
+
+      <!-- Mobile Logo -->
+      <div class="lg:hidden flex justify-center mb-8">
+        <div
+          class="w-16 h-16 bg-gradient-to-br from-brand-cyan to-brand-green rounded-2xl flex items-center justify-center shadow-lg text-white">
+          <mat-icon class="scale-150">lungs</mat-icon>
+        </div>
+      </div>
+
+      <div class="mb-10">
+        <h3 class="text-3xl font-bold text-slate-900 mb-2">Bienvenido de nuevo</h3>
+        <p class="text-slate-500">Ingresa tus credenciales para acceder al panel.</p>
+      </div>
+
+      <!-- Lockout Banner -->
+      <div *ngIf="isLocked()" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl animate-pulse">
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-red-500">lock_clock</mat-icon>
+          <div>
+            <h4 class="font-bold text-red-700 m-0">Cuenta Bloqueada</h4>
+            <p class="text-sm text-red-600 m-0">Demasiados intentos fallidos. Intenta de nuevo en <span
+                class="font-bold text-lg">{{ lockoutCountdown() }}s</span></p>
+          </div>
+        </div>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" appFocusInvalidInput>
+
+        <!-- Email -->
+        <div class="space-y-1">
+          <label class="text-sm font-bold text-slate-700 ml-1">Correo Electrónico</label>
+          <div class="relative">
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">email</mat-icon>
+            <input type="email" formControlName="email"
+              class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
+              placeholder="nombre@ejemplo.com">
+          </div>
+          <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-xs ml-1">
             Ingresa un correo válido
           </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Contraseña</mat-label>
-          <input matInput formControlName="password" type="password">
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            La contraseña es obligatoria
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
-            Mínimo 8 caracteres
-          </mat-error>
-        </mat-form-field>
-
-        <div class="flex justify-center my-2" *ngIf="isLoading">
-          <mat-spinner diameter="30"></mat-spinner>
         </div>
 
-        <button mat-flat-button color="primary" type="submit" 
-                [disabled]="loginForm.invalid || isLoading" class="w-full py-6 text-lg">
-          Iniciar Sesión
+        <!-- Password -->
+        <div class="space-y-1">
+          <div class="flex justify-between ml-1">
+            <label class="text-sm font-bold text-slate-700">Contraseña</label>
+            <a routerLink="/auth/forgot-password" class="text-xs text-brand-cyan font-bold hover:underline">¿Olvidaste
+              tu contraseña?</a>
+          </div>
+          <div class="relative">
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
+            <input [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
+              class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-dot"
+              placeholder="••••••••">
+            <button type="button" (click)="hidePassword.set(!hidePassword())"
+              class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+              <mat-icon class="scale-90">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+          </div>
+          <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            class="text-xs ml-1">
+            La contraseña es requerida
+          </mat-error>
+        </div>
+
+        <!-- Captcha -->
+        <div class="flex justify-center my-2" *ngIf="localFailedAttempts() >= 2">
+          <re-captcha (resolved)="resolved($event)" [siteKey]="'6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'">
+          </re-captcha>
+        </div>
+
+        <!-- Remember Me -->
+        <div class="flex items-center">
+          <mat-checkbox color="primary" class="font-medium text-slate-600">Recordarme en este dispositivo</mat-checkbox>
+        </div>
+
+        <!-- Submit Button -->
+        <button mat-flat-button color="primary"
+          class="!py-6 !rounded-2xl !text-lg !font-bold shadow-lg shadow-brand-cyan/30 mt-4 transition-transform hover:scale-[1.02]"
+          [disabled]="loginForm.invalid || isLoading()">
+          <div class="flex items-center gap-2">
+            <mat-spinner diameter="20" *ngIf="isLoading()" class="mr-2 text-white"></mat-spinner>
+            <span>{{ isLoading() ? 'Iniciando Sesión...' : 'Ingresar' }}</span>
+            <mat-icon *ngIf="!isLoading()">arrow_forward</mat-icon>
+          </div>
         </button>
 
-        <div class="text-center mt-2">
-            <a href="#" class="text-sm text-primary hover:underline" (click)="$event.preventDefault()">¿Olvidaste tu contraseña?</a>
+        <!-- Footer -->
+        <div class="text-center mt-6 text-sm text-slate-500 font-medium">
+          ¿No tienes una cuenta? <a routerLink="/auth/register"
+            class="text-brand-cyan font-bold hover:underline">Regístrate</a>
         </div>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>

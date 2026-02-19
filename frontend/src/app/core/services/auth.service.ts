@@ -1,22 +1,25 @@
 import { Injectable, Inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of, throwError, Subscription, timer } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { StorageService } from './storage.service';
 
 export interface User {
     id: number;
-    name: string;
+    full_name: string;
     email: string;
     role: 'nurse' | 'admin';
 }
 
 export interface LoginResponse {
-    access_token: string;
-    refresh_token: string;
-    user: User;
+    access_token?: string;
+    refresh_token?: string;
+    user?: User;
+    requires2FA?: boolean; // New flag
+    temp_token?: string;   // Temporary token for 2FA verification
 }
 
 @Injectable({
@@ -27,58 +30,132 @@ export class AuthService implements OnDestroy {
     private currentUserSubject = new BehaviorSubject<User | null>(null);
     public currentUser$ = this.currentUserSubject.asObservable();
 
+    // New: 2FA State
+    private requires2FASubject = new BehaviorSubject<boolean>(false);
+    public requires2FA$ = this.requires2FASubject.asObservable();
+
     private autoLogoutTimer: any;
     private isBrowser: boolean;
 
     constructor(
         private http: HttpClient,
         private router: Router,
+        private storageService: StorageService, // Injected for encryption
         @Inject(PLATFORM_ID) platformId: Object
     ) {
         this.isBrowser = isPlatformBrowser(platformId);
         if (this.isBrowser) {
             this.loadUserFromSession();
+            this.setupActivityListeners();
         }
     }
 
-    // Login
     login(email: string, password: string): Observable<LoginResponse> {
-        return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-            tap(response => {
+        // MOCK MODE: Return mock immediately — zero network calls
+        if (environment.mockMode) {
+            if (email === 'admin@asmasync.com' && password === 'Admin123!') {
+                // SIMULATE 2FA REQUIREMENT
+                const mockResponse: LoginResponse = {
+                    requires2FA: true,
+                    temp_token: 'temp-2fa-token-123'
+                };
+
+                // Store temp token
                 if (this.isBrowser) {
-                    sessionStorage.setItem('access_token', response.access_token);
-                    sessionStorage.setItem('refresh_token', response.refresh_token);
-                    sessionStorage.setItem('user', JSON.stringify(response.user));
-                    this.currentUserSubject.next(response.user);
-                    this.startAutoLogoutTimer();
+                    this.storageService.setItem('temp_2fa_token', mockResponse.temp_token);
                 }
-            }),
-            catchError(error => {
-                return throwError(() => error);
-            })
+
+                return of(mockResponse);
+            }
+            return throwError(() => new Error('Credenciales inválidas'));
+        }
+
+        // REAL MODE: Hit backend
+        return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+            tap(response => this.handleLoginSuccess(response)),
+            catchError(error => throwError(() => error))
         );
     }
 
-    // Logout
+    verifyTwoFactor(code: string): Observable<LoginResponse> {
+        if (environment.mockMode) {
+            if (code === '123456') {
+                const mockFinalResponse: LoginResponse = {
+                    access_token: 'mock-access-token',
+                    refresh_token: 'mock-refresh-token',
+                    user: {
+                        id: 1,
+                        full_name: 'Dr. Admin Mock',
+                        email: 'admin@asmasync.com',
+                        role: 'admin'
+                    }
+                };
+                this.handleLoginSuccess(mockFinalResponse);
+                return of(mockFinalResponse);
+            }
+            return throwError(() => new Error('Código incorrecto'));
+        }
+
+        // Real implementation would go here
+        return throwError(() => new Error('Backend not implemented'));
+    }
+
+    changePassword(oldPass: string, newPass: string): Observable<void> {
+        if (environment.mockMode) {
+            if (oldPass === 'Admin123!') {
+                return of(void 0);
+            }
+            return throwError(() => new Error('La contraseña actual es incorrecta'));
+        }
+        return this.http.post<void>(`${this.apiUrl}/change-password`, { oldPass, newPass });
+    }
+
+    public handleLoginSuccess(response: LoginResponse): void {
+        if (this.isBrowser) {
+            if (response.requires2FA) {
+                this.requires2FASubject.next(true);
+                return; // Stop here, redirect to 2FA page in component
+            }
+
+            this.requires2FASubject.next(false);
+
+            if (response.access_token && response.user) {
+                this.storageService.setItem('access_token', response.access_token);
+                this.storageService.setItem('refresh_token', response.refresh_token);
+                this.storageService.setItem('user', response.user);
+                this.currentUserSubject.next(response.user);
+
+                // Clear temp items
+                localStorage.removeItem('temp_2fa_token');
+
+                this.startAutoLogoutTimer();
+            }
+        }
+    }
+
     logout(): void {
         if (this.isBrowser) {
-            // Intentar notificar al backend, pero limpiar localmente sin esperar
-            this.http.post(`${this.apiUrl}/logout`, {}).pipe(
-                catchError(() => of(null))
-            ).subscribe();
-
-            sessionStorage.clear();
+            if (!environment.mockMode) {
+                this.http.post(`${this.apiUrl}/logout`, {}).pipe(
+                    catchError(() => of(null))
+                ).subscribe();
+            }
+            this.storageService.clear();
             this.clearAutoLogoutTimer();
         }
         this.currentUserSubject.next(null);
+        this.requires2FASubject.next(false);
         this.router.navigate(['/login']);
     }
 
-    // Renovar token
     refreshToken(): Observable<any> {
+        if (environment.mockMode) {
+            return of({ access_token: 'mock-refreshed-token' });
+        }
+
         let refreshToken: string | null = null;
         if (this.isBrowser) {
-            refreshToken = sessionStorage.getItem('refresh_token');
+            refreshToken = this.storageService.getItem('refresh_token');
         }
 
         if (!refreshToken) {
@@ -89,53 +166,44 @@ export class AuthService implements OnDestroy {
         return this.http.post(`${this.apiUrl}/refresh-token`, { refresh_token: refreshToken }).pipe(
             tap((response: any) => {
                 if (this.isBrowser && response.access_token) {
-                    sessionStorage.setItem('access_token', response.access_token);
+                    this.storageService.setItem('access_token', response.access_token);
                 }
             })
         );
     }
 
-    // Obtener token actual
     getToken(): string | null {
         if (this.isBrowser) {
-            return sessionStorage.getItem('access_token');
+            return this.storageService.getItem('access_token');
         }
         return null;
     }
 
-    // Verificar si está autenticado
     isAuthenticated(): boolean {
         return !!this.getToken();
     }
 
-    // Obtener usuario actual
     getCurrentUser(): Observable<User | null> {
         return this.currentUser$;
     }
 
     private loadUserFromSession(): void {
-        const userStr = sessionStorage.getItem('user');
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr);
-                this.currentUserSubject.next(user);
-                this.startAutoLogoutTimer();
-            } catch (e) {
-                console.error('Error parsing user from session', e);
-                this.logout();
-            }
+        const user = this.storageService.getItem('user');
+        if (user) {
+            this.currentUserSubject.next(user);
+            this.startAutoLogoutTimer();
         }
     }
 
-    // Auto-logout por inactividad (15 min)
     private startAutoLogoutTimer(): void {
         this.clearAutoLogoutTimer();
         if (this.isBrowser) {
-            // 15 minutos = 15 * 60 * 1000
+            const timeoutDuration = 12 * 60 * 60 * 1000; // 12h default inside app
+            // Note: The Idle Service handles the short 5min timeout.
+            // This is just a backup for long sessions.
             this.autoLogoutTimer = setTimeout(() => {
-                alert('Tu sesión ha expirado por inactividad.');
                 this.logout();
-            }, 15 * 60 * 1000);
+            }, timeoutDuration);
         }
     }
 
@@ -146,7 +214,26 @@ export class AuthService implements OnDestroy {
         }
     }
 
-    // Reiniciar timer en actividad (se llamaría desde un interceptor o evento global)
+    private setupActivityListeners(): void {
+        if (this.isBrowser) {
+            const events = ['mousemove', 'keydown', 'click', 'scroll'];
+            let lastReset = 0;
+            const throttleTime = 30000;
+
+            const reset = () => {
+                const now = Date.now();
+                if (now - lastReset > throttleTime) {
+                    this.resetTimer();
+                    lastReset = now;
+                }
+            };
+
+            events.forEach(event => {
+                window.addEventListener(event, reset);
+            });
+        }
+    }
+
     public resetTimer(): void {
         if (this.isAuthenticated()) {
             this.startAutoLogoutTimer();

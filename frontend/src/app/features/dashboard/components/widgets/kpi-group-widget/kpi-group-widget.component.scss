@@ -1,0 +1,11 @@
+/* Custom Progress Bar Colors context */
+::ng-deep .mat-mdc-progress-bar {
+    --mdc-linear-progress-track-color: #F1F5F9;
+}
+
+/* Fix for cut-off icons */
+mat-icon {
+    overflow: visible;
+    width: auto;
+    height: auto;
+}

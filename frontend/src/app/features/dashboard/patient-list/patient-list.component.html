@@ -1,122 +1,227 @@
-<div class="patients-container p-6">
+<div class="h-full flex flex-col p-4 max-w-7xl mx-auto overflow-hidden">
 
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Listado de Pacientes</h1>
-        <p class="text-gray-500">Gestión y monitoreo de pacientes asignados.</p>
+    <!-- Header & Actions -->
+    <div class="flex-none flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Pacientes</h1>
+            <p class="text-slate-500 text-sm">Gestión de expedientes y monitoreo en tiempo real.</p>
+        </div>
+        <button mat-flat-button class="btn-primary flex items-center gap-2" routerLink="/dashboard/patients/new">
+            <mat-icon>add</mat-icon>
+            Nuevo Paciente
+        </button>
     </div>
 
-    <mat-card>
-        <mat-card-content>
+    <!-- Filters Card (Fixed Height) -->
+    <div class="flex-none mb-4">
+        <mat-card class="!rounded-[16px] !shadow-sm border border-slate-100 overflow-hidden">
+            <mat-card-content class="p-3">
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <!-- Search Input -->
+                    <div class="w-full md:w-1/2 relative">
+                        <mat-icon
+                            class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">search</mat-icon>
+                        <input type="text" [formControl]="searchControl"
+                            class="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-lg focus:ring-1 focus:ring-primary/20 transition-all outline-none text-slate-700 placeholder-slate-400 text-sm"
+                            placeholder="Buscar por nombre, ID o email...">
+                    </div>
 
-            <!-- Filters -->
-            <div class="filters-container flex flex-col md:flex-row gap-4 mb-4 items-center">
+                    <!-- Filter & Toggles -->
+                    <div class="w-full md:w-auto flex items-center gap-3 ml-auto">
+                        <mat-select [formControl]="riskFilterControl"
+                            class="bg-slate-50 py-2 px-3 rounded-lg border-none text-slate-700 text-sm outline-none min-w-[140px]">
+                            <mat-option *ngFor="let risk of riskLevels" [value]="risk.value">
+                                {{risk.label}}
+                            </mat-option>
+                        </mat-select>
 
-                <mat-form-field appearance="outline" class="w-full md:w-1/3">
-                    <mat-label>Buscar paciente</mat-label>
-                    <input matInput [formControl]="searchControl" placeholder="Nombre...">
-                    <mat-icon matSuffix>search</mat-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="w-full md:w-1/3">
-                    <mat-label>Nivel de Riesgo</mat-label>
-                    <mat-select [formControl]="riskFilterControl">
-                        <mat-option *ngFor="let risk of riskLevels" [value]="risk.value">
-                            {{risk.viewValue}}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-
-                <button mat-stroked-button color="primary" (click)="clearFilters()" class="h-[56px] -mt-[22px]">
-                    <mat-icon>filter_list_off</mat-icon>
-                    Limpiar
-                </button>
-
-            </div>
-
-            <!-- Loading Overlay -->
-            <div class="loading-shade" *ngIf="isLoadingResults || isRateLimitReached">
-                <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
-                <div class="rate-limit-reached" *ngIf="isRateLimitReached">
-                    No se pudieron cargar los datos. Intenta de nuevo más tarde.
+                        <button mat-button class="text-sm" (click)="toggleArchivedView()"
+                            [class.text-amber-600]="showArchived" [class.bg-amber-50]="showArchived">
+                            {{ showArchived ? 'Activos' : 'Archivados' }}
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
 
-            <!-- Table -->
-            <div class="table-container overflow-auto">
-                <table mat-table [dataSource]="data" matSort matSortActive="riskLevel" matSortDisableClear
-                    matSortDirection="desc" class="w-full">
+    <!-- Loading State -->
+    <div *ngIf="isLoadingResults" class="flex-grow flex items-center justify-center">
+        <app-skeleton-table></app-skeleton-table>
+    </div>
 
-                    <!-- ID Column -->
-                    <ng-container matColumnDef="id">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear> ID </th>
-                        <td mat-cell *matCellDef="let row"> #{{row.id}} </td>
-                    </ng-container>
+    <!-- Table Container (Flex Grow + Scroll) -->
+    <div *ngIf="!isLoadingResults"
+        class="flex-grow flex flex-col bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden min-h-0">
 
-                    <!-- Full Name Column -->
-                    <ng-container matColumnDef="fullName">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre Completo </th>
-                        <td mat-cell *matCellDef="let row" class="font-medium"> {{row.fullName}} </td>
-                    </ng-container>
+        <!-- Table Scrollable Area -->
+        <div class="flex-grow overflow-auto relative">
+            <table mat-table [dataSource]="data" matSort matSortActive="riskLevel" matSortDirection="desc"
+                class="w-full">
 
-                    <!-- Age Column -->
-                    <ng-container matColumnDef="age">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Edad </th>
-                        <td mat-cell *matCellDef="let row"> {{row.age}} años </td>
-                    </ng-container>
+                <!-- Sticky Header Background -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="!bg-slate-50 z-10"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                    class="hover:bg-slate-50/80 transition-colors cursor-pointer border-b border-slate-100 last:border-none"
+                    [routerLink]="['/dashboard/patients', row.id]"></tr>
 
-                    <!-- Risk Level Column -->
-                    <ng-container matColumnDef="riskLevel">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Riesgo </th>
-                        <td mat-cell *matCellDef="let row">
-                            <span class="px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white"
-                                [ngClass]="getRiskClass(row.riskLevel)">
-                                {{ getRiskLabel(row.riskLevel) }}
-                            </span>
-                        </td>
-                    </ng-container>
+                <!-- Profile Column -->
+                <ng-container matColumnDef="fullName">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header
+                        class="!pl-6 !py-4 text-slate-500 uppercase tracking-wider text-[10px] font-bold"> Paciente
+                    </th>
+                    <td mat-cell *matCellDef="let row" class="!pl-6 !py-3">
+                        <div class="flex items-center gap-3">
+                            <img [src]="row.profilePicture"
+                                class="w-10 h-10 rounded-full bg-slate-100 p-0.5 border border-slate-200 object-cover"
+                                (error)="$event.target.style.display='none'">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 absolute"
+                                *ngIf="!row.profilePicture">
+                                <mat-icon class="!text-xl !w-5 !h-5">account_circle</mat-icon>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm leading-tight flex items-center gap-2">
+                                    {{row.full_name}}
+                                    <span class="w-2 h-2 rounded-full ring-1 ring-white shadow-sm" [ngClass]="{
+                                        'bg-emerald-500': row.riskLevel === 'green',
+                                        'bg-amber-500': row.riskLevel === 'yellow',
+                                        'bg-rose-500': row.riskLevel === 'red'
+                                    }" matTooltip="Estado: {{ getRiskLabel(row.riskLevel) }}"></span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 font-medium">ID: #{{row.id}}</div>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
 
-                    <!-- PEF Column -->
-                    <ng-container matColumnDef="currentPEF">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header> FEM Actual </th>
-                        <td mat-cell *matCellDef="let row">
-                            <strong>{{row.currentPEF}}</strong> <span class="text-gray-500 text-xs">L/min</span>
-                        </td>
-                    </ng-container>
+                <!-- ID Column (Hidden) -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef class="hidden"> ID </th>
+                    <td mat-cell *matCellDef="let row" class="hidden"> {{row.id}} </td>
+                </ng-container>
 
-                    <!-- SpO2 Column -->
-                    <ng-container matColumnDef="currentSpO2">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header> SpO2 </th>
-                        <td mat-cell *matCellDef="let row">
-                            <span [class.text-red-500]="row.currentSpO2 < 90">{{row.currentSpO2}}%</span>
-                        </td>
-                    </ng-container>
+                <!-- Age -->
+                <ng-container matColumnDef="age">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header
+                        class="text-slate-500 uppercase tracking-wider text-[10px] font-bold"> Edad </th>
+                    <td mat-cell *matCellDef="let row" class="text-slate-600 text-xs font-medium"> {{row.date_of_birth |
+                        age}}
+                        años </td>
+                </ng-container>
 
-                    <!-- Created Column -->
-                    <ng-container matColumnDef="lastUpdate">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear> Última Act. </th>
-                        <td mat-cell *matCellDef="let row"> {{row.lastUpdate | date:'medium'}} </td>
-                    </ng-container>
+                <!-- Risk Level -->
+                <ng-container matColumnDef="riskLevel">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header
+                        class="text-slate-500 uppercase tracking-wider text-[10px] font-bold"> Estado </th>
+                    <td mat-cell *matCellDef="let row">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border" [ngClass]="{
+                                'bg-emerald-50 border-emerald-200 text-emerald-700': row.riskLevel === 'green',
+                                'bg-amber-50 border-amber-200 text-amber-700': row.riskLevel === 'yellow',
+                                'bg-rose-50 border-rose-200 text-rose-700': row.riskLevel === 'red'
+                            }">
+                            <div class="w-1.5 h-1.5 rounded-full" [ngClass]="{
+                                    'bg-emerald-500': row.riskLevel === 'green',
+                                    'bg-amber-500': row.riskLevel === 'yellow',
+                                    'bg-rose-500': row.riskLevel === 'red'
+                                }"></div>
+                            <span class="text-[10px] font-bold uppercase">{{ getRiskLabel(row.riskLevel) }}</span>
+                        </div>
+                    </td>
+                </ng-container>
 
-                    <!-- Actions Column -->
-                    <ng-container matColumnDef="actions">
-                        <th mat-header-cell *matHeaderCellDef> Acciones </th>
-                        <td mat-cell *matCellDef="let row">
-                            <button mat-icon-button color="primary" [routerLink]="['/dashboard/patients', row.id]"
-                                matTooltip="Ver historial">
+                <!-- Vitals -->
+                <ng-container matColumnDef="currentPEF">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="text-slate-500 uppercase tracking-wider text-[10px] font-bold"> FEM (L/min) </th>
+                    <td mat-cell *matCellDef="let row">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-slate-700">{{row.latest_pef || '--'}}</span>
+                            <span class="text-[10px] text-slate-400" *ngIf="row.personal_best_pef">Meta:
+                                {{row.personal_best_pef}}</span>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="currentSpO2">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="text-slate-500 uppercase tracking-wider text-[10px] font-bold"> SpO2 </th>
+                    <td mat-cell *matCellDef="let row">
+                        <span class="font-bold text-sm"
+                            [ngClass]="row.currentSpO2 < 90 ? 'text-rose-600' : 'text-slate-700'">
+                            {{row.currentSpO2 || '--'}}%
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="adherence">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header
+                        class="text-slate-500 uppercase tracking-wider text-[10px] font-bold"> Adherencia </th>
+                    <td mat-cell *matCellDef="let row">
+                        <div class="w-20">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-[10px] font-bold text-slate-700">{{row.adherence}}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-1">
+                                <div class="h-1 rounded-full" [ngClass]="{
+                                    'bg-green-500': row.adherence >= 80,
+                                    'bg-yellow-500': row.adherence >= 50 && row.adherence < 80,
+                                    'bg-red-500': row.adherence < 50
+                                }" [style.width.%]="row.adherence"></div>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="lastUpdate">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="text-slate-500 uppercase tracking-wider text-[10px] font-bold"> Último Registro </th>
+                    <td mat-cell *matCellDef="let row" class="text-slate-500 text-xs">
+                        {{ row.lastUpdate | safeDate }}
+                    </td>
+                </ng-container>
+
+                <!-- Actions -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let row" class="!pr-4 text-right">
+                        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()"
+                            class="text-slate-400 hover:text-primary transition-colors scale-90">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item [routerLink]="['/dashboard/patients', row.id]">
                                 <mat-icon>visibility</mat-icon>
+                                <span>Ver Detalles</span>
                             </button>
-                        </td>
-                    </ng-container>
+                            <button mat-menu-item [routerLink]="['/dashboard/patients/edit', row.id]">
+                                <mat-icon>edit</mat-icon>
+                                <span>Editar</span>
+                            </button>
+                            <button mat-menu-item class="text-red-500 cursor-pointer"
+                                (click)="showArchived ? restorePatient(row.id) : archivePatient(row.id)">
+                                <mat-icon color="warn">{{ showArchived ? 'restore_from_trash' : 'archive' }}</mat-icon>
+                                <span>{{ showArchived ? 'Restaurar' : 'Archivar' }}</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+            </table>
 
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>
-                </table>
+            <!-- Empty State -->
+            <div *ngIf="data.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                    <mat-icon class="text-slate-300 scale-[1.5] transform">person_off</mat-icon>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 mb-1">No hay pacientes</h3>
+                <p class="text-slate-500 max-w-xs mx-auto text-sm mb-4">Ajusta los filtros o agrega un paciente.</p>
+                <button mat-stroked-button color="primary" class="rounded-full" routerLink="/dashboard/patients/new">
+                    Nuevo Paciente
+                </button>
             </div>
+        </div>
 
-            <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 50]"
-                aria-label="Select page of patients"></mat-paginator>
-
-        </mat-card-content>
-    </mat-card>
+        <!-- Paginator (Sticky Bottom) -->
+        <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[5, 10, 25]"
+            class="flex-none !text-slate-500 border-t border-slate-100 bg-white z-20"></mat-paginator>
+    </div>
 </div>

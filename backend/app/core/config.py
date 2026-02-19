@@ -1,10 +1,10 @@
-# backend/app/core/config.py
 from typing import List, Union
-from pydantic import AnyHttpUrl, validator
+from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AsmaSync Backend"
+    PROJECT_VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
     # Entorno
@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[AnyHttpUrl] = []
 
-    @validator("CORS_ORIGINS", pre=True)
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
@@ -36,5 +37,6 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()

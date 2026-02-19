@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { take } from 'rxjs/operators';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,6 +19,8 @@ import { PatientService } from '../../../core/services/patient.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { InterventionSuccessDialogComponent } from '../intervention-success-dialog/intervention-success-dialog.component';
 import { Patient } from '../../../core/models/patient.model';
+
+import { ComponentCanDeactivate } from '../../../core/guards/pending-changes.guard';
 
 @Component({
     selector: 'app-intervention-form',
@@ -40,7 +42,7 @@ import { Patient } from '../../../core/models/patient.model';
     templateUrl: './intervention-form.component.html',
     styleUrls: ['./intervention-form.component.scss']
 })
-export class InterventionFormComponent implements OnInit {
+export class InterventionFormComponent implements OnInit, ComponentCanDeactivate {
     interventionForm: FormGroup;
     patients: Patient[] = [];
     loading = false;
@@ -62,7 +64,9 @@ export class InterventionFormComponent implements OnInit {
         private router: Router,
         private route: ActivatedRoute,
         private snackBar: MatSnackBar,
-        private dialog: MatDialog
+        private dialog: MatDialog,
+        @Optional() public dialogRef: MatDialogRef<InterventionFormComponent>,
+        @Optional() @Inject(MAT_DIALOG_DATA) public data: { patientId: number }
     ) {
         this.interventionForm = this.fb.group({
             patientId: ['', Validators.required],
@@ -76,7 +80,12 @@ export class InterventionFormComponent implements OnInit {
     ngOnInit(): void {
         this.loadPatients();
 
-        // Check for patient ID in query params to pre-select
+        // Check dialog data first
+        if (this.data && this.data.patientId) {
+            this.interventionForm.patchValue({ patientId: this.data.patientId });
+        }
+
+        // Then check query params
         this.route.queryParams.subscribe(params => {
             if (params['patientId']) {
                 this.interventionForm.patchValue({ patientId: +params['patientId'] });
@@ -122,6 +131,13 @@ export class InterventionFormComponent implements OnInit {
     }
 
     openSuccessDialog(savedIntervention: any): void {
+        // If we are in a dialog, close it and return result
+        if (this.dialogRef) {
+            this.dialogRef.close('saved');
+            this.snackBar.open('Intervención guardada correctamente', 'Cerrar', { duration: 3000 });
+            return;
+        }
+
         const dialogRef = this.dialog.open(InterventionSuccessDialogComponent, {
             width: '450px',
             disableClose: true,
@@ -152,6 +168,19 @@ export class InterventionFormComponent implements OnInit {
     }
 
     cancel(): void {
-        this.router.navigate(['/dashboard']);
+        if (this.dialogRef) {
+            this.dialogRef.close();
+        } else {
+            this.router.navigate(['/dashboard']);
+        }
+    }
+
+    canDeactivate(): boolean {
+        // If form is dirty and not submitted, confirm exit
+        if (this.interventionForm.dirty && !this.loading) {
+            return confirm('Tienes cambios sin guardar en la intervención. ¿Estás seguro de que quieres salir?');
+        }
+        return true;
     }
 }
+

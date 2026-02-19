@@ -11,6 +11,8 @@ from app.core.database import get_db
 from app.models.user import User
 from sqlalchemy.future import select
 
+from sqlalchemy.orm import selectinload
+
 security_scheme = HTTPBearer()
 
 async def get_current_user(
@@ -44,7 +46,14 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    result = await db.execute(select(User).filter(User.id == int(user_id)))
+    result = await db.execute(
+        select(User)
+        .options(
+            selectinload(User.medical_profile),
+            selectinload(User.hospitals)
+        )
+        .filter(User.id == int(user_id))
+    )
     user = result.scalars().first()
     
     if user is None:

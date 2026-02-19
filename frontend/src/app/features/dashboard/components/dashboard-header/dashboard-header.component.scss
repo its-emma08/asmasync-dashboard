@@ -1,0 +1,18 @@
+// Dashboard Header Scoped Styles
+// Most styles are Tailwind, but we can add specific overrides here
+
+:host {
+    display: block;
+}
+
+// Ensure the menu items wrap correctly for long messages
+::ng-deep .mat-mdc-menu-panel {
+    max-width: 320px !important;
+}
+
+// Fix icon alignment in search input
+mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}

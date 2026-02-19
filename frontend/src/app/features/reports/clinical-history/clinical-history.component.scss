@@ -1,0 +1,109 @@
+/* IMSS Theme Vars */
+$imss-gold: #b38e5d;
+$imss-gold-light: #dccdb9;
+$imss-text: #333333;
+$imss-label: #555555;
+
+/* Layout & General */
+.clinical-wrapper {
+    height: 100vh;
+    @apply font-sans text-slate-900;
+}
+
+/* IMSS Specific Classes */
+.imss-section-header {
+    background-color: $imss-gold;
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 14px;
+    padding: 6px 16px;
+    border-radius: 20px 20px 20px 0px;
+    /* Rounded tab style like reference */
+    display: inline-block;
+    min-width: 300px;
+    margin-bottom: 4px;
+}
+
+.imss-label {
+    font-size: 11px;
+    color: $imss-label;
+    font-weight: 600;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.imss-line {
+    border-bottom: 1px solid #777;
+    font-size: 13px;
+    padding-left: 8px;
+    padding-bottom: 1px;
+    min-height: 20px;
+    font-weight: 500;
+    color: #000;
+}
+
+/* A4 Page Simulation */
+.a4-page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    /* font-family: 'Arial', sans-serif; -- System sans works well */
+    box-sizing: border-box;
+    transform-origin: top center;
+}
+
+/* Print Styles */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-family: Arial, sans-serif;
+        /* Explicit for print consistency */
+    }
+
+    /* Hide UI elements */
+    .print\:hidden,
+    .clinical-wrapper aside,
+    app-sidebar,
+    app-navbar,
+    .no-print {
+        display: none !important;
+    }
+
+    /* Reset Wrapper */
+    .clinical-wrapper {
+        height: auto;
+        overflow: visible;
+        background: white;
+    }
+
+    .clinical-wrapper main {
+        padding: 0;
+        background: white;
+        overflow: visible;
+        display: block;
+    }
+
+    /* A4 Container Reset */
+    .a4-page {
+        width: 100%;
+        min-height: auto;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .imss-section-header {
+        background-color: $imss-gold !important;
+        -webkit-print-color-adjust: exact;
+    }
+}

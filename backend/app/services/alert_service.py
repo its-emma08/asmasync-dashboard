@@ -13,19 +13,37 @@ class AlertService:
         db: AsyncSession, 
         skip: int = 0, 
         limit: int = 10,
-        is_viewed: Optional[bool] = None
+        is_viewed: Optional[bool] = None,
+        user_id: Optional[int] = None
     ) -> Tuple[List[Alert], int]:
         
+        from app.models.patient import Patient
+        from app.models.user import User
+        
         query = select(Alert)
+        
+        # Filter by doctor if provided
+        if user_id:
+             query = query.join(Alert.patient).join(Patient.doctors).filter(User.id == user_id)
+
         if is_viewed is not None:
             query = query.filter(Alert.is_viewed == is_viewed)
             
         count_query = select(func.count(Alert.id))
+        
+        if user_id:
+             count_query = count_query.join(Alert.patient).join(Patient.doctors).filter(User.id == user_id)
+        
         if is_viewed is not None:
              count_query = count_query.filter(Alert.is_viewed == is_viewed)
              
         total = await db.execute(count_query)
         total_count = total.scalar() or 0
+        
+        
+        # Eager load patient for the schema
+        from sqlalchemy.orm import selectinload
+        query = query.options(selectinload(Alert.patient))
         
         query = query.offset(skip).limit(limit).order_by(Alert.created_at.desc())
         result = await db.execute(query)
@@ -33,8 +51,15 @@ class AlertService:
         return result.scalars().all(), total_count
 
     @staticmethod
-    async def get_unread_count(db: AsyncSession) -> int:
+    async def get_unread_count(db: AsyncSession, user_id: Optional[int] = None) -> int:
+        from app.models.patient import Patient
+        from app.models.user import User
+        
         query = select(func.count(Alert.id)).filter(Alert.is_viewed == False)
+        
+        if user_id:
+             query = query.join(Alert.patient).join(Patient.doctors).filter(User.id == user_id)
+             
         result = await db.execute(query)
         return result.scalar() or 0
 
