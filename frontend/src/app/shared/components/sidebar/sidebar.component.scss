@@ -1,0 +1,12 @@
+/* Sidebar Styles - Now mostly handled by Tailwind in HTML */
+:host {
+    display: block;
+    height: 100%;
+}
+
+/* Material Icon Alignment */
+mat-icon {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}

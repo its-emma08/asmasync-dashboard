@@ -1,0 +1,28 @@
+.main-layout-container {
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--color-background-main);
+}
+
+.layout-sidebar {
+    flex-shrink: 0;
+    z-index: 100;
+    /* Optional: Small shadow for sidebar separation if needed */
+    box-shadow: 2px 0 30px rgba(0, 0, 0, 0.02);
+}
+
+.layout-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.page-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 30px 30px 30px;
+    /* Padding for content */
+    max-width: 100%;
+}

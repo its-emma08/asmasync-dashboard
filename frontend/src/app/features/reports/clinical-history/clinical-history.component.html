@@ -1,0 +1,292 @@
+<div class="flex h-screen bg-slate-100 overflow-hidden font-sans clinical-wrapper">
+
+    <!-- Left Sidebar: Controls -->
+    <aside class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shadow-lg print:hidden">
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex items-center gap-3 mb-4">
+                <div
+                    class="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                    IMSS
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 leading-tight">Historia Clínica</h2>
+                    <p class="text-[10px] text-gray-500 font-medium">Estilo Institucional (IMSS)</p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                <p class="text-[10px] text-yellow-700 leading-snug">
+                    <strong>Nota:</strong> Este formato simula el "Anexo 2" oficial. Los campos vacíos se rellenan con
+                    líneas para escritura manual si se imprime.
+                </p>
+            </div>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto space-y-6">
+            <!-- Patient Mini Summary -->
+            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <img [src]="patient?.profilePicture" class="w-12 h-12 rounded-full object-cover">
+                <div>
+                    <p class="font-bold text-slate-700 leading-tight">{{ patient?.full_name }}</p>
+                    <p class="text-xs text-brand-cyan font-bold">{{ patient?.id }}</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-3">
+                <button mat-flat-button
+                    class="w-full h-12 rounded-xl text-lg bg-[#b38e5d] text-white hover:bg-[#9c7b4f]" (click)="print()">
+                    <mat-icon class="mr-2">print</mat-icon> Imprimir Formato
+                </button>
+                <button mat-stroked-button class="w-full rounded-xl border-slate-300 text-slate-600"
+                    routerLink="../../">
+                    <mat-icon class="mr-2">arrow_back</mat-icon> Volver a Detalles
+                </button>
+            </div>
+
+            <!-- Pre-fill Options -->
+            <div class="space-y-4 pt-4 border-t border-gray-100">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Opciones de Formato</p>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-600">Logo Institucional</span>
+                    <mat-slide-toggle [checked]="true" color="primary"></mat-slide-toggle>
+                </div>
+                <!-- Default Unit Toggle -->
+                <div class="flex items-center justify-between">
+                    <div class="flex flex-col">
+                        <span class="text-sm text-slate-600">Unidad Default</span>
+                        <span class="text-[10px] text-gray-400">UMF No. 45</span>
+                    </div>
+                    <mat-slide-toggle [checked]="true" color="primary"></mat-slide-toggle>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Right: Preview Area -->
+    <main
+        class="flex-1 overflow-y-auto bg-slate-200/50 p-8 flex justify-center relative print:p-0 print:overflow-visible print:bg-white">
+
+        <!-- A4 Page Container (IMSS STYLE) -->
+        <div class="a4-page bg-white shadow-2xl print:shadow-none print:w-full print:h-auto relative flex flex-col">
+
+            <!-- Watermark -->
+            <img src="assets/images/imss-watermark.png"
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] opacity-[0.08] pointer-events-none print:opacity-[0.08] grayscale">
+
+            <!-- CONTENT STARTS -->
+            <div class="p-10 h-full flex flex-col print:p-8">
+
+                <!-- 1. Header with Logo and Title -->
+                <header class="flex justify-between items-start mb-6">
+                    <div class="flex items-center gap-4">
+                        <!-- IMSS Placeholder Logo -->
+                        <div class="flex flex-col items-center">
+                            <div
+                                class="w-16 h-16 border-2 border-[#13322b] rounded-full flex items-center justify-center text-[#13322b]">
+                                <mat-icon class="scale-150">health_and_safety</mat-icon>
+                            </div>
+                            <span class="text-[8px] font-bold text-[#13322b] mt-1">IMSS-BIENESTAR</span>
+                        </div>
+                        <div class="pl-4">
+                            <h1 class="text-3xl font-black text-[#333] tracking-tight">Historia clínica</h1>
+                        </div>
+                    </div>
+
+                    <!-- Top Right Box -->
+                    <div class="border border-[#b38e5d] bg-[#fdfbf7] p-3 rounded-lg w-80 shadow-sm">
+                        <div class="grid grid-cols-[80px_1fr] gap-2 items-end mb-1">
+                            <span class="text-right text-[10px] font-bold text-gray-500 uppercase">Nombre:</span>
+                            <div class="border-b border-gray-400 text-sm font-bold leading-none px-1">{{
+                                patient?.full_name }}</div>
+                        </div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2 items-end mb-1">
+                            <span class="text-right text-[10px] font-bold text-gray-500 uppercase">NSS:</span>
+                            <div class="border-b border-gray-400 text-sm font-mono leading-none px-1">{{ patient?.id }}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2 items-end">
+                            <span class="text-right text-[10px] font-bold text-gray-500 uppercase">Unidad:</span>
+                            <div class="border-b border-gray-400 text-xs leading-none px-1">UMF No. 45 - San Luis Potosí
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="space-y-6">
+                    <!-- I. Ficha de Identificación -->
+                    <section>
+                        <div class="imss-section-header">Ficha de Identificación</div>
+                        <div class="bg-[#fdfbf7] p-3 rounded-b-lg border-x border-b border-[#eaddcf]">
+                            <div class="grid grid-cols-12 gap-x-4 gap-y-3">
+                                <!-- Row 1 -->
+                                <div class="col-span-8 flex items-end gap-2">
+                                    <span class="imss-label">Nombre:</span>
+                                    <div class="imss-line flex-1">{{ patient?.full_name }}</div>
+                                </div>
+                                <div class="col-span-2 flex items-end gap-2">
+                                    <span class="imss-label">Edad:</span>
+                                    <div class="imss-line flex-1 text-center">{{ patient?.date_of_birth | age }}</div>
+                                </div>
+                                <div class="col-span-2 flex items-end gap-2">
+                                    <span class="imss-label">Estado Civil:</span>
+                                    <div class="imss-line flex-1 text-center">{{
+                                        patient?.clinical_history?.identification?.civil_status || '' }}</div>
+                                </div>
+
+                                <!-- Row 2 -->
+                                <div class="col-span-4 flex items-end gap-2">
+                                    <span class="imss-label">Escolaridad:</span>
+                                    <div class="imss-line flex-1">{{
+                                        patient?.clinical_history?.identification?.education || '' }}</div>
+                                </div>
+                                <div class="col-span-4 flex items-end gap-2">
+                                    <span class="imss-label">Ocupación:</span>
+                                    <div class="imss-line flex-1">{{
+                                        patient?.clinical_history?.identification?.occupation || '' }}</div>
+                                </div>
+                                <div class="col-span-4 flex items-end gap-2">
+                                    <span class="imss-label">Fecha Nacimiento:</span>
+                                    <div class="imss-line flex-1">{{ patient?.date_of_birth ? (patient?.date_of_birth |
+                                        date:'dd/MM/yyyy') : 'No especificado' }}</div>
+                                </div>
+
+                                <!-- Row 3 -->
+                                <div class="col-span-6 flex items-end gap-2">
+                                    <span class="imss-label">Lugar de Nacimiento:</span>
+                                    <div class="imss-line flex-1">{{
+                                        patient?.clinical_history?.identification?.birth_place || '' }}</div>
+                                </div>
+                                <div class="col-span-6 flex items-end gap-2">
+                                    <span class="imss-label">Grupo y Rh:</span>
+                                    <div class="imss-line flex-1">O+</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- II. Heredofamiliares -->
+                    <section>
+                        <div class="imss-section-header">Antecedentes Heredofamiliares</div>
+                        <div class="px-2 pt-2 text-xs text-gray-500 italic mb-2">
+                            (DM, HTA, Neoplásicos, Cardiopatías, Malformaciones, Psqiuiátricos, Asma, Alergias)
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label w-24 text-right">Madre:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.family_history?.mother ||
+                                    'Niega' }}</div>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label w-24 text-right">Padre:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.family_history?.father ||
+                                    'Niega' }}</div>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label w-24 text-right">Hermanos:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.family_history?.siblings ||
+                                    'Niega' }}</div>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label w-24 text-right">Abuelos:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.family_history?.grandparents
+                                    || 'Niega' }}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- III. Personales No Patológicos -->
+                    <section>
+                        <div class="imss-section-header">Antecedentes Personales No Patológicos</div>
+                        <div class="grid grid-cols-3 gap-4 mt-3">
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label">Vivienda:</span>
+                                <div class="imss-line flex-1">{{
+                                    patient?.clinical_history?.non_pathological?.housing_type || '' }}</div>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label">Servicios:</span>
+                                <div class="imss-line flex-1">{{
+                                    patient?.clinical_history?.non_pathological?.services?.join(', ') || '' }}</div>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label">Zoonosis:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.non_pathological?.zoonosis
+                                    || 'Negado' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label">Higiene (Baño/Dental):</span>
+                                <div class="imss-line flex-1">{{
+                                    patient?.clinical_history?.non_pathological?.hygiene?.bath_freq }} / {{
+                                    patient?.clinical_history?.non_pathological?.hygiene?.dental_freq }}</div>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <span class="imss-label">Dieta:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.non_pathological?.diet || ''
+                                    }}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- IV. Personales Patológicos (Logo Background) -->
+                    <section class="relative">
+                        <div class="imss-section-header">Antecedentes Personales Patológicos</div>
+                        <div class="grid grid-cols-4 gap-4 mt-3 relative z-10">
+                            <div class="col-span-1 flex items-end gap-2">
+                                <span class="imss-label">Tabaquismo:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.pathological?.smoking ||
+                                    'No' }}</div>
+                            </div>
+                            <div class="col-span-1 flex items-end gap-2">
+                                <span class="imss-label">Alcoholismo:</span>
+                                <div class="imss-line flex-1">{{ patient?.clinical_history?.pathological?.alcoholism ||
+                                    'No' }}</div>
+                            </div>
+                            <div class="col-span-2 flex items-end gap-2">
+                                <span class="imss-label">Alergias:</span>
+                                <div class="imss-line flex-1 font-bold">{{
+                                    patient?.clinical_history?.pathological?.allergies || 'Negadas' }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-end gap-2 mt-2 relative z-10">
+                            <span class="imss-label">Quirúrgicos / Traumáticos:</span>
+                            <div class="imss-line flex-1">{{ patient?.clinical_history?.pathological?.surgeries ||
+                                'Negados' }} / {{ patient?.clinical_history?.pathological?.trauma || 'Negados' }}</div>
+                        </div>
+
+                        <!-- Central IMSS Logo Faded for this section as in reference -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+                            <mat-icon class="text-9xl text-[#13322b]">health_and_safety</mat-icon>
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- Footer Signatures -->
+                <footer class="mt-auto">
+                    <div class="border-t border-gray-400 pt-1 pb-8">
+                        <div class="text-[10px] text-gray-500 mb-6">Enfermedades crónico degenerativas (cómo se
+                            diagnóstico, años de evolución, control, tratamiento, exacerbaciones):</div>
+                        <div class="w-full border-b border-gray-300 mb-6"></div>
+                        <div class="w-full border-b border-gray-300 mb-6"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-20">
+                        <div class="bg-[#dccdb9] p-2 rounded-t-lg border-b border-[#b38e5d]">
+                            <p class="text-[10px] uppercase font-bold text-[#5c4021] text-center">Firma del Médico</p>
+                        </div>
+                        <div class="bg-[#dccdb9] p-2 rounded-t-lg border-b border-[#b38e5d]">
+                            <p class="text-[10px] uppercase font-bold text-[#5c4021] text-center">Matrícula / Cédula</p>
+                        </div>
+                    </div>
+                </footer>
+
+            </div>
+            <!-- CONTENT ENDS -->
+
+        </div>
+    </main>
+</div>

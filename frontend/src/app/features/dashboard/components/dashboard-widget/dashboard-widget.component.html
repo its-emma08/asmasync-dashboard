@@ -1,0 +1,32 @@
+<div class="widget-shell" [class.is-editing]="editMode" [class.is-idle]="!editMode" [class.is-resizing]="isResizing">
+
+    <!-- Delete Button -->
+    <button *ngIf="editMode" (click)="onDelete($event)" class="widget-delete-btn">
+        <mat-icon>close</mat-icon>
+    </button>
+
+    <!-- Resize Toggle -->
+    <button *ngIf="editMode" (click)="onResize($event)" class="widget-resize-btn" title="Cambiar tamaño">
+        <mat-icon>aspect_ratio</mat-icon>
+    </button>
+
+    <!-- Drag Handle Grip -->
+    <div *ngIf="editMode" class="widget-grip" cdkDragHandle>
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- Granular Resize Corner -->
+    <div *ngIf="editMode" class="widget-resize-corner" (mousedown)="startResize($event)">
+        <svg width="10" height="10" viewBox="0 0 10 10">
+            <path d="M9 1L1 9M9 5L5 9M9 9L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+    </div>
+
+    <!-- Content -->
+    <div class="widget-content">
+        <ng-content></ng-content>
+    </div>
+
+    <!-- Edit Overlay -->
+    <div *ngIf="editMode" class="widget-edit-overlay"></div>
+</div>

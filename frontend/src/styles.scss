@@ -1,0 +1,615 @@
+/* ============================================
+   ASMASYNC — Clinical Clean Design System
+   ============================================ */
+@use '@angular/material' as mat;
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Layout Utilities
+   ============================================ */
+.page-scroll-container {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1rem;
+    /* p-4 */
+    scroll-behavior: smooth;
+}
+
+@media (min-width: 768px) {
+    .page-scroll-container {
+        padding: 1.5rem;
+        /* p-6 */
+    }
+}
+
+
+/* GLOBAL RESET: FOCUS RINGS */
+*:focus-visible {
+    outline: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #06B6D4 !important;
+    /* Cyan-500 Ring */
+    border-color: transparent !important;
+}
+
+/* ============================================
+   Design Tokens — Clinical Clean
+   ============================================ */
+:root {
+    --font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* Surfaces */
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-hover: #f1f5f9;
+    --bg-input: #f8fafc;
+
+    /* Brand */
+    --brand-primary: #00B5AD;
+    --brand-primary-hover: #009E97;
+    --brand-primary-light: rgba(0, 181, 173, 0.08);
+    --brand-danger: #ef4444;
+    --brand-warning: #f59e0b;
+    --brand-success: #22c55e;
+
+    /* Text */
+    --text-primary: #333333;
+    /* Updated per request */
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-on-primary: #ffffff;
+
+    /* Borders & Shadows */
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.08);
+
+    /* Radius */
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    /* rounded-3xl */
+
+    /* Sidebar */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #333333;
+    --sidebar-primary: #00B5AD;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f0fdfa;
+    --sidebar-accent-foreground: #333333;
+    --sidebar-border: #f1f5f9;
+    --sidebar-ring: #00B5AD;
+
+    /* Legacy compat */
+    --background: #ffffff;
+    --foreground: #333333;
+    --card: #ffffff;
+    --card-foreground: #333333;
+    --primary: #00B5AD;
+    --primary-foreground: #ffffff;
+    --border: #e2e8f0;
+    --input: transparent;
+    --input-background: #f8fafc;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --radius: 0.625rem;
+}
+
+/* ============================================
+   Base Layer
+   ============================================ */
+@layer base {
+    * {
+        border-color: var(--border-color);
+    }
+
+    html {
+        font-family: var(--font-family);
+    }
+
+    body {
+        background-color: var(--bg-body);
+        color: var(--text-primary);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+}
+
+/* ============================================
+   Cursor — All Clickables
+   ============================================ */
+button,
+a,
+[routerLink],
+[mat-button],
+[mat-raised-button],
+[mat-icon-button],
+[mat-fab],
+[mat-mini-fab] {
+    cursor: pointer;
+}
+
+/* ============================================
+   Typography — Clinical Clean
+   ============================================ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-family);
+    color: var(--text-primary);
+    font-weight: 500;
+    /* Medium per request */
+    letter-spacing: -0.025em;
+}
+
+p,
+span,
+small,
+label,
+input,
+textarea,
+select,
+button,
+mat-select,
+mat-option {
+    font-family: var(--font-family);
+    letter-spacing: -0.01em;
+    font-weight: 300;
+}
+
+/* ============================================
+   Focus States — Custom Ring
+   ============================================ */
+:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--brand-primary);
+    /* ring replacement */
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--brand-primary) !important;
+    box-shadow: 0 0 0 3px var(--brand-primary-light) !important;
+}
+
+/* ============================================
+   Cards — White, Consistent, Everywhere
+   ============================================ */
+.mat-mdc-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mat-mdc-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md) !important;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* ============================================
+   Buttons — Flat, Rounded, Teal Brand
+   ============================================ */
+.mat-mdc-raised-button.mat-primary {
+    --mdc-protected-button-label-text-color: var(--text-on-primary) !important;
+    border-radius: 24px !important;
+    box-shadow: none !important;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    padding: 0 28px !important;
+    height: 42px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mat-mdc-raised-button.mat-primary:active {
+    transform: scale(0.96) translateY(0);
+}
+
+.mat-mdc-raised-button.mat-primary:hover {
+    --mdc-protected-button-container-color: var(--brand-primary-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 181, 173, 0.25) !important;
+}
+
+.mat-mdc-button {
+    border-radius: 100px !important;
+    font-weight: 600;
+    color: var(--text-secondary) !important;
+}
+
+.mat-mdc-button:hover {
+    background-color: var(--bg-hover) !important;
+    color: var(--brand-primary) !important;
+}
+
+.mat-mdc-icon-button {
+    border-radius: 24px !important;
+    transition: all 0.15s ease;
+}
+
+.mat-mdc-icon-button:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.mat-mdc-stroked-button {
+    border-radius: 24px !important;
+    border-color: var(--border-color) !important;
+    font-weight: 600;
+}
+
+/* ============================================
+   Form Fields — Soft, Slate Background
+   ============================================ */
+.mat-mdc-form-field-flex {
+    background-color: var(--bg-input) !important;
+    border-radius: 24px !important;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.mat-mdc-form-field-flex:hover {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-xs);
+}
+
+.mat-mdc-form-field-flex:focus-within {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px var(--brand-primary-light);
+}
+
+.mdc-line-ripple {
+    display: none !important;
+}
+
+/* ============================================
+   Material Accordion — Clean Style
+   ============================================ */
+.mat-expansion-panel {
+    background: var(--bg-card) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: none !important;
+    border: 1px solid var(--border-light) !important;
+    margin-bottom: 8px !important;
+}
+
+.mat-expansion-panel::before {
+    display: none !important;
+}
+
+.mat-expansion-panel-header {
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--radius-lg) !important;
+}
+
+.mat-expansion-panel-header:hover {
+    background: var(--bg-hover) !important;
+}
+
+/* ============================================
+   Slide Toggles — iOS Style
+   ============================================ */
+.mat-mdc-slide-toggle {
+    --mdc-switch-selected-track-color: var(--brand-primary) !important;
+    --mdc-switch-selected-handle-color: #ffffff !important;
+    --mdc-switch-selected-hover-track-color: var(--brand-primary-hover) !important;
+    --mdc-switch-selected-focus-track-color: var(--brand-primary) !important;
+    --mdc-switch-selected-pressed-track-color: var(--brand-primary) !important;
+}
+
+/* ============================================
+   Tabs — Clean Underline
+   ============================================ */
+.mat-mdc-tab-group {
+    --mdc-tab-indicator-active-indicator-color: var(--brand-primary);
+    --mat-tab-header-active-focus-label-text-color: var(--brand-primary);
+    --mat-tab-header-active-label-text-color: var(--brand-primary);
+    --mat-tab-header-active-hover-label-text-color: var(--brand-primary-hover);
+}
+
+/* ============================================
+   Snackbar — Clean
+   ============================================ */
+.mat-mdc-snack-bar-container {
+    border-radius: var(--radius-md) !important;
+}
+
+/* ============================================
+   Micro-interactions — Card Hover Lift
+   ============================================ */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ============================================
+   Scrollbar — Minimal (Invisible until hover)
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    /* Almost invisible slate-400 */
+    border-radius: 999px;
+    /* Pill shape */
+    border: 2px solid transparent;
+    /* Creates padding effect */
+    background-clip: content-box;
+    transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+    /* Visible on hover */
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+}
+
+/* ============================================
+   Dark Theme — Cautious Override
+   Applied when body has .dark class
+   ============================================ */
+body.dark {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-input: #1e293b;
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-color: #334155;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+
+    background: var(--bg-body);
+    color: var(--text-primary);
+
+    /* Material Cards */
+    .mat-mdc-card {
+        background: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Glass cards (custom) */
+    .glass-card {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Material form fields */
+    .mat-mdc-form-field-flex {
+        background-color: #1e293b !important;
+    }
+
+    .mat-mdc-text-field-wrapper {
+        background-color: transparent !important;
+    }
+
+    .mdc-text-field--outlined .mdc-notched-outline__leading,
+    .mdc-text-field--outlined .mdc-notched-outline__trailing,
+    .mdc-text-field--outlined .mdc-notched-outline__notch {
+        border-color: #334155 !important;
+    }
+
+    .mat-mdc-input-element,
+    .mat-mdc-select-value,
+    .mdc-floating-label {
+        color: var(--text-primary) !important;
+    }
+
+    /* Table cells */
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    .mat-mdc-row:hover {
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    /* Buttons */
+    .mat-mdc-stroked-button {
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Sidebar override */
+    .sidebar {
+        background: #1e293b !important;
+        border-color: var(--border-color) !important;
+    }
+
+    /* Dialog backgrounds */
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Snackbar */
+    .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+        background: #334155 !important;
+    }
+
+    /* Tailwind utility overrides */
+    .bg-white {
+        background-color: var(--bg-card) !important;
+    }
+
+    .bg-gray-50,
+    .bg-gray-100 {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+    }
+
+    .text-gray-700,
+    .text-gray-800,
+    .text-gray-900 {
+        color: var(--text-primary) !important;
+    }
+
+    .text-gray-500,
+    .text-gray-600 {
+        color: var(--text-secondary) !important;
+    }
+
+    .text-gray-400 {
+        color: #94a3b8 !important;
+        /* Keep as is for dark mode compatibility or adjust if needed */
+    }
+
+    .border-gray-100,
+    .border-gray-200 {
+        border-color: var(--border-color) !important;
+    }
+
+    /* Stepper in dark mode */
+    .mat-horizontal-stepper-header-container {
+        background: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    .mat-step-header .mat-step-label {
+        color: var(--text-secondary) !important;
+    }
+
+    .mat-step-header .mat-step-label-active {
+        color: var(--text-primary) !important;
+    }
+}
+
+/* ============================================
+   Glass Toast Notification
+   ============================================ */
+.glass-toast {
+    --mdc-snackbar-container-color: transparent !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+    --mat-snack-bar-button-color: #ffffff !important;
+
+    .mdc-snackbar__surface {
+        background: rgba(15, 23, 42, 0.85) !important;
+        /* Dark Slate background */
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+        padding: 4px 8px !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+        font-family: 'Quicksand', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+    }
+
+    &.toast-success .mdc-snackbar__surface {
+        border-left: 4px solid #22c55e !important;
+    }
+
+    &.toast-error .mdc-snackbar__surface {
+        border-left: 4px solid #ef4444 !important;
+    }
+
+    &.toast-info .mdc-snackbar__surface {
+        border-left: 4px solid #00B5AD !important;
+    }
+}
+
+/* ============================================
+   CDK Drag & Drop Fixes (CRITICAL)
+   ============================================ */
+/* PREVIEW: The element that follows the cursor */
+.cdk-drag-preview {
+    box-sizing: border-box;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+    opacity: 0.9;
+    z-index: 9999 !important;
+
+    /* FORCE DIMENSIONS during drag to prevent "Giant Column" */
+    display: block !important;
+    width: 280px !important;
+    /* Fixed width assumption or inherit? Better to inherit but clamp */
+    max-width: 100% !important;
+    height: 180px !important;
+    /* Force standard height */
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+
+/* PLACEHOLDER: The space where it will drop */
+.cdk-drag-placeholder {
+    opacity: 0.3;
+    background: #e2e8f0;
+    border: 2px dashed #94a3b8;
+    border-radius: 24px;
+    min-height: 180px;
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ANIMATION: Smooth reordering */
+.cdk-drop-list-dragging .cdk-drag {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ANIMATION: Animate other items away */
+.cdk-drag-animating {
+    transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
+}

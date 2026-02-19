@@ -1,0 +1,89 @@
+// Status Badges
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.stable {
+        background-color: #10B981;
+    }
+
+    &.moderate {
+        background-color: #F59E0B;
+    }
+
+    &.critical {
+        background-color: #EF4444;
+    }
+}
+
+// Clean Tabs Override
+::ng-deep .clean-tabs {
+    .mat-mdc-tab-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+    }
+
+    .mat-mdc-tab-label-container {
+        overflow: visible;
+    }
+
+    .mat-mdc-tab-labels {
+        gap: 1rem;
+    }
+
+    .mat-mdc-tab {
+        opacity: 0.6;
+        transition: all 0.2s ease;
+        padding: 0 1rem;
+        min-width: unset;
+
+        &:hover {
+            opacity: 0.8;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+        }
+
+        &.mdc-tab--active {
+            opacity: 1;
+
+            .mdc-tab__text-label {
+                color: #00B5AD !important; // Brand Cyan
+                font-weight: 700;
+            }
+        }
+    }
+
+    .mat-mdc-tab-indicator {
+        .mdc-tab-indicator__content--underline {
+            border-color: #00B5AD !important;
+            border-top-width: 3px !important;
+        }
+    }
+}
+
+// Chart Container
+.chart-wrapper {
+    position: relative;
+    height: 320px; // fallback
+    width: 100%;
+}
+
+// Evolution Note Textarea
+textarea.mat-mdc-input-element {
+    line-height: 1.6;
+    color: #334155;
+}
+
+// Intervention FAB
+.intervention-fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 100;
+    box-shadow: 0 10px 25px -5px rgba(0, 181, 173, 0.4);
+}

@@ -1,0 +1,89 @@
+<div class="schedule-container p-6 h-full flex flex-col">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Agenda Médica</h1>
+            <p class="text-gray-500">Gestión de citas y seguimientos</p>
+        </div>
+
+        <div class="flex items-center gap-4 bg-white rounded-lg shadow-sm p-1 border border-gray-100">
+            <button mat-icon-button (click)="changeWeek(-1)">
+                <mat-icon>chevron_left</mat-icon>
+            </button>
+            <span class="font-bold text-gray-700 w-48 text-center capitalize">
+                {{ weekDays[0] | date:'MMMM y' }}
+            </span>
+            <button mat-icon-button (click)="changeWeek(1)">
+                <mat-icon>chevron_right</mat-icon>
+            </button>
+        </div>
+
+        <div class="flex gap-2">
+            <button mat-stroked-button [color]="view === 'week' ? 'primary' : ''"
+                (click)="view = 'week'">Semana</button>
+            <button mat-stroked-button [color]="view === 'day' ? 'primary' : ''" (click)="view = 'day'">Día</button>
+            <button mat-flat-button color="primary">
+                <mat-icon>add</mat-icon> Nueva Cita
+            </button>
+        </div>
+    </div>
+
+    <!-- Week Grid -->
+    <div class="flex-1 overflow-auto bg-white rounded-xl shadow-sm border border-gray-200 relative pb-4"
+        *ngIf="view === 'week'">
+
+        <div *ngIf="loading" class="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80 z-10">
+            <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div class="grid grid-cols-7 min-w-[1000px] h-full divide-x divide-gray-100">
+            <!-- Day Column -->
+            <div *ngFor="let day of weekDays" class="flex flex-col h-full bg-white">
+                <!-- Day Header -->
+                <div class="p-3 text-center border-b border-gray-100 sticky top-0 bg-white z-[5]"
+                    [ngClass]="{'bg-blue-50': isToday(day)}">
+                    <div class="text-xs uppercase text-gray-400 font-bold mb-1">{{ day | date:'EEE' }}</div>
+                    <div class="text-2xl font-bold" [ngClass]="{'text-primary': isToday(day)}">{{ day | date:'d' }}
+                    </div>
+                </div>
+
+                <!-- Appointments List -->
+                <div class="flex-1 p-2 flex flex-col gap-2 overflow-y-auto">
+                    <div *ngFor="let appt of getAppointmentsForDay(day)"
+                        class="p-3 rounded-lg border border-l-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white"
+                        [ngClass]="{
+                             'border-l-blue-500': appt.type === 'checkup',
+                             'border-l-red-500': appt.type === 'emergency',
+                             'border-l-green-500': appt.type === 'follow_up'
+                         }">
+                        <div class="text-[10px] font-bold text-gray-400 mb-1 flex justify-between">
+                            <span>{{ appt.date | date:'HH:mm' }}</span>
+                            <span>{{ appt.durationMinutes }}m</span>
+                        </div>
+                        <div class="font-bold text-sm text-gray-800 leading-tight mb-1">{{ appt.patientName }}</div>
+                        <div class="text-xs text-gray-500 truncate">{{ appt.notes }}</div>
+                        <div class="mt-2 text-[10px] px-2 py-0.5 rounded-full w-fit bg-gray-100"
+                            [ngClass]="getTypeColor(appt.type)">
+                            {{ appt.type }}
+                        </div>
+                    </div>
+
+                    <!-- Empty State Placeholder -->
+                    <button
+                        class="w-full py-4 rounded-lg border-2 border-dashed border-gray-100 text-gray-300 hover:border-blue-200 hover:text-blue-400 hover:bg-blue-50 transition-colors flex justify-center items-center opacity-0 hover:opacity-100 group">
+                        <mat-icon class="scale-75">add</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day View Placeholder (User requested Day/Week, keeping implementation simple for now) -->
+    <div *ngIf="view === 'day'"
+        class="flex-1 flex justify-center items-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+        <div class="text-center text-gray-400">
+            <mat-icon class="text-6xl mb-4">calendar_view_day</mat-icon>
+            <p>Vista diaria detallada en construcción</p>
+        </div>
+    </div>
+</div>

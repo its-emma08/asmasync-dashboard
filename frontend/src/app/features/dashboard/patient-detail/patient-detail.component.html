@@ -1,0 +1,431 @@
+<div class="page-scroll-container">
+    <div class="w-full max-w-full pb-20 space-y-6" *ngIf="!loading && patient; else loadingTpl">
+
+        <!-- 1. Header del Paciente -->
+        <div
+            class="glass-card p-8 flex flex-col xl:flex-row gap-6 justify-between items-center relative overflow-hidden">
+            <!-- Back Button -->
+            <button class="absolute top-4 left-4 text-gray-400 hover:text-brand-dark z-20 cursor-pointer"
+                routerLink="/dashboard/patients" matTooltip="Volver a la lista">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+
+            <!-- Background decoration -->
+            <div
+                class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-brand-cyan/10 to-transparent pointer-events-none">
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center gap-6 z-10 w-full xl:w-auto">
+                <!-- Avatar -->
+                <div class="relative">
+                    <img [src]="patient.profilePicture"
+                        class="w-24 h-24 rounded-3xl object-cover shadow-lg border-4 border-white"
+                        (error)="$event.target.style.display='none'">
+                    <div
+                        [class]="getRiskColorClass(patient.riskLevel) + ' absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-bold uppercase shadow-sm border border-white flex items-center gap-1'">
+                        <span class="w-2 h-2 rounded-full bg-current animate-pulse"></span>
+                        {{ getRiskLabel(patient.riskLevel).split('-')[0] }}
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl font-bold text-brand-dark mb-1">{{ patient.full_name }}</h1>
+                    <div
+                        class="flex items-center justify-center md:justify-start gap-3 text-sm text-gray-500 font-medium mb-2">
+                        <span class="bg-gray-100 px-2 py-0.5 rounded-lg">ID: #{{ patient.id }}</span>
+                        <span>•</span>
+                        <span>{{ patient.date_of_birth | age }} Años</span>
+                        <span>•</span>
+                        <span>{{ patient.gender }}</span>
+                    </div>
+                    <div class="flex gap-2 justify-center md:justify-start flex-wrap">
+                        <button (click)="navigateToEdit()"
+                            class="text-xs bg-brand-cyan/10 text-brand-cyan px-3 py-1.5 rounded-lg font-bold hover:bg-brand-cyan/20 transition-colors cursor-pointer">
+                            <mat-icon class="scale-75 inline-block align-middle mr-1">edit</mat-icon> Editar
+                        </button>
+                        <button (click)="openClinicalHistory()"
+                            class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors cursor-pointer">
+                            <mat-icon class="scale-75 inline-block align-middle mr-1">history_edu</mat-icon> Historia
+                        </button>
+                        <button (click)="exportPDF()"
+                            class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+                            matTooltip="Exportar Expediente">
+                            <mat-icon class="scale-75 inline-block align-middle mr-1">print</mat-icon> Exp.
+                        </button>
+                        <button (click)="sharePatient()"
+                            class="text-xs bg-brand-cyan/10 text-brand-cyan px-3 py-1.5 rounded-lg font-bold hover:bg-brand-cyan/20 transition-colors cursor-pointer"
+                            matTooltip="Copiar Resumen">
+                            <mat-icon class="scale-75 inline-block align-middle mr-1">content_copy</mat-icon> Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side Stats -->
+            <div
+                class="flex flex-col md:flex-row gap-8 items-center z-10 w-full xl:w-auto justify-center xl:justify-end">
+
+                <!-- Completion Bar -->
+                <div class="flex flex-col gap-2 w-full md:w-48">
+                    <div class="flex justify-between text-xs font-bold text-gray-500">
+                        <span>Perfil Completado</span>
+                        <span class="text-brand-cyan">{{ getCompletionPercentage() }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-brand-cyan h-full rounded-full transition-all duration-1000"
+                            [style.width.%]="getCompletionPercentage()"></div>
+                    </div>
+                    <p class="text-[10px] text-gray-400">Falta: historial vacunas</p>
+                </div>
+
+                <!-- Adherence Gauge (Mocked Visual) -->
+                <div class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="relative w-16 h-16 flex items-center justify-center">
+                        <mat-progress-spinner class="absolute" mode="determinate" [value]="patient.adherence || 0"
+                            diameter="60" strokeWidth="6" [color]="(patient.adherence || 0) > 80 ? 'primary' : 'warn'">
+                        </mat-progress-spinner>
+                        <span class="text-sm font-bold text-brand-dark">{{ patient.adherence || 0 }}%</span>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-brand-dark uppercase">Adherencia</p>
+                        <p class="text-[10px] text-gray-400">Ultimos 30 días</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <mat-tab-group [(selectedIndex)]="selectedTab" animationDuration="0ms" class="clean-tabs">
+
+            <!-- Tab 1: Resumen General -->
+            <mat-tab label="Resumen General">
+                <div class="pt-6">
+                    <!-- Dashboard Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+                        <!-- Left Column: Vitals & Key Stats -->
+                        <div class="space-y-6">
+                            <!-- Action Plan Widget -->
+                            <app-action-plan-widget [riskLevel]="patient.riskLevel"
+                                [personalBest]="patient.personal_best_pef || 500" [currentPEF]="patient.latest_pef">
+                            </app-action-plan-widget>
+
+                            <!-- Vitals Cards -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- PEF Card -->
+                                <div
+                                    class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 transition-all hover:shadow-md">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="bg-white p-2 rounded-xl shadow-sm text-brand-cyan">
+                                            <mat-icon>air</mat-icon>
+                                        </div>
+                                        <span
+                                            class="text-xs font-bold text-brand-cyan bg-white px-2 py-1 rounded-full shadow-sm">
+                                            {{ getPefPercentage(patient.latest_pef, patient.personal_best_pef) }}%
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <p class="text-3xl font-bold text-brand-dark">{{ patient.latest_pef }}</p>
+                                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">L/min (FEM)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- SpO2 Card -->
+                                <div
+                                    class="bg-green-50/50 p-5 rounded-2xl border border-green-100 transition-all hover:shadow-md">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="bg-white p-2 rounded-xl shadow-sm text-brand-green">
+                                            <mat-icon>favorite</mat-icon>
+                                        </div>
+                                        <span
+                                            class="text-xs font-bold text-brand-green bg-white px-2 py-1 rounded-full shadow-sm">
+                                            Normal
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <p class="text-3xl font-bold text-brand-dark">{{ patient.currentSpO2 }}%</p>
+                                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Saturación
+                                            O2
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Appointment / Quick Actions -->
+                            <div class="glass-card p-6">
+                                <h3 class="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
+                                    <mat-icon
+                                        class="text-purple-500 bg-purple-50 p-1 rounded-lg">event_upcoming</mat-icon>
+                                    Próxima Consulta
+                                </h3>
+                                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center gap-4">
+                                    <div
+                                        class="text-center bg-white p-2 rounded-xl shadow-sm border border-gray-100 min-w-[60px]">
+                                        <p class="text-xs text-red-500 font-bold uppercase">FEB</p>
+                                        <p class="text-xl font-bold text-brand-dark">24</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-brand-dark">Consulta de Seguimiento</p>
+                                        <p class="text-sm text-gray-500">10:00 AM • Dr. Astudillo</p>
+                                    </div>
+                                </div>
+                                <button mat-stroked-button color="primary" class="w-full mt-4 !rounded-xl !h-10">
+                                    <mat-icon>edit_calendar</mat-icon> Reprogramar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Center/Right: Main Chart (Spans 2 cols) -->
+                        <div class="xl:col-span-2 space-y-6">
+                            <div class="glass-card p-6 h-full flex flex-col">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-brand-dark">Tendencia de Flujo Espiratorio
+                                        </h3>
+                                        <p class="text-sm text-gray-500">Últimos 7 días de monitoreo</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <span
+                                            class="flex items-center gap-1 text-xs font-bold text-brand-green bg-green-50 px-2 py-1 rounded-lg border border-green-100">
+                                            <div class="w-2 h-2 rounded-full bg-brand-green"></div> Meta >80%
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- CHART CONTAINER FIXED HEIGHT -->
+                                <div class="relative w-full h-80 bg-gray-50/50 rounded-2xl border border-gray-100 p-2">
+                                    <canvas baseChart [data]="pefChartData" [options]="pefChartOptions"
+                                        [type]="pefChartType">
+                                    </canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <!-- Tab 2: Historia Clínica -->
+            <mat-tab label="Historia Clínica">
+                <div class="pt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left: Background & Allergies -->
+                    <div class="space-y-6">
+                        <div class="glass-card p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-brand-dark">Antecedentes</h3>
+                                <button mat-icon-button (click)="toggleAllergyEdit()" class="text-gray-400"
+                                    matTooltip="Editar Alergias">
+                                    <mat-icon>{{ isAllergyEditMode ? 'check' : 'edit' }}</mat-icon>
+                                </button>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase font-bold mb-1">Alergias Conocidas</p>
+                                    <div *ngIf="!isAllergyEditMode" class="flex flex-wrap gap-2">
+                                        <span *ngFor="let allergy of patient.background?.allergies"
+                                            class="px-2 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100">
+                                            {{ allergy }}
+                                        </span>
+                                        <span *ngIf="!patient.background?.allergies?.length"
+                                            class="text-sm text-gray-400 italic">Niega alergias</span>
+                                    </div>
+                                    <div *ngIf="isAllergyEditMode">
+                                        <mat-form-field appearance="outline" class="w-full text-sm">
+                                            <mat-label>Editar Alergias (sep. por comas)</mat-label>
+                                            <input matInput value="Polvo, Ácaros">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+
+                                <mat-divider></mat-divider>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-xs text-gray-400 uppercase font-bold mb-1">Tabaquismo</p>
+                                        <span [class]="patient.background?.smoking ? 'text-red-500' : 'text-green-600'"
+                                            class="font-bold text-sm flex items-center gap-1">
+                                            <mat-icon class="scale-75">{{ patient.background?.smoking ? 'smoking_rooms'
+                                                :
+                                                'smoke_free' }}</mat-icon>
+                                            {{ patient.background?.smoking ? 'Positivo' : 'Negativo' }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400 uppercase font-bold mb-1">Comorbilidades</p>
+                                        <p class="text-sm font-medium text-brand-dark">Rinitis Alérgica</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Full History Table -->
+                    <div class="lg:col-span-2">
+                        <div class="glass-card p-6">
+                            <h3 class="text-lg font-bold text-brand-dark mb-4">Línea de Tiempo</h3>
+                            <div class="overflow-hidden rounded-2xl border border-gray-100">
+                                <table mat-table [dataSource]="history" class="w-full">
+                                    <!-- Date -->
+                                    <ng-container matColumnDef="date">
+                                        <th mat-header-cell *matHeaderCellDef
+                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs">Fecha</th>
+                                        <td mat-cell *matCellDef="let element"
+                                            class="text-sm font-medium text-brand-dark">
+                                            {{element.date | safeDate:'shortDate'}} <br>
+                                            <span class="text-xs text-gray-400 font-normal">{{element.date |
+                                                safeDate:'shortTime'}}</span>
+                                        </td>
+                                    </ng-container>
+
+                                    <!-- Type -->
+                                    <ng-container matColumnDef="type">
+                                        <th mat-header-cell *matHeaderCellDef
+                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs">Tipo</th>
+                                        <td mat-cell *matCellDef="let element">
+                                            <span
+                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border"
+                                                [ngClass]="{
+                                                'bg-blue-50 text-blue-600 border-blue-100': element.type === 'pef',
+                                                'bg-orange-50 text-orange-600 border-orange-100': element.type === 'symptom',
+                                                'bg-purple-50 text-purple-600 border-purple-100': element.type === 'medication',
+                                                'bg-teal-50 text-teal-600 border-teal-100': element.type === 'evolution'
+                                            }">
+                                                {{ element.type === 'pef' ? 'Flujo' : (element.type === 'evolution' ?
+                                                'Nota
+                                                Médica' : element.type) }}
+                                            </span>
+                                        </td>
+                                    </ng-container>
+
+                                    <!-- Description -->
+                                    <ng-container matColumnDef="description">
+                                        <th mat-header-cell *matHeaderCellDef
+                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs">Detalle</th>
+                                        <td mat-cell *matCellDef="let element" class="text-sm text-gray-600">
+                                            <p class="line-clamp-2">{{ element.description || element.notes || 'Registro
+                                                automático' }}</p>
+                                            <p *ngIf="element.doctor" class="text-xs text-teal-600 font-bold mt-0.5">
+                                                Por: {{
+                                                element.doctor }}</p>
+                                        </td>
+                                    </ng-container>
+
+                                    <!-- Value -->
+                                    <ng-container matColumnDef="value">
+                                        <th mat-header-cell *matHeaderCellDef
+                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs text-right">
+                                            Valor
+                                        </th>
+                                        <td mat-cell *matCellDef="let element" class="text-right">
+                                            <span *ngIf="element.pef" class="font-bold text-brand-dark">{{ element.pef
+                                                }}
+                                                L/min</span>
+                                            <span *ngIf="element.dosage" class="text-xs text-gray-500 font-medium">{{
+                                                element.dosage }}</span>
+                                        </td>
+                                    </ng-container>
+
+                                    <tr mat-header-row *matHeaderRowDef="['date', 'type', 'description', 'value']">
+                                    </tr>
+                                    <tr mat-row *matRowDef="let row; columns: ['date', 'type', 'description', 'value'];"
+                                        class="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <!-- Tab 3: Plan de Tratamiento (New Clinical Station) -->
+            <mat-tab label="Plan de Tratamiento">
+                <div class="pt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- Evolution Note -->
+                    <div class="glass-card p-6 flex flex-col h-full">
+                        <h3 class="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
+                            <mat-icon class="text-teal-600">edit_note</mat-icon> Nota de Evolución
+                        </h3>
+                        <mat-form-field appearance="outline" class="w-full flex-1">
+                            <mat-label>Escribir observaciones clínicas...</mat-label>
+                            <textarea matInput [(ngModel)]="clinicalNote" rows="8"
+                                placeholder="Paciente acude a consulta con mejoría en síntomas nocturnos..."></textarea>
+                        </mat-form-field>
+                        <div class="flex justify-end mt-4">
+                            <button mat-flat-button color="primary" (click)="saveClinicalNote()"
+                                [disabled]="!clinicalNote">
+                                <mat-icon>save</mat-icon> Guardar Nota
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Medications & Quick Prescribe -->
+                    <div class="space-y-6">
+                        <!-- Prescription Form -->
+                        <div class="glass-card p-6">
+                            <h3 class="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
+                                <mat-icon class="text-purple-600">prescription</mat-icon> Nueva Prescripción
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <mat-form-field appearance="outline" class="w-full col-span-2">
+                                    <mat-label>Medicamento</mat-label>
+                                    <input matInput [(ngModel)]="newPrescription.name" placeholder="Ej. Salbutamol">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Dosis</mat-label>
+                                    <input matInput [(ngModel)]="newPrescription.dosage" placeholder="100mcg">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Frecuencia</mat-label>
+                                    <input matInput [(ngModel)]="newPrescription.frequency" placeholder="Cada 8 hrs">
+                                </mat-form-field>
+                            </div>
+                            <button mat-stroked-button color="primary" class="w-full mt-2" (click)="addPrescription()"
+                                [disabled]="!newPrescription.name">
+                                <mat-icon>add</mat-icon> Agregar al Esquema
+                            </button>
+                        </div>
+
+                        <!-- Current Meds List -->
+                        <div class="glass-card p-6">
+                            <h3 class="text-lg font-bold text-brand-dark mb-4">Esquema Actual</h3>
+                            <div class="space-y-3">
+                                <div *ngFor="let med of patient.medications"
+                                    class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 group hover:border-blue-200 transition-colors">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-white border border-gray-100 text-blue-600 flex items-center justify-center text-xs font-bold shadow-sm">
+                                        Rx
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-brand-dark text-sm">{{ med.name }}</p>
+                                        <p class="text-xs text-gray-500">{{ med.dosage }} • <span
+                                                class="text-brand-cyan font-medium">{{ med.frequency }}</span></p>
+                                    </div>
+                                    <button mat-icon-button color="warn"
+                                        class="scale-75 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                                <p *ngIf="!patient.medications?.length" class="text-sm text-gray-400 text-center py-4">
+                                    Sin
+                                    medicamentos activos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </mat-tab>
+
+        </mat-tab-group>
+
+    </div>
+
+    <!-- Loading Template -->
+    <ng-template #loadingTpl>
+        <div class="p-6">
+            <app-skeleton-profile></app-skeleton-profile>
+        </div>
+    </ng-template>
+</div>

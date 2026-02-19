@@ -1,0 +1,64 @@
+<div class="p-6 text-center max-w-md mx-auto">
+    <!-- Header -->
+    <div class="mb-6 flex flex-col items-center">
+        <mat-icon class="text-6xl text-brand-coral scale-[2] mb-4 blink">warning</mat-icon>
+        <h1 class="text-3xl font-bold text-brand-coral uppercase tracking-widest">Alerta Roja</h1>
+        <p class="text-gray-500 mt-2 text-lg">Protocolo de Crisis Activado</p>
+    </div>
+
+    <!-- Step 1: Rescue Meds -->
+    <div *ngIf="step === 1" class="animate-fade-in">
+        <div class="bg-red-50 border-2 border-red-100 rounded-3xl p-6 mb-6">
+            <h2 class="text-2xl font-bold text-[#2B3674] mb-4">Paso 1: Medicación</h2>
+            <div class="text-left space-y-4">
+                <div class="flex items-start gap-4">
+                    <div class="bg-white p-3 rounded-full shadow-sm text-2xl font-bold text-brand-cyan">1</div>
+                    <div>
+                        <p class="font-bold text-gray-700 text-lg">Inhalar Salbutamol</p>
+                        <p class="text-gray-500">2 Disparos con aerocámara</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="bg-white p-3 rounded-full shadow-sm text-2xl font-bold text-brand-cyan">2</div>
+                    <div>
+                        <p class="font-bold text-gray-700 text-lg">Esperar 60 segundos</p>
+                        <p class="text-gray-500">Respira normalmente</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button mat-flat-button color="warn" class="w-full !rounded-xl !h-14 !text-lg !font-bold" (click)="nextStep()">
+            Ya apliqué el medicamento
+        </button>
+    </div>
+
+    <!-- Step 2: Oximeter -->
+    <div *ngIf="step === 2" class="animate-fade-in">
+        <div class="bg-blue-50 border-2 border-blue-100 rounded-3xl p-6 mb-6">
+            <h2 class="text-2xl font-bold text-[#2B3674] mb-4">Paso 2: Verificación</h2>
+
+            <div *ngIf="!spo2Reading" class="flex flex-col items-center py-4">
+                <mat-spinner diameter="60" color="primary"></mat-spinner>
+                <p class="mt-4 font-bold text-brand-cyan">Leyendo Oxímetro...</p>
+                <p class="text-sm text-gray-400">Mantén el dedo quieto</p>
+            </div>
+
+            <div *ngIf="spo2Reading" class="flex flex-col items-center py-4 animate-bounce-short">
+                <div class="text-5xl font-bold text-[#2B3674] mb-2">{{spo2Reading}}%</div>
+                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">Estable</span>
+                <p class="mt-4 text-gray-600">Nivel de oxígeno recuperado</p>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button *ngIf="spo2Reading" mat-flat-button
+                class="flex-1 !bg-brand-green !text-white !rounded-xl !h-12 !font-bold" (click)="nextStep()">
+                Finalizar Protocolo
+            </button>
+            <button mat-stroked-button color="warn" class="flex-1 !rounded-xl !h-12 !font-bold border-2"
+                (click)="callEmergency()">
+                Llamar 911
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+<div class="card-soft stat-card-flex">
+    <!-- Icon Box -->
+    <div class="icon-box">
+        <mat-icon>{{ icon() }}</mat-icon>
+    </div>
+
+    <!-- Data Info -->
+    <div class="info-content">
+        <p class="subtitle">{{ title() }}</p>
+        <h3 class="value">{{ value() }}</h3>
+
+        <!-- Micro Trend (Optional, hardcoded style for now) -->
+        <div class="trend" *ngIf="false">
+            <span class="trend-val positive">
+                <mat-icon>trending_up</mat-icon> +2.5%
+            </span>
+            <span class="trend-text">desde ayer</span>
+        </div>
+    </div>
+</div>

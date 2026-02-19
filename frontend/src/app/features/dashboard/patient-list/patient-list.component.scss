@@ -1,0 +1,51 @@
+/* Relies on Tailwind mostly, utility styles similar to dashboard home */
+
+.risk-badge {
+    /* Base style handled by tailwind classes in template, just colors here */
+}
+
+.risk-badge.stable {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.risk-badge.moderate {
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+}
+
+.risk-badge.critical {
+    background-color: var(--color-error-bg);
+    color: var(--color-error);
+}
+
+/* Loading Shade */
+.loading-shade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 56px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rate-limit-reached {
+    max-width: 360px;
+    text-align: center;
+}
+
+/* Ensure Mat Card has relative positioning for loading shade */
+mat-card {
+    position: relative;
+    overflow: hidden;
+    /* Prevent shade overflow */
+}
+
+/* Adjust button alignment in filters */
+.filters-container button {
+    height: 56px;
+}

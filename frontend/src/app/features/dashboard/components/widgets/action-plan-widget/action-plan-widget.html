@@ -1,0 +1,37 @@
+<div class="action-plan-container">
+    <div class="section green-zone" [class.active]="isActive('green')">
+        <div class="indicator"></div>
+        <div class="content">
+            <div class="header">
+                <span class="title">{{ instructions.green.title }}</span>
+                <span class="condition">{{ instructions.green.condition }}</span>
+            </div>
+            <p class="action">{{ instructions.green.action }}</p>
+        </div>
+        <mat-icon class="status-icon" *ngIf="isActive('green')">check_circle</mat-icon>
+    </div>
+
+    <div class="section yellow-zone" [class.active]="isActive('yellow')">
+        <div class="indicator"></div>
+        <div class="content">
+            <div class="header">
+                <span class="title">{{ instructions.yellow.title }}</span>
+                <span class="condition">{{ instructions.yellow.condition }}</span>
+            </div>
+            <p class="action">{{ instructions.yellow.action }}</p>
+        </div>
+        <mat-icon class="status-icon" *ngIf="isActive('yellow')">warning</mat-icon>
+    </div>
+
+    <div class="section red-zone" [class.active]="isActive('red')">
+        <div class="indicator"></div>
+        <div class="content">
+            <div class="header">
+                <span class="title">{{ instructions.red.title }}</span>
+                <span class="condition">{{ instructions.red.condition }}</span>
+            </div>
+            <p class="action">{{ instructions.red.action }}</p>
+        </div>
+        <mat-icon class="status-icon" *ngIf="isActive('red')">local_hospital</mat-icon>
+    </div>
+</div>

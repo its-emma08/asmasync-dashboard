@@ -1,0 +1,1266 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\asmasync-dashboard\backend
+plugins: anyio-4.12.1
+collected 7 items
+
+tests\api\v1\test_hospitals.py FFF                                       [ 42%]
+tests\api\v1\test_clinical_records.py FF..                               [100%]
+
+================================== FAILURES ===================================
+__________________________ test_create_organization ___________________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x000001B2C5A94690>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3D850>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x000001B2C5AF9250>
+parameters = [('Test Health Corp', 'hospital', 'RFC123456', None, '123 Main St', 'Mexico City', ...)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+cursor = <sqlite3.Cursor object at 0x000001B2C5A80B40>
+statement = 'INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+parameters = ('Test Health Corp', 'hospital', 'RFC123456', None, '123 Main St', 'Mexico City', ...)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3D850>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.OperationalError: no such table: organizations
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
+
+The above exception was the direct cause of the following exception:
+
+    def test_create_organization():
+>       response = client.post(
+            "/api/v1/organizations",
+            json={
+                "name": "Test Health Corp",
+                "org_type": "hospital",
+                "legal_id": "RFC123456",
+                "address": "123 Main St",
+                "city": "Mexico City",
+                "state": "CDMX"
+            }
+        )
+
+tests\api\v1\test_hospitals.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:546: in post
+    return super().post(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:1138: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\applications.py:107: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py:85: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:736: in app
+    await route.handle(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:290: in handle
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:115: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:101: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:355: in app
+    raw_response = await run_endpoint_function(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:243: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\v1\hospitals.py:41: in create_organization
+    db.commit()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:1286: in _prepare_impl
+    self.session.flush()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4331: in flush
+    self._flush(objects)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\util\langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4427: in _flush
+    flush_context.execute()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\unitofwork.py:466: in execute
+    rec.execute(self)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\persistence.py:93: in save_obj
+    _emit_insert_statements(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1419: in execute
+    return meth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+cursor = <sqlite3.Cursor object at 0x000001B2C5A80B40>
+statement = 'INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+parameters = ('Test Health Corp', 'hospital', 'RFC123456', None, '123 Main St', 'Mexico City', ...)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3D850>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: organizations
+E       [SQL: INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E       [parameters: ('Test Health Corp', 'hospital', 'RFC123456', None, '123 Main St', 'Mexico City', 'CDMX')]
+E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
+---------------------------- Captured stdout call -----------------------------
+Global Error: (sqlite3.OperationalError) no such table: organizations
+[SQL: INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('Test Health Corp', 'hospital', 'RFC123456', None, '123 Main St', 'Mexico City', 'CDMX')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+____________________________ test_create_hospital _____________________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x000001B2C5A91D00>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3FB90>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x000001B2C5AF9250>
+parameters = [('Org1', 'hospital', None, None, None, None, ...)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+cursor = <sqlite3.Cursor object at 0x000001B2C850EA40>
+statement = 'INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+parameters = ('Org1', 'hospital', None, None, None, None, ...)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3FB90>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.OperationalError: no such table: organizations
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
+
+The above exception was the direct cause of the following exception:
+
+    def test_create_hospital():
+        # 1. Create Org
+>       client.post("/api/v1/organizations", json={"name": "Org1", "org_type": "hospital"})
+
+tests\api\v1\test_hospitals.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:546: in post
+    return super().post(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:1138: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\applications.py:107: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py:85: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:736: in app
+    await route.handle(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:290: in handle
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:115: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:101: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:355: in app
+    raw_response = await run_endpoint_function(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:243: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\v1\hospitals.py:41: in create_organization
+    db.commit()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:1286: in _prepare_impl
+    self.session.flush()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4331: in flush
+    self._flush(objects)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\util\langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4427: in _flush
+    flush_context.execute()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\unitofwork.py:466: in execute
+    rec.execute(self)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\persistence.py:93: in save_obj
+    _emit_insert_statements(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1419: in execute
+    return meth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+cursor = <sqlite3.Cursor object at 0x000001B2C850EA40>
+statement = 'INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+parameters = ('Org1', 'hospital', None, None, None, None, ...)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3FB90>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: organizations
+E       [SQL: INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E       [parameters: ('Org1', 'hospital', None, None, None, None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
+---------------------------- Captured stdout call -----------------------------
+Global Error: (sqlite3.OperationalError) no such table: organizations
+[SQL: INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('Org1', 'hospital', None, None, None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+________________________ test_assign_user_to_hospital _________________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x000001B2C5AFBC50>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3DD90>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x000001B2C5AF9250>
+parameters = [('Org1', 'hospital', None, None, None, None, ...)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+cursor = <sqlite3.Cursor object at 0x000001B2C6FEAC40>
+statement = 'INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+parameters = ('Org1', 'hospital', None, None, None, None, ...)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3DD90>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.OperationalError: no such table: organizations
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
+
+The above exception was the direct cause of the following exception:
+
+    def test_assign_user_to_hospital():
+        # 1. Create Org & Hospital
+>       client.post("/api/v1/organizations", json={"name": "Org1", "org_type": "hospital"})
+
+tests\api\v1\test_hospitals.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:546: in post
+    return super().post(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:1138: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\applications.py:107: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py:85: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:736: in app
+    await route.handle(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:290: in handle
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:115: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:101: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:355: in app
+    raw_response = await run_endpoint_function(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:243: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\v1\hospitals.py:41: in create_organization
+    db.commit()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:1286: in _prepare_impl
+    self.session.flush()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4331: in flush
+    self._flush(objects)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\util\langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py:4427: in _flush
+    flush_context.execute()
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\unitofwork.py:466: in execute
+    rec.execute(self)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\persistence.py:93: in save_obj
+    _emit_insert_statements(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1419: in execute
+    return meth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x000001B2C5889F90>
+cursor = <sqlite3.Cursor object at 0x000001B2C6FEAC40>
+statement = 'INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+parameters = ('Org1', 'hospital', None, None, None, None, ...)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000001B2C5B3DD90>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: organizations
+E       [SQL: INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E       [parameters: ('Org1', 'hospital', None, None, None, None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
+---------------------------- Captured stdout call -----------------------------
+Global Error: (sqlite3.OperationalError) no such table: organizations
+[SQL: INSERT INTO organizations (name, org_type, tax_id, domain, address, city, state) VALUES (?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('Org1', 'hospital', None, None, None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+________________________ test_create_clinical_history _________________________
+
+    def test_create_clinical_history():
+>       response = client.post(
+            "/api/v1/patients/1/clinical-history",
+            json={
+                "patient_id": 1,
+                "family_history": "Father has asthma",
+                "hereditary_diseases": {"asthma": ["father"]},
+                "smoking": "never",
+                "alcohol_consumption": "occasional"
+            }
+        )
+
+tests\api\v1\test_clinical_records.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:546: in post
+    return super().post(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:1138: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\applications.py:107: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py:85: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:736: in app
+    await route.handle(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:290: in handle
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:115: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:101: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:377: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[IncEx] = None,
+        exclude: Optional[IncEx] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+        endpoint_ctx: Optional[EndpointContext] = None,
+    ) -> Any:
+        if field:
+            errors = []
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, list):
+                errors.extend(errors_)
+            if errors:
+                ctx = endpoint_ctx or EndpointContext()
+>               raise ResponseValidationError(
+                    errors=errors,
+                    body=response_content,
+                    endpoint_ctx=ctx,
+                )
+E               fastapi.exceptions.ResponseValidationError: 2 validation errors:
+E                 {'type': 'string_type', 'loc': ('response', 'family_history'), 'msg': 'Input should be a valid string', 'input': {'asthma': ['father']}}
+E                 {'type': 'string_type', 'loc': ('response', 'smoking'), 'msg': 'Input should be a valid string', 'input': False}
+E               
+E                 File "C:\asmasync-dashboard\backend\app\api\v1\clinical_records.py", line 20, in create_clinical_history
+E                   POST /api/v1/patients/{patient_id}/clinical-history
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:215: ResponseValidationError
+---------------------------- Captured stdout call -----------------------------
+Global Error: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'family_history'), 'msg': 'Input should be a valid string', 'input': {'asthma': ['father']}}
+  {'type': 'string_type', 'loc': ('response', 'smoking'), 'msg': 'Input should be a valid string', 'input': False}
+
+  File "C:\asmasync-dashboard\backend\app\api\v1\clinical_records.py", line 20, in create_clinical_history
+    POST /api/v1/patients/{patient_id}/clinical-history
+__________________________ test_create_physical_exam __________________________
+
+    def test_create_physical_exam():
+>       response = client.post(
+            "/api/v1/patients/1/physical-exams",
+            json={
+                "patient_id": 1,
+                "weight_kg": 70.0,
+                "height_cm": 175.0,
+                "systolic_bp": 120,
+                "diastolic_bp": 80,
+                "heart_rate": 72,
+                "respiratory_rate": 16,
+                "temperature_celsius": 36.5,
+                "general_notes": "Healthy"
+            }
+        )
+
+tests\api\v1\test_clinical_records.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:546: in post
+    return super().post(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:1138: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\applications.py:107: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py:85: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:736: in app
+    await route.handle(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py:290: in handle
+    await self.app(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:115: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:101: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:377: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[IncEx] = None,
+        exclude: Optional[IncEx] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+        endpoint_ctx: Optional[EndpointContext] = None,
+    ) -> Any:
+        if field:
+            errors = []
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, list):
+                errors.extend(errors_)
+            if errors:
+                ctx = endpoint_ctx or EndpointContext()
+>               raise ResponseValidationError(
+                    errors=errors,
+                    body=response_content,
+                    endpoint_ctx=ctx,
+                )
+E               fastapi.exceptions.ResponseValidationError: 1 validation error:
+E                 {'type': 'missing', 'loc': ('response', 'exam_date'), 'msg': 'Field required', 'input': <app.models.medical.PhysicalExam object at 0x000001B2C20CC980>}
+E               
+E                 File "C:\asmasync-dashboard\backend\app\api\v1\clinical_records.py", line 95, in create_physical_exam
+E                   POST /api/v1/patients/{patient_id}/physical-exams
+
+C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py:215: ResponseValidationError
+---------------------------- Captured stdout call -----------------------------
+Global Error: 1 validation error:
+  {'type': 'missing', 'loc': ('response', 'exam_date'), 'msg': 'Field required', 'input': <app.models.medical.PhysicalExam object at 0x000001B2C20CC980>}
+
+  File "C:\asmasync-dashboard\backend\app\api\v1\clinical_records.py", line 95, in create_physical_exam
+    POST /api/v1/patients/{patient_id}/physical-exams
+============================== warnings summary ===============================
+app\core\config.py:5
+  C:\asmasync-dashboard\backend\app\core\config.py:5: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+app\schemas\user.py:17
+  C:\asmasync-dashboard\backend\app\schemas\user.py:17: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator('password')
+
+app\schemas\user.py:38
+  C:\asmasync-dashboard\backend\app\schemas\user.py:38: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator('password')
+
+app\schemas\user.py:55
+  C:\asmasync-dashboard\backend\app\schemas\user.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserInDBBase(UserBase):
+
+app\schemas\patient.py:14
+  C:\asmasync-dashboard\backend\app\schemas\patient.py:14: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator('age')
+
+app\schemas\patient.py:30
+  C:\asmasync-dashboard\backend\app\schemas\patient.py:30: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PatientInDBBase(PatientBase):
+
+app\schemas\measurement.py:14
+  C:\asmasync-dashboard\backend\app\schemas\measurement.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Measurement(MeasurementBase):
+
+app\schemas\alert.py:16
+  C:\asmasync-dashboard\backend\app\schemas\alert.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Alert(AlertBase):
+
+app\schemas\intervention.py:15
+  C:\asmasync-dashboard\backend\app\schemas\intervention.py:15: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Intervention(InterventionBase):
+
+app\schemas\hospital.py:22
+  C:\asmasync-dashboard\backend\app\schemas\hospital.py:22: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrganizationResponse(OrganizationBase):
+
+app\schemas\hospital.py:56
+  C:\asmasync-dashboard\backend\app\schemas\hospital.py:56: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class HospitalResponse(HospitalBase):
+
+app\schemas\hospital.py:71
+  C:\asmasync-dashboard\backend\app\schemas\hospital.py:71: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserHospitalAssignmentResponse(BaseModel):
+
+app\schemas\clinical_records.py:24
+  C:\asmasync-dashboard\backend\app\schemas\clinical_records.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ClinicalHistoryResponse(ClinicalHistoryBase):
+
+app\schemas\clinical_records.py:47
+  C:\asmasync-dashboard\backend\app\schemas\clinical_records.py:47: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PhysicalExamResponse(PhysicalExamBase):
+
+app\schemas\clinical_records.py:74
+  C:\asmasync-dashboard\backend\app\schemas\clinical_records.py:74: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ConditionResponse(ConditionBase):
+
+app\schemas\clinical_records.py:93
+  C:\asmasync-dashboard\backend\app\schemas\clinical_records.py:93: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AllergyResponse(AllergyBase):
+
+app\main.py:64
+  C:\asmasync-dashboard\backend\app\main.py:64: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+..\..\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:4579
+  C:\Users\penar\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py:4579: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+tests/api/v1/test_clinical_records.py::test_create_physical_exam
+  C:\asmasync-dashboard\backend\app\api\v1\clinical_records.py:105: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    encounter_date=datetime.utcnow(),
+
+tests/api/v1/test_clinical_records.py::test_create_allergy
+  C:\asmasync-dashboard\backend\app\api\v1\clinical_records.py:234: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    recorded_at=datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/api/v1/test_hospitals.py::test_create_organization - sqlalchemy....
+FAILED tests/api/v1/test_hospitals.py::test_create_hospital - sqlalchemy.exc....
+FAILED tests/api/v1/test_hospitals.py::test_assign_user_to_hospital - sqlalch...
+FAILED tests/api/v1/test_clinical_records.py::test_create_clinical_history - ...
+FAILED tests/api/v1/test_clinical_records.py::test_create_physical_exam - fas...
+================== 5 failed, 2 passed, 20 warnings in 4.06s ===================
