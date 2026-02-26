@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -30,9 +32,10 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     templateUrl: './clinical-history.component.html',
     styleUrls: ['./clinical-history.component.scss']
 })
-export class ClinicalHistoryComponent implements OnInit {
+export class ClinicalHistoryComponent implements OnInit, OnDestroy {
     patient: Patient | null = null;
     today = new Date();
+    private destroy$ = new Subject<void>();
 
     constructor(
         private route: ActivatedRoute,
@@ -43,14 +46,19 @@ export class ClinicalHistoryComponent implements OnInit {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             if (id.startsWith('P-')) {
-                this.patientService.getPatientById(id).subscribe(p => this.patient = p);
+                this.patientService.getPatientById(id).pipe(takeUntil(this.destroy$)).subscribe(p => this.patient = p);
             } else {
-                this.patientService.getPatientById(Number(id)).subscribe(p => this.patient = p);
+                this.patientService.getPatientById(Number(id)).pipe(takeUntil(this.destroy$)).subscribe(p => this.patient = p);
             }
         }
     }
 
     print(): void {
         window.print();
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 }

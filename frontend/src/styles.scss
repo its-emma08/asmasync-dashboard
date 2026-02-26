@@ -131,6 +131,7 @@ textarea:focus {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        transition: background-color 300ms ease-in-out, color 300ms ease-in-out, border-color 300ms ease-in-out;
     }
 }
 
@@ -201,15 +202,18 @@ select:focus {
    ============================================ */
 .mat-mdc-card {
     background: var(--bg-card) !important;
-    border: 1px solid var(--border-light) !important;
+    border: 1px solid rgba(226, 232, 240, 0.6) !important;
+    /* border-slate-200/60 */
     border-radius: var(--radius-xl) !important;
-    box-shadow: var(--shadow-sm) !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    /* shadow-sm */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .mat-mdc-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    /* shadow-md */
 }
 
 .glass-card {
@@ -362,11 +366,11 @@ select:focus {
 }
 
 /* ============================================
-   Scrollbar — Minimal (Invisible until hover)
+   Scrollbar — Apple HIG Style
    ============================================ */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -374,164 +378,283 @@ select:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.2);
-    /* Almost invisible slate-400 */
-    border-radius: 999px;
-    /* Pill shape */
-    border: 2px solid transparent;
-    /* Creates padding effect */
-    background-clip: content-box;
-    transition: background-color 0.2s ease;
+    background: #cbd5e1;
+    border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(148, 163, 184, 0.5);
-    /* Visible on hover */
-    border: 2px solid transparent;
-    background-clip: content-box;
+body.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
 }
 
 /* Firefox */
 * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+body.dark * {
+    scrollbar-color: #475569 transparent;
 }
 
 /* ============================================
-   Dark Theme — Cautious Override
+   Dark Theme — Premium Medical Dark Mode
    Applied when body has .dark class
    ============================================ */
 body.dark {
+    /* Base Surfaces */
     --bg-body: #0f172a;
+    /* Slate 900 */
     --bg-card: #1e293b;
-    --bg-input: #1e293b;
-    --bg-hover: rgba(255, 255, 255, 0.06);
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
+    /* Slate 800 */
+    --bg-input: #0f172a;
+    /* Slate 900 for inputs (nested inside cards) */
+    --bg-hover: rgba(248, 250, 252, 0.05);
+    /* Soft light hover */
+
+    /* Text */
+    --text-primary: #f8fafc;
+    /* Slate 50 */
+    --text-secondary: #cbd5e1;
+    /* Slate 300 */
     --text-muted: #64748b;
+    /* Slate 500 */
+
+    /* Borders & Shadows */
     --border-color: #334155;
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+    /* Slate 700 */
+    --border-light: #1e293b;
+    /* Slate 800 / Invisible */
 
-    background: var(--bg-body);
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.7);
+
     color: var(--text-primary);
+    background-color: var(--bg-body);
 
-    /* Material Cards */
-    .mat-mdc-card {
-        background: var(--bg-card) !important;
-        border-color: var(--border-color) !important;
-        color: var(--text-primary) !important;
-    }
+    /* Sidebar overrides */
+    --sidebar: #111827;
+    /* Gray 900 */
+    --sidebar-foreground: #f8fafc;
+    --sidebar-accent: #1f2937;
+    /* Gray 800 */
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #1f2937;
 
-    /* Glass cards (custom) */
-    .glass-card {
-        background: rgba(30, 41, 59, 0.85) !important;
-        border-color: var(--border-color) !important;
-        color: var(--text-primary) !important;
-    }
+    /* Legacy compat */
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
+    --border: #334155;
+    --input: transparent;
+    --input-background: #1e293b;
+    --muted: #1e293b;
+    --muted-foreground: #cbd5e1;
 
-    /* Material form fields */
-    .mat-mdc-form-field-flex {
-        background-color: #1e293b !important;
-    }
-
-    .mat-mdc-text-field-wrapper {
-        background-color: transparent !important;
-    }
-
-    .mdc-text-field--outlined .mdc-notched-outline__leading,
-    .mdc-text-field--outlined .mdc-notched-outline__trailing,
-    .mdc-text-field--outlined .mdc-notched-outline__notch {
-        border-color: #334155 !important;
-    }
-
-    .mat-mdc-input-element,
-    .mat-mdc-select-value,
-    .mdc-floating-label {
-        color: var(--text-primary) !important;
-    }
-
-    /* Table cells */
-    .mat-mdc-cell,
-    .mat-mdc-header-cell {
-        color: var(--text-primary) !important;
-        border-color: var(--border-color) !important;
-    }
-
-    .mat-mdc-row:hover {
-        background: rgba(255, 255, 255, 0.03) !important;
-    }
-
-    /* Buttons */
-    .mat-mdc-stroked-button {
-        border-color: var(--border-color) !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* Sidebar override */
-    .sidebar {
-        background: #1e293b !important;
-        border-color: var(--border-color) !important;
-    }
-
-    /* Dialog backgrounds */
-    .mat-mdc-dialog-container .mdc-dialog__surface {
-        background: var(--bg-card) !important;
-        color: var(--text-primary) !important;
-    }
-
-    /* Snackbar */
-    .mat-mdc-snack-bar-container .mdc-snackbar__surface {
-        background: #334155 !important;
-    }
-
-    /* Tailwind utility overrides */
+    /* Tailwind utility overrides for hardcoded classes */
     .bg-white {
         background-color: var(--bg-card) !important;
     }
 
-    .bg-gray-50,
-    .bg-gray-100 {
-        background-color: rgba(255, 255, 255, 0.04) !important;
-    }
-
+    .text-slate-700,
+    .text-slate-800,
+    .text-slate-900,
     .text-gray-700,
     .text-gray-800,
     .text-gray-900 {
         color: var(--text-primary) !important;
     }
 
+    .text-slate-500,
+    .text-slate-600,
     .text-gray-500,
     .text-gray-600 {
         color: var(--text-secondary) !important;
     }
 
+    .text-slate-400,
     .text-gray-400 {
-        color: #94a3b8 !important;
-        /* Keep as is for dark mode compatibility or adjust if needed */
+        color: var(--text-muted) !important;
     }
 
+    .border-slate-100,
+    .border-slate-200,
     .border-gray-100,
     .border-gray-200 {
         border-color: var(--border-color) !important;
     }
 
-    /* Stepper in dark mode */
-    .mat-horizontal-stepper-header-container {
-        background: var(--bg-card) !important;
+    .bg-slate-50,
+    .bg-slate-100,
+    .bg-gray-50,
+    .bg-gray-100 {
+        background-color: var(--bg-hover) !important;
+    }
+
+    /* Angular Material Cards */
+    .mat-mdc-card {
+        background: rgba(30, 41, 59, 0.95) !important;
+        /* bg-slate-800/95 */
+        border: 1px solid #334155 !important;
+        /* border-slate-700 */
+        color: var(--text-primary) !important;
+        box-shadow: none !important;
+        /* dark:shadow-none */
+    }
+
+    /* Glass Cards */
+    .glass-card {
+        background: rgba(30, 41, 59, 0.7) !important;
+        /* Slightly more transparent Slate 800 */
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Material Form Fields */
+    .mat-mdc-form-field-flex {
+        background-color: var(--bg-input) !important;
+        /* Slight contrast from card */
+        border: 1px solid var(--border-color) !important;
+    }
+
+    .mat-mdc-form-field-flex:hover {
+        background-color: var(--bg-hover) !important;
+        border-color: var(--text-muted) !important;
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
         border-color: var(--border-color) !important;
     }
 
-    .mat-step-header .mat-step-label {
+    .mat-mdc-form-field-flex:focus-within {
+        border-color: var(--brand-primary) !important;
+    }
+
+    .mat-mdc-input-element,
+    .mdc-text-field__input,
+    .mat-mdc-select-value-text {
+        color: var(--text-primary) !important;
+    }
+
+    .mdc-floating-label {
         color: var(--text-secondary) !important;
     }
 
-    .mat-step-header .mat-step-label-active {
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--text-muted) !important;
+    }
+
+    /* Material Select Panels & Autocomplete */
+    .mat-mdc-select-panel,
+    .mat-mdc-autocomplete-panel {
+        background-color: #1e293b !important;
+        color: #f1f5f9 !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    .mat-mdc-option {
+        color: #f1f5f9 !important;
+    }
+
+    .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+    .mat-mdc-option:focus:not(.mdc-list-item--disabled),
+    .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    /* Table */
+    .mat-mdc-table {
+        background: transparent !important;
+    }
+
+    .mat-mdc-header-cell {
+        color: var(--text-muted) !important;
+        border-bottom-color: var(--border-color) !important;
+        background: var(--bg-card) !important;
+    }
+
+    .mat-mdc-cell {
+        color: var(--text-secondary) !important;
+        border-bottom-color: var(--border-color) !important;
+    }
+
+    .mat-mdc-row:hover .mat-mdc-cell {
+        background: var(--bg-hover) !important;
+    }
+
+    /* Dialogs / Modals */
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+        background-color: #1e293b !important;
+        color: #f1f5f9 !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: var(--shadow-xl) !important;
+    }
+
+    /* Menus */
+    .mat-mdc-menu-panel {
+        background-color: #1e293b !important;
+        color: #f1f5f9 !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    .mat-mdc-menu-item {
+        color: #f1f5f9 !important;
+    }
+
+    .mat-mdc-menu-item:hover {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    .mat-mdc-menu-item .mat-icon {
+        color: #94a3b8 !important;
+    }
+
+    .mat-mdc-menu-item:hover .mat-icon {
+        color: #ffffff !important;
+    }
+
+    /* Stepper */
+    .mat-stepper-horizontal,
+    .mat-stepper-vertical {
+        background: transparent !important;
+    }
+
+    .mat-horizontal-stepper-header-container {
+        border-bottom-color: var(--border-color) !important;
+    }
+
+    .mat-step-header .mat-step-label {
+        color: var(--text-muted) !important;
+    }
+
+    .mat-step-header .mat-step-label.mat-step-label-active {
         color: var(--text-primary) !important;
     }
+
+    .mat-stepper-horizontal-line {
+        border-top-color: var(--border-color) !important;
+    }
+
+    /* Buttons Override */
+    .mat-mdc-stroked-button {
+        border-color: var(--border-color) !important;
+        color: var(--text-secondary) !important;
+    }
+
+    .mat-mdc-stroked-button:hover {
+        background-color: var(--bg-hover) !important;
+        color: var(--text-primary) !important;
+    }
+
 }
 
 /* ============================================
@@ -578,28 +701,26 @@ body.dark {
 /* PREVIEW: The element that follows the cursor */
 .cdk-drag-preview {
     box-sizing: border-box;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
-    opacity: 0.9;
+    border-radius: 20px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25) !important;
+    opacity: 0.95;
     z-index: 9999 !important;
 
     /* FORCE DIMENSIONS during drag to prevent "Giant Column" */
     display: block !important;
     width: 280px !important;
-    /* Fixed width assumption or inherit? Better to inherit but clamp */
     max-width: 100% !important;
     height: 180px !important;
-    /* Force standard height */
     overflow: hidden !important;
-    background: #ffffff !important;
+    background: var(--bg-card) !important;
 }
 
 /* PLACEHOLDER: The space where it will drop */
 .cdk-drag-placeholder {
     opacity: 0.3;
-    background: #e2e8f0;
-    border: 2px dashed #94a3b8;
-    border-radius: 24px;
+    background: var(--bg-hover);
+    border: 2px dashed var(--text-muted);
+    border-radius: 20px;
     min-height: 180px;
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
@@ -612,4 +733,276 @@ body.dark {
 /* ANIMATION: Animate other items away */
 .cdk-drag-animating {
     transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ============================================
+   Premium Skeleton Loaders (Shimmer)
+   ============================================ */
+.skeleton {
+    background-color: #e2e8f0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    /* Default */
+}
+
+body.dark .skeleton {
+    background-color: #334155;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0,
+            rgba(255, 255, 255, 0.2) 20%,
+            rgba(255, 255, 255, 0.5) 60%,
+            rgba(255, 255, 255, 0));
+    animation: shimmer 1.5s infinite;
+}
+
+body.dark .skeleton::after {
+    background-image: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0,
+            rgba(255, 255, 255, 0.05) 20%,
+            rgba(255, 255, 255, 0.1) 60%,
+            rgba(255, 255, 255, 0));
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ============================================
+   Auth Forms — Slide & Fade Transitions (UX-005)
+   ============================================ */
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-slide-in {
+    animation: slideInFromRight 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-slide-in-left {
+    animation: slideInFromLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-fade-up {
+    animation: fadeSlideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Auth card panels transition */
+.auth-panel-enter {
+    animation: fadeSlideUp 0.3s ease both;
+}
+
+/* ============================================
+   Dark Mode — Enhanced Component Overrides (UX-006)
+   Coverage: Chips, Badges, Tabs, Expansion, 
+   Checkbox, Paginator, Tooltip, Datepicker
+   ============================================ */
+body.dark {
+
+    /* Material Chips */
+    .mat-mdc-chip {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+        border-color: #475569 !important;
+    }
+
+    .mat-mdc-chip .mat-icon,
+    .mat-mdc-chip .mdc-evolution-chip__action--primary {
+        color: #94a3b8 !important;
+    }
+
+    /* Badges */
+    .mat-badge-content {
+        background-color: var(--brand-primary) !important;
+        color: #ffffff !important;
+    }
+
+    /* Tabs */
+    .mat-mdc-tab-group .mat-mdc-tab-header {
+        border-bottom-color: #334155 !important;
+    }
+
+    .mat-mdc-tab:not(.mdc-tab--active) .mdc-tab__content {
+        color: #94a3b8 !important;
+    }
+
+    .mat-mdc-tab-body-wrapper {
+        background: transparent !important;
+    }
+
+    /* Expansion panel */
+    .mat-expansion-panel {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+    }
+
+    .mat-expansion-panel-header-title,
+    .mat-expansion-indicator::after {
+        color: #e2e8f0 !important;
+    }
+
+    .mat-expansion-panel-body {
+        color: #cbd5e1 !important;
+    }
+
+    /* Checkbox */
+    .mat-mdc-checkbox .mdc-checkbox__background {
+        border-color: #475569 !important;
+        background-color: transparent !important;
+    }
+
+    .mat-mdc-checkbox.mat-accent .mdc-checkbox--selected~.mdc-checkbox__background {
+        background-color: var(--brand-primary) !important;
+    }
+
+    .mat-mdc-checkbox .mdc-label {
+        color: #cbd5e1 !important;
+    }
+
+    /* Paginator */
+    .mat-mdc-paginator {
+        background-color: #1e293b !important;
+        color: #cbd5e1 !important;
+        border-color: #334155 !important;
+    }
+
+    .mat-mdc-paginator .mat-mdc-select-value {
+        color: #e2e8f0 !important;
+    }
+
+    .mat-mdc-icon-button[disabled] {
+        color: #475569 !important;
+    }
+
+    /* Tooltip */
+    .mat-mdc-tooltip .mdc-tooltip__surface {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border: 1px solid #334155 !important;
+    }
+
+    /* Datepicker */
+    .mat-datepicker-content {
+        background-color: #1e293b !important;
+        color: #e2e8f0 !important;
+        border: 1px solid #334155 !important;
+    }
+
+    .mat-calendar-body-cell-content {
+        color: #e2e8f0 !important;
+    }
+
+    .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+        border-color: var(--brand-primary) !important;
+    }
+
+    .mat-calendar-body-selected {
+        background-color: var(--brand-primary) !important;
+    }
+
+    .mat-calendar-table-header,
+    .mat-calendar-body-label {
+        color: #94a3b8 !important;
+    }
+
+    .mat-calendar-arrow {
+        fill: #e2e8f0 !important;
+    }
+
+    /* Dividers */
+    .mat-divider {
+        border-color: #334155 !important;
+    }
+
+    /* Progress bar */
+    .mat-mdc-progress-bar .mdc-linear-progress__buffer-bar {
+        background-color: #334155 !important;
+    }
+
+    /* Sidebar Link Active State */
+    .sidebar-link-active,
+    .sidebar-link.active {
+        background-color: rgba(0, 181, 173, 0.12) !important;
+        color: var(--brand-primary) !important;
+    }
+
+    /* TopBar / Header hard-coded backgrounds */
+    .dashboard-header {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border-color: #334155 !important;
+    }
+
+    /* Hardcoded white KPI & widget containers */
+    .widget-card,
+    [class*="bg-white"] {
+        background-color: #1e293b !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* KPI giant number text */
+    .kpi-value {
+        color: #f8fafc !important;
+    }
+
+    /* Patient list rows */
+    .patient-row:hover {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+    }
+
+    /* Auth card */
+    .auth-card {
+        background: rgba(15, 23, 42, 0.9) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Skeleton dark shimmer already done above */
+
+    /* Table header sticky */
+    .mat-mdc-table .mat-mdc-header-row {
+        background: #1e293b !important;
+    }
 }

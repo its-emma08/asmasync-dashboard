@@ -5,17 +5,19 @@ import * as THREE from 'three';
     selector: 'app-loading-screen',
     standalone: true,
     template: `
-    <div class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50">
+    <div class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-opacity duration-500 ease-in-out"
+         [class.opacity-0]="isFadingOut"
+         [class.pointer-events-none]="isFadingOut">
       <canvas #rendererCanvas class="w-64 h-64 outline-none"></canvas>
       
       <div class="mt-8 text-center pointer-events-none">
-        <h2 class="text-2xl font-bold text-slate-700 tracking-wider">ASMASYNC</h2>
-        <p class="text-sm text-slate-500 mt-2">Cargando experiencia 3D...</p>
+        <h2 class="text-2xl font-bold text-slate-700 dark:text-slate-100 tracking-wider">ASMASYNC</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Cargando experiencia 3D...</p>
         
-        <div class="w-64 h-1 bg-slate-200 rounded-full mt-4 overflow-hidden">
+        <div class="w-64 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mt-4 overflow-hidden">
           <div class="h-full bg-cyan-500 transition-all duration-300" [style.width.%]="progress"></div>
         </div>
-        <p class="text-xs text-cyan-600 mt-1 font-mono">{{ progress }}%</p>
+        <p class="text-xs text-cyan-600 dark:text-cyan-400 mt-1 font-mono">{{ progress }}%</p>
       </div>
     </div>
   `
@@ -23,6 +25,7 @@ import * as THREE from 'three';
 export class LoadingScreenComponent implements AfterViewInit, OnDestroy {
     @ViewChild('rendererCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
     @Input() progress: number = 0;
+    @Input() isFadingOut: boolean = false;
 
     private renderer!: THREE.WebGLRenderer;
     private scene!: THREE.Scene;

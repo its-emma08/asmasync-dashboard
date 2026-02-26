@@ -72,3 +72,12 @@ def require_role(allowed_roles: list[str]):
             )
         return current_user
     return role_checker
+
+async def get_current_doctor_user(current_user: User = Depends(get_current_user)) -> User:
+    """Dependencia estricta para asegurar que el usuario es un médico o administrador."""
+    if current_user.role not in ['admin', 'doctor']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Privilegios insuficientes"
+        )
+    return current_user

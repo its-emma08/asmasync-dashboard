@@ -21,17 +21,18 @@ export const DASHBOARD_ROUTES: Routes = [
                 canDeactivate: [pendingChangesGuard]
             },
             {
+                // BUG-002 fix: edit/:id must come before :id to prevent :id from matching 'edit'
+                path: 'patients/edit/:id',
+                loadComponent: () => import('./patient-form/patient-form.component').then(m => m.PatientFormComponent),
+                canDeactivate: [pendingChangesGuard]
+            },
+            {
                 path: 'patients/:id/clinical-history',
                 loadComponent: () => import('../reports/clinical-history/clinical-history.component').then(m => m.ClinicalHistoryComponent)
             },
             {
                 path: 'patients/:id',
                 loadComponent: () => import('./patient-detail/patient-detail.component').then(m => m.PatientDetailComponent)
-            },
-            {
-                path: 'patients/edit/:id',
-                loadComponent: () => import('./patient-form/patient-form.component').then(m => m.PatientFormComponent),
-                canDeactivate: [pendingChangesGuard]
             },
             {
                 path: 'calendar',

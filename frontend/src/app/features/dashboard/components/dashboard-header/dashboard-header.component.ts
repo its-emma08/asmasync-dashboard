@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,9 @@ import { LayoutService } from '../../../../core/services/layout.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { BreadcrumbService, Breadcrumb } from '../../../../core/services/breadcrumb.service';
 import { Alert } from '../../../../core/models/alert.model';
-import { Observable } from 'rxjs';
+import { ThemeService } from '../../../../core/services/theme.service';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard-header',
@@ -22,9 +24,10 @@ import { Observable } from 'rxjs';
   templateUrl: './dashboard-header.component.html',
   styleUrls: ['./dashboard-header.component.scss']
 })
-export class DashboardHeaderComponent implements OnInit {
+export class DashboardHeaderComponent implements OnInit, OnDestroy {
   currentDate = new Date();
   searchTerm = '';
+  private destroy$ = new Subject<void>();
 
   doctorName = 'Usuario';
   doctorSpecialty = 'Especialista';
@@ -40,7 +43,8 @@ export class DashboardHeaderComponent implements OnInit {
     private searchService: SearchService,
     private layoutService: LayoutService,
     private notificationService: NotificationService,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private themeService: ThemeService
   ) {
     this.unreadCount$ = this.notificationService.unreadCount$;
     this.notifications$ = this.notificationService.notifications$;
@@ -48,7 +52,7 @@ export class DashboardHeaderComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
       if (user) {
         this.doctorName = user.full_name || 'Usuario';
         this.doctorInitials = this.getInitials(user.full_name);
@@ -111,5 +115,18 @@ export class DashboardHeaderComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDark();
+  }
+
+  toggleTheme() {
+    this.themeService.setTheme(this.isDarkMode ? 'light' : 'dark');
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

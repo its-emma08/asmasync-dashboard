@@ -1,0 +1,37 @@
+<div class="h-full flex flex-col p-4 relative group transition-all duration-300 overflow-hidden rounded-3xl"
+    [ngClass]="getNoteColor(currentNoteColor)">
+
+    <!-- Background Texture -->
+    <div class="absolute inset-0 opacity-10 pointer-events-none bg-paper-texture"></div>
+
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-2 relative z-10">
+        <div class="flex items-center gap-1.5 opacity-60">
+            <mat-icon class="scale-75 -rotate-45" [style.color]="'rgba(0,0,0,0.5)'">push_pin</mat-icon>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-700">Sticky Note</span>
+        </div>
+
+        <!-- Color Picker (Hidden until hover) -->
+        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button *ngFor="let color of noteColors" (click)="setNoteColor(color)"
+                class="w-4 h-4 rounded-full border border-black/10 shadow-sm transform hover:scale-125 transition-transform"
+                [style.background]="color.hex">
+            </button>
+        </div>
+    </div>
+
+    <!-- Text Area -->
+    <textarea [(ngModel)]="noteContent" (ngModelChange)="onContentChange()"
+        class="flex-1 w-full bg-transparent resize-none border-none focus:ring-0 text-slate-800 placeholder-slate-400 font-handwriting text-lg leading-relaxed custom-scrollbar outline-none relative z-10 p-1"
+        placeholder="Escribe algo importante..." spellcheck="false"></textarea>
+
+    <!-- Footer: Last Saved -->
+    <div class="flex justify-between items-center mt-2 pt-2 border-t border-black/5 relative z-10">
+        <span class="text-[10px] text-slate-500 font-medium italic transition-opacity duration-500"
+            [class.opacity-0]="!justSaved">
+            <mat-icon class="icon-xxs inline align-middle mr-0.5 text-slate-400">cloud_done</mat-icon> Guardado
+        </span>
+
+        <div class="text-[9px] text-slate-400 opacity-50">{{ noteContent.length }} chars</div>
+    </div>
+</div>

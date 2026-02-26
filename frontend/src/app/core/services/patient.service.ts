@@ -90,14 +90,30 @@ export class PatientService {
     }
 
     private mapFrontendToBackend(frontend: any): any {
+        // Date formatting helper
+        const formatDate = (dateVal: any) => {
+            if (!dateVal) return null;
+            if (dateVal instanceof Date) return dateVal.toISOString().split('T')[0];
+            if (typeof dateVal === 'string' && dateVal.includes('T')) return dateVal.split('T')[0];
+            return dateVal;
+        };
+
+        // Enforce VARCHAR(1) for gender to match Postgres Database
+        const genderMap: any = {
+            'male': 'M',
+            'female': 'F',
+            'other': 'O'
+        };
+        const genderAbbr = genderMap[frontend.gender] || 'O';
+
         return {
             full_name: frontend.full_name,
-            email: frontend.email,
-            phone: frontend.phone,
-            date_of_birth: frontend.date_of_birth,
-            gender: frontend.gender,
+            email: frontend.email || null, // Ensure empty strings are cast to null for Pydantic Optional[EmailStr]
+            phone: frontend.phone || null,
+            date_of_birth: formatDate(frontend.date_of_birth),
+            gender: genderAbbr,
             asthma_type: frontend.asthma_type,
-            personal_best_pef: frontend.personal_best_pef,
+            personal_best_pef: parseInt(frontend.personal_best_pef) || 500,
             risk_level: frontend.riskLevel, // Pass through color directly, backend expects enum value (red/yellow/green)
 
             // Handle Emergency Contact (Nested OR Flat)
@@ -106,11 +122,11 @@ export class PatientService {
             emergency_contact_relation: frontend.emergencyContact?.relation || frontend.emergency_contact_relation,
 
             // Physical data (Map form 'height'/'weight' to backend 'height_cm'/'weight_kg')
-            height_cm: frontend.height_cm || frontend.height,
-            weight_kg: frontend.weight_kg || frontend.weight,
+            height_cm: parseInt(frontend.height_cm || frontend.height) || null,
+            weight_kg: parseInt(frontend.weight_kg || frontend.weight) || null,
 
             // Medical
-            diagnosis_date: frontend.diagnosisDate || frontend.diagnosis_date,
+            diagnosis_date: formatDate(frontend.diagnosisDate || frontend.diagnosis_date),
         };
     }
 

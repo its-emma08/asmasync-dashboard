@@ -32,28 +32,59 @@
         <!-- Dashboard Content -->
         <div *ngIf="dataReady" class="dashboard-content">
 
-            <!-- Magnetic Grid Engine -->
-            <div class="widget-grid" cdkDropList cdkDropListOrientation="mixed" (cdkDropListDropped)="drop($event)"
+            <!-- Magnetic Grid Engine (Bento Box) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-24 grid-flow-row-dense" cdkDropList
+                cdkDropListOrientation="mixed" (cdkDropListDropped)="drop($event)"
                 [cdkDropListDisabled]="!(editMode$ | async)">
 
                 <app-dashboard-widget *ngFor="let widget of widgets$ | async; trackBy: trackWidget" [widget]="widget"
                     [editMode]="(editMode$ | async) || false" (delete)="deleteWidget($event)"
                     (resize)="resizeWidget($event)" (updateSize)="onWidgetResize($event)" cdkDrag
                     [cdkDragDisabled]="!(editMode$ | async)"
-                    [ngClass]="'col-span-' + widget.colSpan + ' row-span-' + (widget.rowSpan || 1)">
+                    [ngClass]="'md:col-span-' + (widget.colSpan === 4 ? 3 : widget.colSpan) + ' lg:col-span-' + widget.colSpan + ' row-span-' + (widget.rowSpan || 1)">
 
                     <!-- Widget Resolver -->
                     <ng-container [ngSwitch]="widget.type">
-                        <app-kpi-group-widget *ngSwitchCase="'kpi-group'" [kpis]="kpis"
-                            [colSpan]="widget.colSpan"></app-kpi-group-widget>
-                        <app-alerts-widget *ngSwitchCase="'alerts-panel'" [patients]="urgentPatients"
-                            (resolve)="markAsResolved($event)" (markAll)="markAllAsResolved()"></app-alerts-widget>
-                        <app-patients-table-widget *ngSwitchCase="'patients-table'"
-                            [patients]="recentPatients"></app-patients-table-widget>
-                        <app-trend-widget *ngSwitchCase="'trend-chart'" [data]="trendChartData"
-                            [options]="trendChartOptions"></app-trend-widget>
-                        <app-activity-widget *ngSwitchCase="'activity-list'"
-                            [activities]="recentActivity"></app-activity-widget>
+                        <ng-container *ngSwitchCase="'kpi-group'">
+                            <app-kpi-group-widget *ngIf="hasPatients" [kpis]="kpis"
+                                [colSpan]="widget.colSpan"></app-kpi-group-widget>
+                            <div *ngIf="!hasPatients"
+                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
+                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'alerts-panel'">
+                            <app-alerts-widget *ngIf="hasPatients" [patients]="urgentPatients"
+                                (resolve)="markAsResolved($event)" (markAll)="markAllAsResolved()"></app-alerts-widget>
+                            <div *ngIf="!hasPatients"
+                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
+                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'patients-table'">
+                            <app-patients-table-widget *ngIf="hasPatients"
+                                [patients]="recentPatients"></app-patients-table-widget>
+                            <div *ngIf="!hasPatients"
+                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
+                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'trend-chart'">
+                            <app-trend-widget *ngIf="hasPatients" [data]="trendChartData"
+                                [options]="trendChartOptions"></app-trend-widget>
+                            <div *ngIf="!hasPatients"
+                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
+                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'activity-list'">
+                            <app-activity-widget *ngIf="hasPatients"
+                                [activities]="recentActivity"></app-activity-widget>
+                            <div *ngIf="!hasPatients"
+                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
+                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
+                            </div>
+                        </ng-container>
                         <app-weather-widget *ngSwitchCase="'weather'"></app-weather-widget>
                         <app-calendar-widget *ngSwitchCase="'calendar'"></app-calendar-widget>
                         <app-quick-actions-widget *ngSwitchCase="'quick-actions'"></app-quick-actions-widget>

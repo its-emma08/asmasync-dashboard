@@ -1,46 +1,79 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../../../../core/services/storage.service';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
+interface NoteColor {
+    id: string;
+    hex: string;
+    class: string;
+}
 
 @Component({
     selector: 'app-reminders-widget',
     standalone: true,
     imports: [CommonModule, MatIconModule, FormsModule],
-    template: `
-    <div class="h-full flex flex-col bg-yellow-50 p-4 relative group">
-        <div class="absolute top-0 right-0 p-2 opacity-50">
-            <mat-icon class="text-yellow-600 rotate-12">push_pin</mat-icon>
-        </div>
-        
-        <h3 class="font-bold text-yellow-800 text-sm mb-2 uppercase tracking-wide">Notas Rápidas</h3>
-        
-        <textarea 
-            [(ngModel)]="noteContent" 
-            (ngModelChange)="saveNote()"
-            class="flex-1 w-full bg-transparent resize-none border-none focus:ring-0 text-yellow-900 placeholder-yellow-800/50 font-handwriting text-lg leading-relaxed custom-scrollbar outline-none"
-            placeholder="Escribe aquí un recordatorio..."
-        ></textarea>
-    </div>
-  `,
-    styles: [`
-    @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap');
-    .font-handwriting { font-family: 'Kalam', cursive; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #eab308; border-radius: 2px; }
-  `]
+    templateUrl: './reminders-widget.component.html',
+    styleUrls: ['./reminders-widget.component.scss']
 })
-export class RemindersWidgetComponent {
+export class RemindersWidgetComponent implements OnInit {
     noteContent = '';
+    justSaved = false;
+
+    // Color Options
+    noteColors: NoteColor[] = [
+        { id: 'yellow', hex: '#fef08a', class: 'bg-yellow-postit' },
+        { id: 'blue', hex: '#bae6fd', class: 'bg-blue-postit' },
+        { id: 'pink', hex: '#fbcfe8', class: 'bg-pink-postit' },
+        { id: 'green', hex: '#bbf7d0', class: 'bg-green-postit' }
+    ];
+
+    currentNoteColor = 'bg-yellow-postit';
+    private contentSubject = new Subject<string>();
 
     constructor(private storageService: StorageService) {
+        // Load Content
         const saved = this.storageService.getItem('dashboard_sticky_note');
         if (saved) this.noteContent = saved;
+
+        // Load Color
+        const savedColor = this.storageService.getItem('dashboard_sticky_color');
+        if (savedColor) this.currentNoteColor = savedColor;
+
+        // Setup Auto-save Debounce (500ms)
+        this.contentSubject.pipe(
+            debounceTime(500),
+            distinctUntilChanged()
+        ).subscribe(content => {
+            this.saveNote(content);
+        });
     }
 
-    saveNote() {
-        this.storageService.setItem('dashboard_sticky_note', this.noteContent);
+    ngOnInit() { }
+
+    onContentChange() {
+        this.contentSubject.next(this.noteContent);
+    }
+
+    setNoteColor(color: NoteColor) {
+        this.currentNoteColor = color.class;
+        this.storageService.setItem('dashboard_sticky_color', color.class);
+    }
+
+    getNoteColor(className: string): string {
+        return className;
+    }
+
+    saveNote(content: string) {
+        this.storageService.setItem('dashboard_sticky_note', content);
+        this.showSavedIndicator();
+    }
+
+    showSavedIndicator() {
+        this.justSaved = true;
+        setTimeout(() => this.justSaved = false, 2000);
     }
 }

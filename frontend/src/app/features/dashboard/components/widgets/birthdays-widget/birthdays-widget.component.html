@@ -1,0 +1,62 @@
+<div
+    class="h-full flex flex-col p-4 bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4 z-10 relative">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shadow-sm border border-rose-100">
+                <mat-icon class="scale-90">cake</mat-icon>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-800 text-sm leading-none">Cumpleaños</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Próximos 7 días</p>
+            </div>
+        </div>
+        <div class="bg-rose-100/50 text-rose-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-rose-100">
+            {{ (upcomingBirthdays$ | async)?.length || 0 }} Eventos
+        </div>
+    </div>
+
+    <!-- List -->
+    <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar z-10 relative space-y-2">
+
+        <!-- Empty State -->
+        <div *ngIf="(upcomingBirthdays$ | async)?.length === 0"
+            class="flex flex-col items-center justify-center h-full text-slate-400 min-h-[100px]">
+            <mat-icon class="text-slate-200 text-4xl mb-2">event_busy</mat-icon>
+            <p class="text-[10px] uppercase font-bold tracking-wide text-slate-300">Sin cumpleaños cerca</p>
+        </div>
+
+        <!-- Birthday Item -->
+        <div *ngFor="let p of upcomingBirthdays$ | async"
+            class="group/item flex items-center gap-3 p-2.5 rounded-2xl border border-slate-100 bg-white hover:border-rose-200 hover:bg-rose-50/30 transition-all cursor-pointer relative overflow-hidden">
+
+            <!-- Date Badge -->
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 text-white flex flex-col items-center justify-center shadow-md shadow-rose-200">
+                <span class="text-[8px] font-bold uppercase leading-none opacity-90">{{ getMonthName(p.date_of_birth)
+                    }}</span>
+                <span class="text-lg font-black leading-none">{{ getDay(p.date_of_birth) }}</span>
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-700 truncate group-hover/item:text-rose-600 transition-colors">{{
+                    p.full_name }}</p>
+                <p class="text-[10px] text-slate-500 font-medium">Cumple {{ getAge(p.date_of_birth) + 1 }} años</p>
+            </div>
+
+            <!-- Quick Action: Send Wish -->
+            <button mat-icon-button (click)="$event.stopPropagation(); sendWish(p)"
+                class="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-100 rounded-full transition-all"
+                matTooltip="Enviar Felicitación">
+                <mat-icon class="scale-75">campaign</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Background Decor -->
+    <div
+        class="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-tl from-rose-100 to-transparent rounded-full blur-3xl opacity-40 pointer-events-none">
+    </div>
+</div>

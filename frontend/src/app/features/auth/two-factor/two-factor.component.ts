@@ -96,7 +96,7 @@ export class TwoFactorComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        console.log('🔐 Mock 2FA Code: 123456');
+        // console.log('🔐 Mock 2FA Code: 123456');
     }
 
     onSubmit() {

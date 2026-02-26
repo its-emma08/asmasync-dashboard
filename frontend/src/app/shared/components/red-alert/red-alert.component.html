@@ -55,10 +55,11 @@
                 class="flex-1 !bg-brand-green !text-white !rounded-xl !h-12 !font-bold" (click)="nextStep()">
                 Finalizar Protocolo
             </button>
-            <button mat-stroked-button color="warn" class="flex-1 !rounded-xl !h-12 !font-bold border-2"
-                (click)="callEmergency()">
+            <a mat-stroked-button color="warn"
+                class="flex-1 !rounded-xl border-2 !h-12 !flex !items-center !justify-center font-bold no-underline"
+                href="tel:911" (click)="callEmergency()">
                 Llamar 911
-            </button>
+            </a>
         </div>
     </div>
 </div>

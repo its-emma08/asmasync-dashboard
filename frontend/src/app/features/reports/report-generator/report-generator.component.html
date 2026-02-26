@@ -1,7 +1,7 @@
 <div class="report-builder-layout">
 
     <!-- ===== LEFT: CONFIGURATION SIDEBAR (TABBED) ===== -->
-    <div class="config-sidebar">
+    <div class="config-sidebar" *ngIf="hasPatients">
         <mat-tab-group animationDuration="0ms" class="sidebar-tabs" [(selectedIndex)]="activeSectionTab">
 
             <!-- TAB 1: DISEÑO (The Look) -->
@@ -195,11 +195,21 @@
         </div>
 
         <div class="preview-scroll-container">
+            <div *ngIf="!hasPatients"
+                class="flex flex-col items-center justify-center p-12 text-center bg-white/50 backdrop-blur-md rounded-3xl border border-slate-200/60 shadow-sm m-8 min-h-[400px]">
+                <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <mat-icon class="text-slate-300 scale-[2.5] transform -mt-4">folder_open</mat-icon>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-700 tracking-tight">Sin pacientes asignados</h3>
+                <p class="text-slate-500 max-w-sm mt-3 text-lg">Agrega pacientes a tu expediente para poder generar
+                    reportes clínicos y analíticas detalladas.</p>
+            </div>
+
             <!-- A4/LETTER PAGE CONTAINER -->
             <!-- Note: class binding for size -->
-            <div class="print-page" [ngClass]="'page-' + config.paperSize" #reportContent
-                [style.--primary-color]="config.primaryColor" [style.--accent-color]="config.accentColor"
-                *ngIf="selectedPatient">
+            <div *ngIf="hasPatients && selectedPatient" class="print-page" [ngClass]="'page-' + config.paperSize"
+                #reportContent [style.--primary-color]="config.primaryColor"
+                [style.--accent-color]="config.accentColor">
 
                 <!-- 1. WATERMARK -->
                 <div *ngIf="config.showWatermark && institutionLogo" class="watermark-layer"

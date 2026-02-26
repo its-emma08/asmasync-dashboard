@@ -39,7 +39,7 @@ export class WebSocketService {
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
-            console.log('WebSocket conectado');
+            // console.log('WebSocket conectado');
         };
 
         this.socket.onmessage = (event) => {
@@ -58,11 +58,11 @@ export class WebSocketService {
 
         this.socket.onclose = (event) => {
             if (this.isMockMode) {
-                console.log('WebSocket closed. Mock Mode active, not reconnecting.');
+                // console.log('WebSocket closed. Mock Mode active, not reconnecting.');
                 return;
             }
 
-            console.log('WebSocket desconectado. Intentando reconectar...', event);
+            // console.log('WebSocket desconectado. Intentando reconectar...', event);
             if (!event.wasClean) {
                 setTimeout(() => this.connect(), this.reconnectInterval);
             }

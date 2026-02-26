@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Subject, Subscription, forkJoin, Observable, combineLatest } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -70,6 +71,7 @@ import { externalTooltipHandler } from '../../../shared/utils/chart-tooltip';
         MatDividerModule,
         MatSnackBarModule,
         MatDialogModule,
+        MatTooltipModule,
         DragDropModule,
         DashboardWidgetComponent,
         AlertsWidgetComponent,
@@ -106,34 +108,66 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     urgentPatients: Patient[] = [];
     recentPatients: Patient[] = [];
     recentActivity: Activity[] = [];
+    hasPatients: boolean = false;
 
     // Charts
-    trendChartData: ChartConfiguration<'bar'>['data'] = {
+    trendChartData: ChartConfiguration<'line'>['data'] = {
         labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
         datasets: [
             {
                 data: [65, 59, 80, 81, 56, 55, 40],
                 label: 'PEF Promedio',
-                backgroundColor: '#00B5AD',
-                borderRadius: 4,
-                barPercentage: 0.6
+                borderColor: '#00B5AD',
+                backgroundColor: (context: any) => {
+                    if (!context.chart.ctx) return 'transparent';
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+                    gradient.addColorStop(0, 'rgba(0, 181, 173, 0.5)');
+                    gradient.addColorStop(1, 'rgba(0, 181, 173, 0.0)');
+                    return gradient;
+                },
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#fff',
+                borderWidth: 2
             },
             {
                 data: [28, 48, 40, 19, 86, 27, 90],
                 label: 'Uso Rescate',
-                backgroundColor: '#94a3b8',
-                borderRadius: 4,
-                barPercentage: 0.6
+                borderColor: '#94a3b8',
+                backgroundColor: (context: any) => {
+                    if (!context.chart.ctx) return 'transparent';
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+                    gradient.addColorStop(0, 'rgba(148, 163, 184, 0.4)');
+                    gradient.addColorStop(1, 'rgba(148, 163, 184, 0.0)');
+                    return gradient;
+                },
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#fff',
+                borderWidth: 2
             }
         ]
     };
 
-    trendChartOptions: ChartConfiguration<'bar'>['options'] = {
+    trendChartOptions: ChartConfiguration<'line'>['options'] = {
         responsive: true,
         maintainAspectRatio: false, // CRITICAL for fluid resizing
         plugins: {
             legend: {
-                display: false // Cleaner look
+                display: true,
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    font: { family: "'Quicksand', sans-serif", size: 12 },
+                    padding: 20
+                }
             },
             tooltip: {
                 enabled: false,
@@ -149,7 +183,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
             y: {
                 grid: { color: 'rgba(226, 232, 240, 0.4)', drawTicks: false },
                 border: { dash: [4, 4], display: false },
-                ticks: { display: false } // Hide Y axis labels for cleaner look or keep them minimal
+                ticks: { display: true, font: { family: "'Quicksand', sans-serif", size: 10 }, color: '#94a3b8' }
             }
         },
         interaction: {
@@ -311,6 +345,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                 // Filter Patients
                 this.urgentPatients = allPatients.filter(p => p.riskLevel === 'red');
                 this.recentPatients = allPatients.slice(0, 5);
+                this.hasPatients = allPatients.length > 0;
 
                 this.loadingService.updateProgress('Cargando actividad...', 70);
 

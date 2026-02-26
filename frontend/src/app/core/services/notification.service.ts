@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, interval, of, switchMap, catchError, shareReplay, tap } from 'rxjs';
+import { BehaviorSubject, Observable, interval, of, switchMap, catchError, shareReplay, tap, filter } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 import { Alert } from '../models/alert.model';
 import { ToastService } from './toast.service';
+import { AuthService } from './auth.service';
 
 @Injectable({
     providedIn: 'root'
@@ -23,7 +24,8 @@ export class NotificationService {
 
     constructor(
         private http: HttpClient,
-        private toastService: ToastService
+        private toastService: ToastService,
+        private authService: AuthService
     ) {
         this.startPolling();
     }
@@ -38,6 +40,7 @@ export class NotificationService {
 
         interval(this.pollingInterval)
             .pipe(
+                filter(() => this.authService.isAuthenticated()),
                 switchMap(() => this.getUnreadCount()),
                 catchError(err => {
                     console.error('Polling error', err);

@@ -44,12 +44,12 @@ export class NavbarComponent {
 
     navigateToProfile(): void {
         // Implement profile route when ready
-        console.log('Navigate to Profile');
+        // console.log('Navigate to Profile');
     }
 
     navigateToSettings(): void {
         // Implement settings route when ready
-        console.log('Navigate to Settings');
+        // console.log('Navigate to Settings');
     }
 
     logout(): void {

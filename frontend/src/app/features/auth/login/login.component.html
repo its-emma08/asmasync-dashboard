@@ -1,17 +1,23 @@
-<div
-  class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-teal-700 to-cyan-800 relative overflow-hidden">
+<div class="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden">
 
-  <!-- Background Abstract Shapes -->
-  <div class="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-cyan-500/20 rounded-full blur-3xl animate-pulse">
-  </div>
-  <div class="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-teal-400/20 rounded-full blur-3xl"></div>
+  <!-- Premium Mesh Background -->
+  <div
+    class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-cyan-300/40 to-blue-400/40 blur-[100px] mix-blend-multiply animate-pulse"
+    style="animation-duration: 8s;"></div>
+  <div
+    class="absolute top-[20%] right-[-10%] w-[800px] h-[800px] rounded-full bg-gradient-to-bl from-teal-300/40 to-emerald-400/40 blur-[100px] mix-blend-multiply animate-pulse"
+    style="animation-duration: 10s; animation-delay: 2s;"></div>
+  <div
+    class="absolute bottom-[-20%] left-[20%] w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-sky-300/40 to-indigo-400/40 blur-[100px] mix-blend-multiply animate-pulse"
+    style="animation-duration: 9s; animation-delay: 4s;"></div>
 
   <div
-    class="w-full max-w-5xl bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row z-10 min-h-[650px] animate-fade-in-up"
+    class="w-full max-w-5xl bg-white/70 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-white/60 overflow-hidden flex flex-col lg:flex-row z-10 min-h-[650px] animate-fade-in-up transition-all duration-300"
     [class.shake-card]="triggerShake()">
 
     <!-- Left Side: Branding (Desktop Only) -->
-    <div class="hidden lg:flex w-1/2 bg-slate-50 relative items-center justify-center p-12 overflow-hidden">
+    <div
+      class="hidden lg:flex w-1/2 relative items-center justify-center p-12 overflow-hidden border-r border-white/40">
       <!-- Decorative Pattern -->
       <div class="absolute inset-0 opacity-[0.03]"
         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
@@ -26,11 +32,11 @@
       <div class="text-center relative z-10 max-w-md">
         <div
           class="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto mb-8 flex items-center justify-center transform rotate-3 hover:rotate-6 transition-transform duration-500">
-          <mat-icon class="text-6xl text-brand-cyan w-16 h-16 scale-150">lungs</mat-icon>
+          <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-16 h-16 drop-shadow-md object-contain">
         </div>
         <h2 class="text-3xl font-bold text-slate-800 mb-4 tracking-tight">AsmaSync Dashboard</h2>
         <div class="space-y-4">
-          <p class="text-slate-500 text-lg leading-relaxed">
+          <p class="text-slate-600 font-medium text-lg leading-relaxed relative z-10">
             Plataforma integral para el monitoreo y gestión de pacientes asmáticos.
           </p>
           <div class="flex gap-3 justify-center pt-4">
@@ -52,9 +58,8 @@
 
       <!-- Mobile Logo -->
       <div class="lg:hidden flex justify-center mb-8">
-        <div
-          class="w-16 h-16 bg-gradient-to-br from-brand-cyan to-brand-green rounded-2xl flex items-center justify-center shadow-lg text-white">
-          <mat-icon class="scale-150">lungs</mat-icon>
+        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+          <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-10 h-10 object-contain">
         </div>
       </div>
 
@@ -75,7 +80,9 @@
         </div>
       </div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" appFocusInvalidInput>
+      <!-- FORMULARIO 1: LOGIN NORMAL -->
+      <form *ngIf="!is2FAStage()" [formGroup]="loginForm" (ngSubmit)="onSubmit()"
+        class="flex flex-col gap-5 auth-slide-in" appFocusInvalidInput>
 
         <!-- Email -->
         <div class="space-y-1">
@@ -83,7 +90,7 @@
           <div class="relative">
             <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">email</mat-icon>
             <input type="email" formControlName="email"
-              class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
+              class="w-full pl-11 pr-4 py-3.5 bg-white/60 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all duration-300 font-medium text-slate-700 placeholder-slate-400 shadow-sm"
               placeholder="nombre@ejemplo.com">
           </div>
           <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-xs ml-1">
@@ -95,13 +102,14 @@
         <div class="space-y-1">
           <div class="flex justify-between ml-1">
             <label class="text-sm font-bold text-slate-700">Contraseña</label>
-            <a routerLink="/auth/forgot-password" class="text-xs text-brand-cyan font-bold hover:underline">¿Olvidaste
-              tu contraseña?</a>
+            <button type="button" (click)="goToForgotPassword()"
+              class="text-xs text-brand-cyan font-bold hover:underline bg-transparent border-none cursor-pointer">¿Olvidaste
+              tu contraseña?</button>
           </div>
           <div class="relative">
             <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
             <input [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
-              class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-dot"
+              class="w-full pl-11 pr-12 py-3.5 bg-white/60 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all duration-300 font-medium text-slate-700 placeholder-dot shadow-sm"
               placeholder="••••••••">
             <button type="button" (click)="hidePassword.set(!hidePassword())"
               class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
@@ -114,11 +122,7 @@
           </mat-error>
         </div>
 
-        <!-- Captcha -->
-        <div class="flex justify-center my-2" *ngIf="localFailedAttempts() >= 2">
-          <re-captcha (resolved)="resolved($event)" [siteKey]="'6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'">
-          </re-captcha>
-        </div>
+
 
         <!-- Remember Me -->
         <div class="flex items-center">
@@ -127,12 +131,16 @@
 
         <!-- Submit Button -->
         <button mat-flat-button color="primary"
-          class="!py-6 !rounded-2xl !text-lg !font-bold shadow-lg shadow-brand-cyan/30 mt-4 transition-transform hover:scale-[1.02]"
+          class="!py-4 !rounded-2xl !text-lg !font-bold shadow-lg shadow-brand-cyan/30 mt-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-cyan/40 active:scale-95 relative overflow-hidden"
           [disabled]="loginForm.invalid || isLoading()">
-          <div class="flex items-center gap-2">
-            <mat-spinner diameter="20" *ngIf="isLoading()" class="mr-2 text-white"></mat-spinner>
-            <span>{{ isLoading() ? 'Iniciando Sesión...' : 'Ingresar' }}</span>
-            <mat-icon *ngIf="!isLoading()">arrow_forward</mat-icon>
+          <div class="flex items-center justify-center gap-2 transition-opacity duration-300"
+            [class.opacity-0]="isLoading()">
+            <span>Ingresar</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
+            [class.opacity-0]="!isLoading()">
+            <mat-spinner diameter="24" class="text-white"></mat-spinner>
           </div>
         </button>
 
@@ -142,6 +150,37 @@
             class="text-brand-cyan font-bold hover:underline">Regístrate</a>
         </div>
       </form>
+
+      <!-- FORMULARIO 2: VERIFICACIÓN 2FA -->
+      <div *ngIf="is2FAStage()" class="flex flex-col gap-5 auth-slide-in flex-1 justify-center mt-4">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-brand-cyan/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <mat-icon class="text-brand-cyan scale-150">mark_email_read</mat-icon>
+          </div>
+          <h4 class="text-xl font-bold text-slate-800">Verifica tu Correo</h4>
+          <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+            Te hemos enviado una alerta de inicio de sesión. Toca el número en pantalla que coincida con el correo.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mt-2">
+          <button *ngFor="let option of twoFactorOptions()" type="button" (click)="select2FACode(option)"
+            [disabled]="isLoading()"
+            class="py-6 bg-white border border-slate-200 rounded-3xl text-3xl font-bold text-slate-700 hover:bg-slate-50 hover:border-brand-cyan hover:text-brand-cyan hover:shadow-md active:scale-95 transition-all duration-300 relative overflow-hidden flex flex-col items-center justify-center">
+            <span [class.opacity-0]="isLoading() && twoFactorCode() === option">{{ option }}</span>
+            <div class="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
+              *ngIf="isLoading() && twoFactorCode() === option">
+              <mat-spinner diameter="24" class="text-brand-cyan"></mat-spinner>
+            </div>
+          </button>
+        </div>
+
+        <div class="text-center mt-6 text-sm text-slate-500 font-medium cursor-pointer hover:text-slate-700"
+          (click)="is2FAStage.set(false); isLoading.set(false);">
+          <mat-icon class="align-middle scale-75">arrow_back</mat-icon> Volver al Login
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

@@ -9,6 +9,7 @@ import { interval, Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { routeAnimations } from './shared/animations/route-animations';
 import { LoadingScreenComponent } from './shared/components/loading-screen/loading-screen.component';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -23,6 +24,7 @@ export class App implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   isLoading = signal(true); // Start with loading state
+  isFadingOut = signal(false); // Used for smooth exit transition
   loadingProgress = signal(0); // Progress percentage
 
   constructor(
@@ -31,7 +33,8 @@ export class App implements OnInit, OnDestroy {
     private router: Router,
     private sessionTimer: SessionTimerService,
     private storageService: StorageService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private themeService: ThemeService
   ) { }
 
   private cleanupLegacyData() {
@@ -65,12 +68,14 @@ export class App implements OnInit, OnDestroy {
       if (currentStep >= steps) {
         clearInterval(loader);
 
-        // Defer state update to next macrotask to avoid NG0100
-        // This ensures the view transition happens outside the current CD cycle
+        // Initiate fade out
+        this.isFadingOut.set(true);
+
+        // Delay DOM removal until fade completes
         setTimeout(() => {
           this.isLoading.set(false);
           // Auto-detection will handle the rest
-        }, 0);
+        }, 500);
       }
     }, intervalTime);
 
