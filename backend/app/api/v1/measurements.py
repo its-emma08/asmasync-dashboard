@@ -44,7 +44,10 @@ async def create_spirometry(
 
     # IDOR Check
     if not current_user.is_superuser and patient.created_by != current_user.id:
-         raise HTTPException(status_code=403, detail="No tienes permiso para registrar datos a este paciente")
+        query_assoc = select(Patient).join(Patient.doctors).filter(User.id == current_user.id, Patient.id == patient_id)
+        is_assigned = (await db.execute(query_assoc)).scalars().first()
+        if not is_assigned:
+            raise HTTPException(status_code=403, detail="No tienes permiso para registrar datos a este paciente")
     
     pbest = patient.personal_best_pef or 500
     pef = spirometry_in.pef
@@ -110,11 +113,11 @@ async def create_vitals_generic(
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
 
     # 2. Verificar propiedad (IDOR)
-    # Si el usuario es admin, pasa. Si es doctor, debe haber creado el paciente O estar asignado.
     if current_user.role != 'admin' and patient.created_by != current_user.id:
-         # Fallback: Check doctor_patients association if implemented
-         # For now, strict: only creator or admin
-         raise HTTPException(status_code=403, detail="No tienes permiso para registrar datos a este paciente")
+        query_assoc = select(Patient).join(Patient.doctors).filter(User.id == current_user.id, Patient.id == patient_id)
+        is_assigned = (await db.execute(query_assoc)).scalars().first()
+        if not is_assigned:
+            raise HTTPException(status_code=403, detail="No tienes permiso para registrar datos a este paciente")
     
     created_count = 0
     ts = vitals_in.measured_at or datetime.now()
@@ -170,7 +173,11 @@ async def get_history(
 
     # 2. Verificar permisos (IDOR Protection)
     if current_user.role != 'admin' and patient.created_by != current_user.id:
-         raise HTTPException(status_code=403, detail="No tienes permiso para ver el historial de este paciente")
+        # Revisa si está asignado vía doctor_patients
+        query_assoc = select(Patient).join(Patient.doctors).filter(User.id == current_user.id, Patient.id == patient_id)
+        is_assigned = (await db.execute(query_assoc)).scalars().first()
+        if not is_assigned:
+            raise HTTPException(status_code=403, detail="No tienes permiso para ver el historial de este paciente")
     
     # Query all measurements for patient
     query = select(Measurement).filter(Measurement.patient_id == patient_id).order_by(Measurement.measured_at)

@@ -130,10 +130,10 @@
                 </div>
                 <!-- Call Action -->
                 <div class="mt-4 grid grid-cols-1 border-t border-gray-100 pt-3">
-                    <button
-                        class="w-full border border-brand-coral/20 text-brand-coral hover:bg-brand-coral/10 text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <a [href]="p.phone ? 'tel:' + p.phone : null"
+                        class="w-full border border-brand-coral/20 text-brand-coral hover:bg-brand-coral/10 text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline">
                         <mat-icon class="scale-75">call</mat-icon> Llamar al Paciente
-                    </button>
+                    </a>
                 </div>
             </div>
 

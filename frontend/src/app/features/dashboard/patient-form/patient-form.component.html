@@ -13,10 +13,10 @@
         </div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" appFocusInvalidInput>
-            <mat-stepper linear #stepper class="clean-stepper">
+            <mat-tab-group animationDuration="0ms" class="clean-tabs bg-transparent border-0">
 
-                <!-- STEP 1: Identidad -->
-                <mat-step [stepControl]="identityGroup" label="Identidad">
+                <!-- TAB 1: Identidad -->
+                <mat-tab label="Datos Personales">
                     <div class="step-content">
                         <div class="step-body">
                             <div class="flex flex-col md:flex-row gap-6">
@@ -58,8 +58,9 @@
 
                                     <mat-form-field appearance="outline" class="w-full">
                                         <mat-label>Fecha de Nacimiento *</mat-label>
-                                        <input matInput type="date" formControlName="date_of_birth">
-                                        <mat-icon matPrefix class="text-gray-400">cake</mat-icon>
+                                        <input matInput [matDatepicker]="dobPicker" formControlName="date_of_birth">
+                                        <mat-datepicker-toggle matIconSuffix [for]="dobPicker"></mat-datepicker-toggle>
+                                        <mat-datepicker #dobPicker></mat-datepicker>
                                         <mat-error
                                             *ngIf="form.get('date_of_birth')?.hasError('required')">Requerido</mat-error>
                                         <mat-error *ngIf="form.get('date_of_birth')?.hasError('futureDate')">Fecha
@@ -159,18 +160,12 @@
                                 </div>
                             </div>
 
-                            <div class="step-actions">
-                                <span></span>
-                                <button mat-raised-button color="primary" matStepperNext type="button">
-                                    Siguiente <mat-icon>arrow_forward</mat-icon>
-                                </button>
-                            </div>
                         </div>
                     </div>
-                </mat-step>
+                </mat-tab>
 
-                <!-- STEP 2: Clínico -->
-                <mat-step [stepControl]="clinicalGroup" label="Clínico">
+                <!-- TAB 2: Clínico -->
+                <mat-tab label="Perfil Clínico">
                     <div class="step-content">
                         <div class="step-body">
                             <!-- Asma Info -->
@@ -192,8 +187,9 @@
 
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Fecha Diagnóstico</mat-label>
-                                    <input matInput type="date" formControlName="diagnosis_date">
-                                    <mat-icon matPrefix class="text-gray-400">calendar_today</mat-icon>
+                                    <input matInput [matDatepicker]="diagPicker" formControlName="diagnosis_date">
+                                    <mat-datepicker-toggle matIconSuffix [for]="diagPicker"></mat-datepicker-toggle>
+                                    <mat-datepicker #diagPicker></mat-datepicker>
                                 </mat-form-field>
 
                                 <mat-form-field appearance="outline" class="w-full">
@@ -312,19 +308,11 @@
                             </mat-form-field>
                         </div>
 
-                        <div class="step-actions">
-                            <button mat-button matStepperPrevious type="button">
-                                <mat-icon>arrow_back</mat-icon> Anterior
-                            </button>
-                            <button mat-raised-button color="primary" matStepperNext type="button">
-                                Siguiente <mat-icon>arrow_forward</mat-icon>
-                            </button>
-                        </div>
                     </div>
-                </mat-step>
+                </mat-tab>
 
-                <!-- STEP 3: Dispositivos -->
-                <mat-step label="Dispositivos">
+                <!-- TAB 3: Dispositivos -->
+                <mat-tab label="Dispositivos">
                     <div class="step-content">
                         <div class="step-body">
                             <div class="section-divider first">
@@ -366,22 +354,21 @@
                             </div>
                         </div>
 
-                        <div class="step-actions">
-                            <button mat-button matStepperPrevious type="button">
-                                <mat-icon>arrow_back</mat-icon> Anterior
-                            </button>
-                            <button mat-raised-button color="primary" type="submit"
-                                [disabled]="form.invalid || isLoading">
-                                <mat-spinner diameter="18" *ngIf="isLoading" class="inline-block mr-2"></mat-spinner>
-                                <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Guardar Paciente' }}</span>
-                                <span *ngIf="isLoading">Guardando...</span>
-                                <mat-icon *ngIf="!isLoading">save</mat-icon>
-                            </button>
-                        </div>
                     </div>
-                </mat-step>
+                </mat-tab>
 
-            </mat-stepper>
+            </mat-tab-group>
+
+            <!-- Global Actions (Save Button) -->
+            <div class="mt-8 flex justify-end px-4 pb-8">
+                <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading"
+                    class="!px-8 !py-3 !rounded-2xl !text-lg !font-bold shadow-lg transition-transform hover:scale-[1.02]">
+                    <mat-spinner diameter="18" *ngIf="isLoading" class="inline-block mr-2 text-white"></mat-spinner>
+                    <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar Paciente' : 'Guardar Paciente' }}</span>
+                    <span *ngIf="isLoading">Guardando...</span>
+                    <mat-icon *ngIf="!isLoading">save</mat-icon>
+                </button>
+            </div>
         </form>
 
     </div>

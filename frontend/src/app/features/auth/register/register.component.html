@@ -26,10 +26,10 @@
             <div class="text-center relative z-10 max-w-md">
                 <div
                     class="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto mb-8 flex items-center justify-center transform rotate-3 hover:rotate-6 transition-transform duration-500">
-                    <mat-icon class="text-6xl text-brand-cyan w-16 h-16 scale-150">lungs</mat-icon>
+                    <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-16 h-16 drop-shadow-md object-contain">
                 </div>
                 <h2 class="text-3xl font-bold text-slate-800 mb-4 tracking-tight">AsmaSync Dashboard</h2>
-                <p class="text-slate-500 text-lg leading-relaxed mb-6">
+                <p class="text-slate-600 font-medium text-lg leading-relaxed mb-6 relative z-10">
                     Únete a nuestra plataforma y comienza a gestionar pacientes asmáticos de manera inteligente.
                 </p>
                 <div class="flex gap-2 justify-center">
@@ -52,9 +52,8 @@
 
             <!-- Mobile Logo -->
             <div class="lg:hidden flex justify-center mb-8">
-                <div
-                    class="w-16 h-16 bg-gradient-to-br from-brand-cyan to-brand-green rounded-2xl flex items-center justify-center shadow-lg text-white">
-                    <mat-icon class="scale-150">lungs</mat-icon>
+                <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-10 h-10 object-contain">
                 </div>
             </div>
 
@@ -71,7 +70,8 @@
                     <div class="relative">
                         <mat-icon
                             class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">person</mat-icon>
-                        <input type="text" formControlName="full_name"
+                        <input type="text" formControlName="full_name" name="full_name" id="full_name"
+                            autocomplete="name"
                             class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
                             placeholder="Dr. Juan Pérez">
                     </div>
@@ -88,7 +88,7 @@
                         <div class="relative">
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">email</mat-icon>
-                            <input type="email" formControlName="email"
+                            <input type="email" formControlName="email" name="email" id="email" autocomplete="email"
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
                                 placeholder="nombre@ejemplo.com">
                         </div>
@@ -104,7 +104,7 @@
                         <div class="relative">
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">medical_services</mat-icon>
-                            <select formControlName="specialty"
+                            <select formControlName="specialty" name="specialty" id="specialty" autocomplete="off"
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700">
                                 <option value="neumo">Neumología</option>
                                 <option value="pediatria">Pediatría</option>
@@ -113,6 +113,11 @@
                                 <option value="otra">Otra</option>
                             </select>
                         </div>
+                        <mat-error
+                            *ngIf="registerForm.get('specialty')?.invalid && registerForm.get('specialty')?.touched"
+                            class="text-xs ml-1 text-red-500">
+                            Selecciona una especialidad válida
+                        </mat-error>
                     </div>
                 </div>
 
@@ -123,10 +128,16 @@
                         <div class="relative">
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">badge</mat-icon>
-                            <input type="text" formControlName="license_number"
+                            <input type="text" formControlName="license_number" name="license_number"
+                                id="license_number" autocomplete="off"
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
                                 placeholder="1234567">
                         </div>
+                        <mat-error
+                            *ngIf="registerForm.get('license_number')?.invalid && registerForm.get('license_number')?.touched"
+                            class="text-xs ml-1 text-red-500">
+                            La cédula debe contener 7 u 8 dígitos numéricos válidos
+                        </mat-error>
                     </div>
 
                     <!-- University (NOM Requirement) -->
@@ -135,10 +146,16 @@
                         <div class="relative">
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">school</mat-icon>
-                            <input type="text" formControlName="university"
+                            <input type="text" formControlName="university" name="university" id="university"
+                                autocomplete="off"
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
                                 placeholder="UNAM, Tec de Monterrey...">
                         </div>
+                        <mat-error
+                            *ngIf="registerForm.get('university')?.invalid && registerForm.get('university')?.touched"
+                            class="text-xs ml-1 text-red-500">
+                            La universidad es obligatoria por la NOM
+                        </mat-error>
                     </div>
                 </div>
 
@@ -149,10 +166,14 @@
                         <div class="relative">
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">phone</mat-icon>
-                            <input type="tel" formControlName="phone"
+                            <input type="tel" formControlName="phone" name="phone" id="phone" autocomplete="tel"
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
                                 placeholder="+52 444 123 4567">
                         </div>
+                        <mat-error *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched"
+                            class="text-xs ml-1 text-red-500">
+                            Ingresa un teléfono válido
+                        </mat-error>
                     </div>
 
                     <!-- Institution -->
@@ -161,7 +182,8 @@
                         <div class="relative">
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">business</mat-icon>
-                            <input type="text" formControlName="institution"
+                            <input type="text" formControlName="institution" name="workplace" id="workplace"
+                                autocomplete="organization"
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
                                 placeholder="Hospital General">
                         </div>
@@ -178,6 +200,7 @@
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
                             <input [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+                                name="new-password" id="new-password" autocomplete="new-password"
                                 class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-dot"
                                 placeholder="••••••••">
                             <button type="button" (click)="hidePassword = !hidePassword"
@@ -185,11 +208,33 @@
                                 <mat-icon class="scale-90">{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                             </button>
                         </div>
-                        <mat-error
-                            *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
-                            class="text-xs ml-1">
-                            Por favor, crea una contraseña segura
-                        </mat-error>
+                        <!-- Password Checklist -->
+                        <div class="mt-2 space-y-1 text-xs px-2 select-none">
+                            <div class="flex items-center gap-2 transition-colors duration-300"
+                                [ngClass]="passwordRules.length ? 'text-green-600 font-bold' : 'text-slate-400'">
+                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.length ?
+                                    'check_circle' : 'cancel'}}</mat-icon>
+                                <span>Mínimo 8 caracteres</span>
+                            </div>
+                            <div class="flex items-center gap-2 transition-colors duration-300"
+                                [ngClass]="passwordRules.upper ? 'text-green-600 font-bold' : 'text-slate-400'">
+                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.upper ? 'check_circle'
+                                    : 'cancel'}}</mat-icon>
+                                <span>Al menos una letra mayúscula</span>
+                            </div>
+                            <div class="flex items-center gap-2 transition-colors duration-300"
+                                [ngClass]="passwordRules.number ? 'text-green-600 font-bold' : 'text-slate-400'">
+                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.number ?
+                                    'check_circle' : 'cancel'}}</mat-icon>
+                                <span>Al menos un número</span>
+                            </div>
+                            <div class="flex items-center gap-2 transition-colors duration-300"
+                                [ngClass]="passwordRules.special ? 'text-green-600 font-bold' : 'text-slate-400'">
+                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.special ?
+                                    'check_circle' : 'cancel'}}</mat-icon>
+                                <span>Al menos un carácter especial (!@#$%^&*)</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Confirm Password -->
@@ -199,6 +244,7 @@
                             <mat-icon
                                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
                             <input [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword"
+                                name="new-password-confirm" id="new-password-confirm" autocomplete="new-password"
                                 class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-dot"
                                 placeholder="••••••••">
                             <button type="button" (click)="hideConfirmPassword = !hideConfirmPassword"
@@ -208,7 +254,7 @@
                             </button>
                         </div>
                         <mat-error
-                            *ngIf="registerForm.get('confirmPassword')?.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched"
+                            *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched"
                             class="text-xs ml-1">
                             Las contraseñas no coinciden. Intenta de nuevo.
                         </mat-error>
@@ -228,7 +274,7 @@
 
                 <!-- Submit Button -->
                 <button mat-flat-button color="primary"
-                    class="!py-5 !rounded-2xl !text-lg !font-bold shadow-lg shadow-brand-cyan/30 mt-2 transition-transform hover:scale-[1.02]"
+                    class="!py-4 !rounded-2xl !text-lg !font-bold shadow-md shadow-brand-cyan/20 mt-2 transition-transform hover:scale-[1.02]"
                     [disabled]="registerForm.invalid || isLoading">
                     <div class="flex items-center justify-center gap-2">
                         <mat-spinner diameter="20" *ngIf="isLoading" class="mr-2 text-white"></mat-spinner>

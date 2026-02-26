@@ -1,5 +1,5 @@
 @if (isLoading()) {
-<app-loading-screen [progress]="loadingProgress()"></app-loading-screen>
+<app-loading-screen [progress]="loadingProgress()" [isFadingOut]="isFadingOut()"></app-loading-screen>
 }
 
 <div class="app-container" [@routeAnimations]="getRouteAnimationData(outlet)">

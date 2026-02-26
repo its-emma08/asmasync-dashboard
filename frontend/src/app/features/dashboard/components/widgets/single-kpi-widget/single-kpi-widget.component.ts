@@ -8,7 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     selector: 'app-single-kpi-widget',
     standalone: true,
     template: `
-    <div class="h-full bg-white rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden group hover:shadow-lg transition-all duration-300 border border-gray-100 min-w-0 cursor-pointer min-h-[160px]">
+    <div class="h-full bg-white dark:bg-slate-800/80 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:border-brand-cyan/20 hover:-translate-y-1 active:scale-[0.97] transition-all duration-300 ease-out border border-slate-100 dark:border-slate-700 min-w-0 cursor-pointer min-h-[160px]">
         <!-- Context Icon (Top Right, Faded) -->
         <div class="absolute top-4 right-4 opacity-20">
             <mat-icon [class]="'text-4xl ' + (config.color === 'blue' ? 'text-blue-500' : config.color === 'green' ? 'text-green-500' : config.color === 'red' ? 'text-red-500' : 'text-cyan-500')">
@@ -17,14 +17,15 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
         </div>
 
         <!-- Header -->
-        <div class="z-10 truncate">
-            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1 truncate">{{ config.label || 'Metric' }}</p>
-            <div class="flex items-baseline gap-2">
-                <h3 class="text-3xl font-bold text-slate-800">{{ config.value || 0 }}</h3>
+        <div class="z-10 truncate mb-1">
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1 truncate">{{ config.label || 'Metric' }}</p>
+            <div class="flex items-center gap-3">
+                <h3 class="text-5xl font-black tracking-tighter text-slate-800 dark:text-white" [class.text-slate-400]="!config.value || config.value === 0">{{ config.value || 0 }}</h3>
                 <!-- Trend Indicator -->
                 <span *ngIf="config.trend"
-                    [class]="(config.trend.includes('+') ? 'text-green-500' : 'text-red-500') + ' text-xs font-bold flex items-center'">
-                    <mat-icon class="scale-50 w-4 h-4">{{ config.trend.includes('+') ? 'north' : 'south' }}</mat-icon>
+                    [class]="(config.trend.includes('+') ? 'text-green-500 bg-green-50 dark:bg-green-500/10' : (config.trend === '0' || config.trend === '0%') ? 'text-slate-500 bg-slate-100 dark:bg-slate-700/50' : 'text-red-500 bg-red-50 dark:bg-red-500/10') + ' rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5 min-w-min'">
+                    <mat-icon class="scale-50 w-4 h-4" *ngIf="config.trend !== '0' && config.trend !== '0%'">{{ config.trend.includes('+') ? 'north' : 'south' }}</mat-icon>
+                    <mat-icon class="scale-50 w-4 h-4" *ngIf="config.trend === '0' || config.trend === '0%'">horizontal_rule</mat-icon>
                     {{ config.trend }}
                 </span>
             </div>

@@ -131,42 +131,31 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
             },
             annotation: {
                 common: {
-                    drawTime: 'beforeDatasetsDraw'
+                    drawTime: 'beforeDraw'
                 },
                 annotations: {
-                    line1: {
-                        type: 'line',
+                    boxGreen: {
+                        type: 'box',
                         yMin: 0,
-                        yMax: 0,
-                        borderColor: 'rgba(34, 197, 94, 0.5)', // Green-500 optimized
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        label: {
-                            content: '80% Personal',
-                            display: true,
-                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                            color: '#15803d',
-                            font: { family: "'Quicksand', sans-serif", size: 10, weight: 'bold' },
-                            position: 'start',
-                            yAdjust: -10
-                        }
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)', // Green-500 optimized
+                        borderWidth: 0,
+                        drawTime: 'beforeDraw'
                     },
-                    line2: {
-                        type: 'line',
+                    boxYellow: {
+                        type: 'box',
                         yMin: 0,
                         yMax: 0,
-                        borderColor: 'rgba(234, 179, 8, 0.5)', // Yellow-500 optimized
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        label: {
-                            content: '50% Personal',
-                            display: true,
-                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                            color: '#a16207',
-                            font: { family: "'Quicksand', sans-serif", size: 10, weight: 'bold' },
-                            position: 'start',
-                            yAdjust: -10
-                        }
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)', // Yellow-500 optimized
+                        borderWidth: 0,
+                        drawTime: 'beforeDraw'
+                    },
+                    boxRed: {
+                        type: 'box',
+                        yMin: 0,
+                        yMax: 0,
+                        backgroundColor: 'rgba(239, 68, 68, 0.08)', // Red-500 optimized
+                        borderWidth: 0,
+                        drawTime: 'beforeDraw'
                     }
                 }
             } as any
@@ -183,10 +172,21 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
             {
                 data: [],
                 label: 'FEM Medido',
-                borderColor: '#1976D2',
-                backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                borderColor: '#06B6D4', // brand-cyan
+                backgroundColor: (context: any) => {
+                    if (!context.chart.ctx) return 'transparent';
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 350);
+                    gradient.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+                    gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+                    return gradient;
+                },
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#fff',
+                borderWidth: 2
             }
         ]
     };
@@ -356,8 +356,17 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
         if (this.pefChartOptions?.plugins?.annotation?.annotations) {
             const annotations = this.pefChartOptions.plugins.annotation.annotations as any;
             if (annotations) {
-                if (annotations.line1) { annotations.line1.yMin = greenZone; annotations.line1.yMax = greenZone; }
-                if (annotations.line2) { annotations.line2.yMin = yellowZone; annotations.line2.yMax = yellowZone; }
+                if (annotations.boxGreen) {
+                    annotations.boxGreen.yMin = greenZone;
+                }
+                if (annotations.boxYellow) {
+                    annotations.boxYellow.yMin = yellowZone;
+                    annotations.boxYellow.yMax = greenZone;
+                }
+                if (annotations.boxRed) {
+                    annotations.boxRed.yMin = 0;
+                    annotations.boxRed.yMax = yellowZone;
+                }
             }
         }
     }
@@ -449,8 +458,17 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
         if (this.pefChartOptions?.plugins?.annotation?.annotations) {
             const annotations = this.pefChartOptions.plugins.annotation.annotations as any;
             if (annotations) {
-                if (annotations.line1) { annotations.line1.yMin = greenZone; annotations.line1.yMax = greenZone; }
-                if (annotations.line2) { annotations.line2.yMin = yellowZone; annotations.line2.yMax = yellowZone; }
+                if (annotations.boxGreen) {
+                    annotations.boxGreen.yMin = greenZone;
+                }
+                if (annotations.boxYellow) {
+                    annotations.boxYellow.yMin = yellowZone;
+                    annotations.boxYellow.yMax = greenZone;
+                }
+                if (annotations.boxRed) {
+                    annotations.boxRed.yMin = 0;
+                    annotations.boxRed.yMax = yellowZone;
+                }
             }
         }
     }

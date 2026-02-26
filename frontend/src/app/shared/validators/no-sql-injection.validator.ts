@@ -6,9 +6,12 @@ export function noSqlInjectionValidator(): ValidatorFn {
             return null;
         }
 
-        // Dangerous patterns: ' OR, --, ;, /*, xp_
+        // SQL injection patterns: ' OR, --, ;, /*, xp_
         const sqlPattern = /(')|(--)|(;)|(\/\*)|(xp_)/i;
-        const hasInjection = sqlPattern.test(control.value);
+        // XSS patterns: <script, onerror=, javascript:, <iframe, onload=
+        const xssPattern = /<script|onerror\s*=|javascript:|<iframe|onload\s*=|<img.*?on/i;
+
+        const hasInjection = sqlPattern.test(control.value) || xssPattern.test(control.value);
 
         return hasInjection ? { sqlInjection: true } : null;
     };

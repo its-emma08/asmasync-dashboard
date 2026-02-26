@@ -9,8 +9,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { PatientService } from '../../../core/services/patient.service';
 
 import { MatDialog } from '@angular/material/dialog';
@@ -34,7 +36,9 @@ import { ComponentCanDeactivate } from '../../../core/guards/pending-changes.gua
         MatIconModule,
         MatSnackBarModule,
         MatProgressSpinnerModule,
-        MatStepperModule,
+        MatTabsModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
         FocusInvalidInputDirective
     ],
     templateUrl: './patient-form.component.html',
@@ -121,7 +125,12 @@ export class PatientFormComponent implements OnInit, ComponentCanDeactivate {
             date_of_birth: this.form.get('date_of_birth')!,
             gender: this.form.get('gender')!,
             weight: this.form.get('weight')!,
-            height: this.form.get('height')!
+            height: this.form.get('height')!,
+            email: this.form.get('email')!,
+            phone: this.form.get('phone')!,
+            emergency_contact_name: this.form.get('emergency_contact_name')!,
+            emergency_contact_phone: this.form.get('emergency_contact_phone')!,
+            emergency_contact_relation: this.form.get('emergency_contact_relation')!
         });
         this.clinicalGroup = this.fb.group({
             asthma_type: this.form.get('asthma_type')!,
@@ -226,7 +235,14 @@ export class PatientFormComponent implements OnInit, ComponentCanDeactivate {
     private handleError(e: any) {
         console.error(e);
         this.isLoading = false;
-        this.snackBar.open('No pudimos guardar los cambios. Revisa tu conexión.', 'Cerrar');
+
+        // Prevent raw Angular/ExpressionChanged errors from showing to the user
+        let errorMsg = 'No pudimos guardar los cambios. Revisa tu conexión.';
+        if (e && e.error && e.error.detail) {
+            errorMsg = typeof e.error.detail === 'string' ? e.error.detail : 'Error de validación en los datos provistos.';
+        }
+
+        this.toastService.show(errorMsg, 'error');
     }
 
 

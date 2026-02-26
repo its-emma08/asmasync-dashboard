@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,9 +9,17 @@ import { StorageService } from '../../core/services/storage.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { AuthService } from '../../core/services/auth.service';
+import { EditProfileModalComponent } from './modals/edit-profile-modal.component';
+import { ChangePasswordModalComponent } from './modals/change-password-modal.component';
+import { TwoFactorModalComponent } from './modals/two-factor-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -17,23 +27,24 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
   imports: [
     CommonModule, FormsModule, MatSlideToggleModule,
     MatButtonModule, MatIconModule, MatDividerModule, MatSelectModule,
-    MatInputModule, MatSnackBarModule, MatProgressBarModule
+    MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressBarModule, MatProgressSpinnerModule,
+    MatDialogModule, MatTableModule
   ],
   template: `
     <div class="settings-layout">
 
       <!-- ======= SIDEBAR (Frosted Glass) ======= -->
       <nav class="settings-sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-logo">
+        <div class="sidebar-header mt-4">
+          <div class="sidebar-logo shadow-md">
             <mat-icon>lungs</mat-icon>
           </div>
-          <h2>Configuración</h2>
+          <h2 class="dark:text-white">Configuración</h2>
         </div>
 
         <div class="sidebar-nav">
           <button *ngFor="let tab of tabs; let i = index"
-            (click)="activeTab = i"
+            (click)="setTab(i)"
             class="nav-item"
             [class.active]="activeTab === i">
             <mat-icon>{{ tab.icon }}</mat-icon>
@@ -52,19 +63,22 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
         <!-- ===== CUENTA ===== -->
         <section *ngIf="activeTab === 0" class="settings-section animate-in">
           <div class="section-header">
-            <h3>Cuenta</h3>
+            <h3 class="dark:text-white">Cuenta</h3>
             <p>Administra tu perfil y datos de acceso</p>
           </div>
 
           <!-- Profile Card -->
           <div class="glass-card profile-card">
-            <div class="profile-avatar">KP</div>
-            <div class="profile-info">
-              <h4>Dr. Kiran Patel</h4>
-              <p>kiran.patel&#64;hospital.com</p>
-              <span class="role-badge">Administrador</span>
+            <div class="profile-avatar">{{ userInitials }}</div>
+            <div class="profile-info" *ngIf="currentUser">
+              <h4>{{ currentUser.full_name || 'Usuario' }}</h4>
+              <p>{{ currentUser.email }}</p>
+              <span class="role-badge">{{ currentUser.role === 'admin' ? 'Administrador' : 'Médico' }}</span>
             </div>
-            <button mat-stroked-button class="edit-profile-btn">Editar Perfil</button>
+            <div class="profile-info" *ngIf="!currentUser">
+              <mat-spinner diameter="20"></mat-spinner>
+            </div>
+            <button mat-stroked-button class="edit-profile-btn" (click)="openEditProfile()">Editar Perfil</button>
           </div>
 
           <div class="glass-card">
@@ -76,7 +90,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
                   <p class="setting-desc">Última actualización hace 30 días</p>
                 </div>
               </div>
-              <button mat-stroked-button class="action-btn">Cambiar</button>
+              <button mat-stroked-button class="action-btn" (click)="openChangePassword()">Cambiar</button>
             </div>
             <div class="divider"></div>
             <div class="setting-row">
@@ -87,7 +101,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
                   <p class="setting-desc">Protección adicional para tu cuenta</p>
                 </div>
               </div>
-              <mat-slide-toggle [(ngModel)]="settings.twoFactor" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
+              <mat-slide-toggle [(ngModel)]="settings.twoFactor" color="primary" (ngModelChange)="toggle2FA()"></mat-slide-toggle>
             </div>
             <div class="divider"></div>
             <div class="setting-row">
@@ -98,15 +112,15 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
                   <p class="setting-desc">Descarga una copia de toda tu información</p>
                 </div>
               </div>
-              <button mat-stroked-button class="action-btn">Exportar</button>
+              <button mat-stroked-button class="action-btn" (click)="exportData()">Exportar</button>
             </div>
           </div>
         </section>
 
         <!-- ===== NOTIFICACIONES ===== -->
         <section *ngIf="activeTab === 1" class="settings-section animate-in">
-          <div class="section-header">
-            <h3>Notificaciones</h3>
+          <div class="section-header mt-4">
+            <h3 class="dark:text-white">Notificaciones</h3>
             <p>Controla cuándo y cómo recibes alertas</p>
           </div>
 
@@ -183,8 +197,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
         <!-- ===== DISPOSITIVOS IoT ===== -->
         <section *ngIf="activeTab === 2" class="settings-section animate-in">
-          <div class="section-header">
-            <h3>Dispositivos IoT</h3>
+          <div class="section-header mt-4">
+            <h3 class="dark:text-white">Dispositivos IoT</h3>
             <p>Monitorea el estado de los dispositivos médicos conectados</p>
           </div>
 
@@ -217,7 +231,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
             </div>
 
             <!-- Add Device Card -->
-            <div class="device-card glass-card add-device">
+            <div class="device-card glass-card add-device" (click)="save()">
               <mat-icon>add_circle_outline</mat-icon>
               <span>Vincular Dispositivo</span>
             </div>
@@ -226,8 +240,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
         <!-- ===== SEGURIDAD ===== -->
         <section *ngIf="activeTab === 3" class="settings-section animate-in">
-          <div class="section-header">
-            <h3>Seguridad</h3>
+          <div class="section-header mt-4">
+            <h3 class="dark:text-white">Seguridad</h3>
             <p>Protege la información de tus pacientes</p>
           </div>
 
@@ -299,34 +313,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
         <!-- ===== APARIENCIA ===== -->
         <section *ngIf="activeTab === 4" class="settings-section animate-in">
-          <div class="section-header">
-            <h3>Apariencia</h3>
+          <div class="section-header mt-4">
+            <h3 class="dark:text-white">Apariencia</h3>
             <p>Personaliza el aspecto visual de la aplicación</p>
           </div>
 
-          <!-- Theme Selector Cards -->
-          <div class="glass-card">
-            <h5 class="card-subtitle">Tema</h5>
-            <div class="theme-grid">
-              <div *ngFor="let theme of themes"
-                class="theme-card"
-                [class.selected]="settings.theme === theme.id"
-                (click)="settings.theme = theme.id; applyTheme(); save()">
-                <div class="theme-preview" [style.background]="theme.bg">
-                  <div class="theme-preview-sidebar" [style.background]="theme.sidebar"></div>
-                  <div class="theme-preview-content">
-                    <div class="theme-preview-bar" [style.background]="theme.bar"></div>
-                    <div class="theme-preview-cards">
-                      <div [style.background]="theme.card"></div>
-                      <div [style.background]="theme.card"></div>
-                    </div>
-                  </div>
-                </div>
-                <p class="theme-label">{{ theme.label }}</p>
-                <mat-icon *ngIf="settings.theme === theme.id" class="theme-check">check_circle</mat-icon>
-              </div>
-            </div>
-          </div>
+
 
           <div class="glass-card">
             <div class="setting-row">
@@ -378,8 +370,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
         <!-- ===== ACERCA DE ===== -->
         <section *ngIf="activeTab === 5" class="settings-section animate-in">
-          <div class="section-header">
-            <h3>Acerca de</h3>
+          <div class="section-header mt-4">
+            <h3 class="dark:text-white">Acerca de</h3>
             <p>Información de la aplicación</p>
           </div>
 
@@ -432,12 +424,90 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
           </div>
         </section>
 
-        <!-- Save Button -->
+        <!-- ===== SAVING BAR ===== -->
         <div class="save-bar" *ngIf="activeTab < 5">
           <button mat-raised-button color="primary" (click)="save()" class="save-btn">
             <mat-icon>save</mat-icon> Guardar Cambios
           </button>
         </div>
+
+        <!-- ===== AUDITORÍA ===== -->
+        <section *ngIf="activeTab === 6" class="settings-section animate-in">
+          <div class="section-header mt-4 flex justify-between items-center">
+            <div>
+              <h3 class="dark:text-white">Registro de Actividad</h3>
+              <p>Historial de seguridad y auditoría (NOM-004)</p>
+            </div>
+            <button mat-stroked-button (click)="loadAuditLogs()" class="!rounded-lg">
+              <mat-icon class="mr-1">refresh</mat-icon> Actualizar
+            </button>
+          </div>
+
+          <div class="mb-4 mt-2">
+             <mat-form-field appearance="outline" class="w-full sm:w-1/2 md:w-1/3">
+                <mat-label>Filtrar Bitácora</mat-label>
+                <input matInput (input)="onAuditSearch($event)" placeholder="Ej. LOGIN, Chrome o IP...">
+                <mat-icon matSuffix class="text-slate-400">search</mat-icon>
+             </mat-form-field>
+          </div>
+
+          <div class="glass-card overflow-hidden">
+            <div *ngIf="isLogsLoading" class="p-6">
+              <div *ngFor="let i of [1,2,3,4,5]" class="flex items-center gap-4 mb-4">
+                <div class="skeleton h-10 w-24"></div>
+                <div class="skeleton h-10 w-32"></div>
+                <div class="skeleton h-10 w-24"></div>
+                <div class="skeleton h-10 flex-1"></div>
+              </div>
+            </div>
+            <table mat-table [dataSource]="filteredAuditLogs" *ngIf="!isLogsLoading && filteredAuditLogs.length > 0" class="w-full bg-transparent">
+              <ng-container matColumnDef="fecha">
+                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> Fecha y Hora </th>
+                <td mat-cell *matCellDef="let log" class="!text-sm dark:text-slate-300"> 
+                  <div class="font-medium text-slate-800 dark:text-white">{{ log.created_at | date:'dd/MM/yyyy' }}</div>
+                  <div class="text-xs text-slate-500">{{ log.created_at | date:'HH:mm:ss' }}</div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="evento">
+                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> Evento </th>
+                <td mat-cell *matCellDef="let log" class="!text-sm"> 
+                   <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full" 
+                            [ngClass]="{
+                              'bg-green-500': log.action === 'LOGIN' || log.action === 'CREATE' || log.action === 'UPDATE_PROFILE',
+                              'bg-amber-500': log.action === 'DISABLE_2FA',
+                              'bg-red-500': log.action === 'FAILED_LOGIN' || log.action === 'DELETE',
+                              'bg-blue-500': log.action === 'READ' || log.action === 'UPDATE'
+                            }"></span>
+                      <span class="font-semibold text-slate-700 dark:text-slate-200">{{ log.action }} <span class="text-slate-400 font-normal">({{ log.entity }})</span></span>
+                   </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="ip">
+                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> IP </th>
+                <td mat-cell *matCellDef="let log" class="!text-sm font-mono text-slate-500"> {{ log.ip_address || 'N/A' }} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="detalles">
+                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> Detalles </th>
+                <td mat-cell *matCellDef="let log" class="!text-xs text-slate-500 truncate max-w-[200px]" [title]="log.user_agent"> 
+                  <span *ngIf="log.changes">Cambios registrados</span>
+                  <span *ngIf="!log.changes">{{ log.user_agent }}</span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['fecha', 'evento', 'ip', 'detalles']" class="bg-slate-50/50 dark:bg-slate-800/50"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['fecha', 'evento', 'ip', 'detalles'];" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800"></tr>
+            </table>
+
+            <div *ngIf="!isLogsLoading && auditLogs.length === 0" class="p-12 text-center text-slate-500">
+              <mat-icon class="text-4xl text-slate-300 mb-2">history</mat-icon>
+              <p>No hay registros de auditoría disponibles.</p>
+            </div>
+          </div>
+        </section>
 
       </main>
     </div>
@@ -449,21 +519,20 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     .settings-layout {
       display: flex;
       height: calc(100vh - 64px);
-      background: #f1f5f9;
+      @apply bg-slate-50 dark:bg-slate-900;
       overflow: hidden;
     }
 
     /* ===== Frosted Glass Sidebar ===== */
     .settings-sidebar {
-      width: 260px;
+      width: 280px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       padding: 20px 0;
-      background: rgba(255,255,255,0.72);
+      @apply bg-white/70 dark:bg-slate-900/70 border-r border-slate-200 dark:border-slate-800;
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border-right: 1px solid rgba(0,0,0,0.06);
     }
 
     .sidebar-header {
@@ -501,30 +570,28 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 10px;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
       border: none;
       background: transparent;
-      color: #64748b;
+      @apply text-slate-500 dark:text-slate-400;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
       text-align: left;
       width: 100%;
     }
-    .nav-item:hover { background: rgba(0,0,0,0.04); color: #334155; }
+    .nav-item:hover { @apply bg-slate-100/50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200; }
     .nav-item.active {
-      background: rgba(59,130,246,0.1);
-      color: #2563eb;
-      font-weight: 600;
+      @apply bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold;
     }
     .nav-item mat-icon { font-size: 20px; width: 20px; height: 20px; }
 
     .sidebar-footer {
-      padding: 16px 20px 0;
-      border-top: 1px solid rgba(0,0,0,0.05);
+      padding: 16px 20px 24px;
+      @apply border-t border-slate-200 dark:border-slate-800;
     }
     .version-text {
       font-size: 11px;
@@ -532,41 +599,42 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
       margin: 0;
     }
 
-    /* ===== Content Panel ===== */
     .settings-content {
       flex: 1;
-      /* overflow and padding handled by .page-scroll-container */
+      padding: 24px 40px;
     }
 
     .settings-section {
-      max-width: 720px;
+      max-width: 64rem; /* 5xl width, wider than 720px */
+      width: 100%;
+      margin: 0 auto;
     }
 
     .section-header {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
     .section-header h3 {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
-      color: #0f172a;
       margin: 0 0 4px;
+      letter-spacing: -0.02em;
     }
     .section-header p {
-      font-size: 14px;
-      color: #94a3b8;
+      font-size: 15px;
+      @apply text-slate-500 dark:text-slate-400;
       margin: 0;
     }
 
     /* ===== Glass Card ===== */
     .glass-card {
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.9);
-      border-radius: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
-      margin-bottom: 16px;
+      @apply bg-white/80 dark:bg-slate-800/80 border border-white/90 dark:border-slate-700/50;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
       overflow: hidden;
+      transition: all 0.3s ease;
     }
 
     .card-subtitle {
@@ -615,20 +683,20 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     .setting-icon.bg-slate { background: #64748b; }
 
     .setting-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      @apply text-slate-900 dark:text-slate-100;
       margin: 0;
     }
     .setting-desc {
-      font-size: 12px;
-      color: #94a3b8;
+      font-size: 13px;
+      @apply text-slate-500 dark:text-slate-400;
       margin: 2px 0 0;
     }
 
     .divider {
       height: 1px;
-      background: rgba(0,0,0,0.04);
+      @apply bg-slate-100 dark:bg-slate-700;
       margin: 0 20px;
     }
 
@@ -663,15 +731,15 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
       flex: 1;
     }
     .profile-info h4 {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
-      color: #0f172a;
+      @apply text-slate-900 dark:text-white;
       margin: 0;
     }
     .profile-info p {
-      font-size: 13px;
-      color: #64748b;
-      margin: 2px 0 6px;
+      font-size: 14px;
+      @apply text-slate-500 dark:text-slate-400;
+      margin: 2px 0 8px;
     }
     .role-badge {
       display: inline-block;
@@ -701,16 +769,16 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
       border-top: 1px solid rgba(0,0,0,0.03);
     }
     .channel-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: #f1f5f9;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      @apply bg-slate-100 dark:bg-slate-700/50;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .channel-icon mat-icon { color: #3b82f6; font-size: 20px; width: 20px; height: 20px; }
+    .channel-icon mat-icon { @apply text-blue-500 dark:text-blue-400; font-size: 22px; width: 22px; height: 22px; }
     .channel-info { flex: 1; }
 
     /* ===== IoT Devices Grid ===== */
@@ -765,27 +833,27 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     }
 
     .device-name {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
-      color: #0f172a;
+      @apply text-slate-900 dark:text-white;
       margin: 0 0 2px;
     }
     .device-model {
-      font-size: 12px;
-      color: #94a3b8;
-      margin: 0 0 12px;
+      font-size: 13px;
+      @apply text-slate-500 dark:text-slate-400;
+      margin: 0 0 16px;
     }
     .device-meta {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
     .device-meta-item {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #64748b;
+      gap: 8px;
+      font-size: 13px;
+      @apply text-slate-600 dark:text-slate-300;
     }
     .device-meta-item mat-icon { font-size: 14px; width: 14px; height: 14px; color: #94a3b8; }
     .battery-bar {
@@ -1043,8 +1111,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     }
   `]
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   activeTab = 0;
+  currentUser: any = null;
+  userInitials: string = 'U';
 
   tabs = [
     { icon: 'manage_accounts', label: 'Cuenta' },
@@ -1052,7 +1122,8 @@ export class SettingsComponent implements OnInit {
     { icon: 'sensors', label: 'Dispositivos IoT' },
     { icon: 'shield', label: 'Seguridad' },
     { icon: 'palette', label: 'Apariencia' },
-    { icon: 'info', label: 'Acerca de' }
+    { icon: 'info', label: 'Acerca de' },
+    { icon: 'history', label: 'Auditoría' }
   ];
 
   accentColors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#22c55e', '#06b6d4'];
@@ -1132,23 +1203,83 @@ export class SettingsComponent implements OnInit {
   };
 
   isLoading = false;
+  isLogsLoading = false;
+  auditLogs: any[] = [];
+  filteredAuditLogs: any[] = [];
+  auditSearch$ = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
-  constructor(private snackBar: MatSnackBar, private storageService: StorageService) { }
+  constructor(
+    private snackBar: MatSnackBar,
+    private storageService: StorageService,
+    private authService: AuthService,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
+    this.authService.fetchCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        this.updateInitials();
+        if (user && user.is_2fa_enabled !== undefined) {
+          this.settings.twoFactor = user.is_2fa_enabled;
+        }
+      },
+      error: () => { }
+    });
+
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+      this.currentUser = user;
+      this.updateInitials();
+    });
+
+    this.auditSearch$.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      if (!term) {
+        this.filteredAuditLogs = [...this.auditLogs];
+      } else {
+        const lower = term.toLowerCase();
+        this.filteredAuditLogs = this.auditLogs.filter(log =>
+          log.action.toLowerCase().includes(lower) ||
+          (log.ip_address && log.ip_address.includes(lower)) ||
+          log.entity.toLowerCase().includes(lower) ||
+          (log.user_agent && log.user_agent.toLowerCase().includes(lower))
+        );
+      }
+    });
+
     const saved = this.storageService.getItem('asmasync_settings');
     if (saved) {
       try { this.settings = { ...this.settings, ...JSON.parse(saved) }; } catch { }
     }
-    this.applyTheme();
+
+    // Auto load logs if we land on tab 6 immediately (mostly for hard refreshes if we persisted the tab state later, but safe to just have it triggered on click via template getter or ngDoCheck/Set method).
+    // The easiest robust way is checking the setter of activeTab. We'll use a getter/setter for activeTab or just fetch when the tab changes from the UI.
   }
 
-  applyTheme(): void {
-    if (this.settings.theme === 'dark') {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
+  setTab(index: number) {
+    this.activeTab = index;
+    if (index === 6 && this.auditLogs.length === 0) {
+      this.loadAuditLogs();
     }
+  }
+
+  loadAuditLogs() {
+    this.isLogsLoading = true;
+    this.authService.getAuditLogs().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (logs) => {
+        this.auditLogs = logs;
+        this.filteredAuditLogs = [...logs];
+        this.isLogsLoading = false;
+      },
+      error: (err) => {
+        this.isLogsLoading = false;
+        this.snackBar.open('Error al cargar la auditoría', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   save(): void {
@@ -1164,5 +1295,130 @@ export class SettingsComponent implements OnInit {
         panelClass: ['toast-success']
       });
     }, 800);
+  }
+
+  updateInitials(): void {
+    if (!this.currentUser || !this.currentUser.full_name) {
+      this.userInitials = 'U';
+      return;
+    }
+    const parts = this.currentUser.full_name.split(' ');
+    if (parts.length > 1) {
+      this.userInitials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else {
+      this.userInitials = parts[0][0].toUpperCase();
+    }
+  }
+
+  openEditProfile(): void {
+    if (!this.currentUser) return;
+    const dialogRef = this.dialog.open(EditProfileModalComponent, {
+      width: '100vw',
+      maxWidth: '500px',
+      data: { user: this.currentUser },
+      panelClass: 'glass-dialog',
+      backdropClass: 'glass-backdrop'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.snackBar.open('Perfil actualizado exitosamente', 'OK', {
+          duration: 3000,
+          panelClass: ['toast-success']
+        });
+      }
+    });
+  }
+
+  openChangePassword(): void {
+    this.dialog.open(ChangePasswordModalComponent, {
+      width: '100vw',
+      maxWidth: '500px',
+      panelClass: 'glass-dialog',
+      backdropClass: 'glass-backdrop'
+    });
+  }
+
+  toggle2FA(): void {
+    if (this.settings.twoFactor) {
+      const dialogRef = this.dialog.open(TwoFactorModalComponent, {
+        width: '100vw',
+        maxWidth: '480px',
+        disableClose: true,
+        data: { mode: 'setup' },
+        panelClass: 'glass-dialog',
+        backdropClass: 'glass-backdrop'
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (!result) {
+          // El usuario canceló o le dio a la equis
+          this.settings.twoFactor = false;
+        } else {
+          // Se activó correctamente
+          this.save();
+        }
+      });
+    } else {
+      // Flujo de apagado
+      const dialogRef = this.dialog.open(TwoFactorModalComponent, {
+        width: '100vw',
+        maxWidth: '480px',
+        disableClose: true,
+        data: { mode: 'disable' },
+        panelClass: 'glass-dialog',
+        backdropClass: 'glass-backdrop'
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (!result) {
+          // Rollback si canceló desactivación
+          this.settings.twoFactor = true;
+        } else {
+          // Se desactivó correctamente
+          this.save();
+        }
+      });
+    }
+  }
+
+  exportData(): void {
+    this.isLoading = true;
+
+    // Create comprehensive mock payload representing data export
+    const exportPayload = {
+      timestamp: new Date().toISOString(),
+      user: this.currentUser,
+      settings: this.settings,
+      devices: this.iotDevices,
+      patientsCount: 28, // Mock metric
+      historyRecordsSize: "4.2 MB" // Mock metric
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `asmasync_export_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+
+    setTimeout(() => {
+      this.isLoading = false;
+      this.snackBar.open('Datos exportados exitosamente (.json)', 'OK', {
+        duration: 4000,
+        panelClass: ['toast-success']
+      });
+    }, 600);
+  }
+
+  onAuditSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.auditSearch$.next(input.value);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

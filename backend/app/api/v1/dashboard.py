@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get("/metrics")
 async def get_dashboard_metrics(
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.get_current_doctor_user)
 ) -> Any:
     """
     Obtener KPI's para el dashboard principal.
@@ -67,7 +67,7 @@ async def get_dashboard_metrics(
 async def get_priority_patients(
     limit: int = 5,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.get_current_doctor_user)
 ) -> Any:
     """
     Obtener pacientes prioritarios (Riesgo Rojo/Amarillo).

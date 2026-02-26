@@ -1,25 +1,29 @@
 <div
-    class="h-full w-[260px] bg-white/80 backdrop-blur-xl p-6 flex flex-col justify-between border-r border-gray-100 flex-shrink-0 z-50 relative">
+    class="h-full w-[260px] dashboard-sidebar backdrop-blur-md bg-white/80 dark:bg-slate-900/80 p-6 flex flex-col justify-between border-r border-slate-200/60 dark:border-slate-700 flex-shrink-0 z-50 relative transition-colors duration-300">
     <div>
         <div class="flex items-center gap-2 mb-10 text-brand-cyan font-bold text-xl">
             <mat-icon class="text-2xl h-6 w-6">lungs</mat-icon> AsmaSync
         </div>
         <nav class="space-y-4">
-            <a routerLink="/dashboard" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
+            <a routerLink="/dashboard"
+                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
                 [routerLinkActiveOptions]="{exact: true}"
-                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
                 <mat-icon class="text-lg w-5 h-5">grid_view</mat-icon> Dashboard
             </a>
-            <a routerLink="/dashboard/alerts" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
-                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+            <a routerLink="/dashboard/alerts"
+                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
+                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
                 <mat-icon class="text-lg w-5 h-5">notifications</mat-icon> Alertas
             </a>
-            <a routerLink="/dashboard/patients" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
-                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+            <a routerLink="/dashboard/patients"
+                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
+                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
                 <mat-icon class="text-lg w-5 h-5">people</mat-icon> Pacientes
             </a>
-            <a routerLink="/dashboard/reports" routerLinkActive="bg-cyan-50 text-brand-cyan font-bold"
-                class="flex items-center gap-4 p-3 text-gray-500 hover:bg-slate-50 hover:text-brand-dark rounded-xl transition-all">
+            <a routerLink="/dashboard/reports"
+                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
+                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
                 <mat-icon class="text-lg w-5 h-5">description</mat-icon> Reportes
             </a>
         </nav>
@@ -28,10 +32,11 @@
     <div class="border-t pt-6">
         <nav class="space-y-2 text-gray-500 text-sm flex flex-col items-start">
             <a routerLink="/dashboard/help"
-                class="flex items-center gap-2 hover:text-brand-cyan transition-colors mt-2">
+                class="flex items-center gap-2 p-2 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-cyan rounded-xl transition-all duration-200 active:scale-[0.98] w-full">
                 <mat-icon class="text-lg w-5 h-5 scale-75">help_outline</mat-icon> Ayuda
             </a>
-            <a routerLink="/dashboard/settings" class="flex items-center gap-2 hover:text-brand-cyan transition-colors">
+            <a routerLink="/dashboard/settings"
+                class="flex items-center gap-2 p-2 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-cyan rounded-xl transition-all duration-200 active:scale-[0.98] w-full">
                 <mat-icon class="text-lg w-5 h-5 scale-75">settings</mat-icon> Configuración
             </a>
         </nav>

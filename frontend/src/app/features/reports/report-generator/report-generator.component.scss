@@ -16,7 +16,7 @@ $primary-color: #0E7490;
     display: flex;
     height: 100%;
     overflow: hidden;
-    background-color: white;
+    background-color: var(--bg-body);
     font-family: 'Quicksand', system-ui, sans-serif;
 }
 
@@ -26,8 +26,8 @@ $primary-color: #0E7490;
     height: 100%;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
-    background: #ffffff;
+    border-right: 1px solid var(--border-color);
+    background: var(--bg-card);
     z-index: 10;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
 
@@ -39,8 +39,8 @@ $primary-color: #0E7490;
         overflow: hidden;
 
         .mat-mdc-tab-header {
-            background: #f8fafc;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            background: var(--bg-hover);
+            border-bottom: 1px solid var(--border-color);
             padding: 0 16px;
         }
 
@@ -56,9 +56,9 @@ $primary-color: #0E7490;
 
             &.mdc-tab--active {
                 opacity: 1;
-                background: white;
+                background: var(--bg-card);
                 border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                box-shadow: var(--shadow-sm);
 
                 .mdc-tab__text-label {
                     color: $primary-color !important;
@@ -85,7 +85,7 @@ $primary-color: #0E7490;
 
     .config-section {
         padding: 24px;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--border-color);
 
         &:last-child {
             border-bottom: none;
@@ -147,7 +147,7 @@ $primary-color: #0E7490;
 
         label {
             font-size: 11px;
-            color: #64748b;
+            color: var(--text-muted);
             display: block;
             margin-bottom: 4px;
         }
@@ -155,10 +155,10 @@ $primary-color: #0E7490;
         input[type="color"] {
             width: 100%;
             height: 40px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 2px;
-            background: white;
+            background: var(--bg-input);
             cursor: pointer;
         }
     }
@@ -176,14 +176,14 @@ $primary-color: #0E7490;
     align-items: center;
     gap: 12px;
     padding: 10px 16px;
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     transition: all 0.2s;
 
     &:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        border-color: var(--text-muted);
+        box-shadow: var(--shadow-sm);
     }
 
     .section-drag-handle {
@@ -198,8 +198,8 @@ $primary-color: #0E7490;
 
 .sidebar-footer {
     padding: 20px 24px;
-    border-top: 1px solid #e2e8f0;
-    background: white;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
     z-index: 20;
 }
 
@@ -223,7 +223,7 @@ $primary-color: #0E7490;
     flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: $bg-canvas;
+    background-color: var(--bg-body);
     position: relative;
 
     .preview-toolbar {
@@ -253,7 +253,7 @@ $primary-color: #0E7490;
 /* ===== DYNAMIC PRINT PAGE ===== */
 .print-page {
     background: white;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 24px 60px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 32px 80px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.06);
     position: relative;
     padding: 15mm;
     box-sizing: border-box;
@@ -262,9 +262,21 @@ $primary-color: #0E7490;
     gap: 15px;
     overflow: hidden;
     margin: 0 auto;
+    border-radius: 4px; // Subtle page rounding in preview
 
     // Dynamic Transitions
     transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), min-height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    // Premium accent stripe at top
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color, #0E7490), var(--accent-color, #06B6D4));
+    }
 
     // Variables
     --primary-color: #0E7490;
@@ -344,14 +356,16 @@ $primary-color: #0E7490;
 }
 
 .report-title-bar {
-    background-color: #f1f5f9;
-    padding: 8px;
+    background: linear-gradient(135deg, var(--primary-color, #0E7490), var(--accent-color, #06B6D4));
+    padding: 10px 16px;
     text-align: center;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
-    color: #334155;
-    border-radius: 4px;
+    color: #ffffff;
+    border-radius: 6px;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 2px 8px rgba(14, 116, 144, 0.25);
 }
 
 .report-body {
@@ -414,33 +428,54 @@ $primary-color: #0E7490;
 .vitals-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 10px;
 
     .vital-card {
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
+        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
         padding: 10px;
         text-align: center;
+        position: relative;
+        overflow: hidden;
+
+        // Subtle left accent
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--primary-color, #0E7490), var(--accent-color, #06B6D4));
+            border-radius: 3px 0 0 3px;
+        }
 
         .value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             color: var(--primary-color);
             display: block;
+            background: linear-gradient(135deg, var(--primary-color, #0E7490), var(--accent-color, #06B6D4));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .unit {
-            font-size: 10px;
+            font-size: 9px;
             color: #94a3b8;
+            font-weight: 600;
         }
 
         .label {
             display: block;
             margin-top: 4px;
             font-size: 9px;
-            font-weight: 600;
+            font-weight: 700;
             color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
     }
 }

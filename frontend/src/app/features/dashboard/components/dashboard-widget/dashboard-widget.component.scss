@@ -31,12 +31,8 @@
     overflow-y: auto;
     overflow-x: hidden;
 
-    border-radius: 24px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    border: 1px solid #f1f5f9;
-
     /* Fix para eliminar barra blanca inferior (padding/margin issues) */
-    background-color: white;
+    /* Handled by Tailwind classes in HTML now */
 }
 
 /* Scrollbar Premium para que no se vea como Windows 95 */
@@ -111,20 +107,21 @@
     width: 26px;
     height: 26px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #64748b;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
     transition: all 0.15s ease;
     padding: 0;
 }
 
 .widget-resize-btn:hover {
-    background: white;
+    background: var(--bg-hover);
+    color: var(--text-primary);
     transform: scale(1.1);
 }
 

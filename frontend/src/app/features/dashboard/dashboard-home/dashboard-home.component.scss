@@ -5,8 +5,7 @@
 :host {
     display: block;
     min-height: 100vh;
-    background: #f8fafc;
-    color: #0f172a;
+    @apply bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-300;
 }
 
 /* Container */
@@ -28,36 +27,11 @@
     text-align: center;
 }
 
-/* ============================================
-   GRID SYSTEM (Native CSS Grid)
-   ============================================ */
-.widget-grid {
-    display: grid;
-    /* 4 Columns for Desktop */
-    grid-template-columns: repeat(4, 1fr);
-    /* Standard row height + gap */
-    grid-auto-rows: minmax(180px, auto);
-    gap: 24px;
-    width: 100%;
-}
-
-@media (max-width: 1024px) {
-    .widget-grid {
-        grid-template-columns: repeat(2, 1fr);
-        /* Tablet: 2 cols */
-    }
-}
-
-@media (max-width: 768px) {
-    .widget-grid {
-        grid-template-columns: 1fr;
-        /* Mobile: 1 col */
-    }
-}
-
+/* Grid Handled via Tailwind in HTML */
 /* ============================================
    WIDGET WRAPPER (Host styling)
    ============================================ */
+
 /* Force standard behavior on the custom element wrapper */
 app-dashboard-widget {
     display: block;
@@ -70,56 +44,11 @@ app-dashboard-widget {
     grid-column: span 1;
 }
 
-/* SPANNING UTILITIES (Applied via class binding in HTML) */
-.col-span-4 {
-    grid-column: span 4;
-}
-
-.col-span-3 {
-    grid-column: span 3;
-}
-
-.col-span-2 {
-    grid-column: span 2;
-}
-
-.col-span-1 {
-    grid-column: span 1;
-}
-
-.row-span-2 {
-    grid-row: span 2;
-}
-
-.row-span-1 {
-    grid-row: span 1;
-}
-
-/* Responsive Overrides */
-@media (max-width: 1024px) {
-
-    .col-span-4,
-    .col-span-3 {
-        grid-column: span 2;
-    }
-
-    /* Max 2 cols on tablet */
-}
-
-@media (max-width: 768px) {
-
-    .col-span-4,
-    .col-span-3,
-    .col-span-2 {
-        grid-column: span 1;
-    }
-
-    /* Stack on mobile */
-}
-
+/* Span utilities handled by Tailwind */
 /* ============================================
    Specific Widget Tweaks
    ============================================ */
+
 /* Chart Container Fix for Chart.js */
 ::ng-deep .chart-container {
     position: relative;
@@ -201,23 +130,7 @@ app-dashboard-widget {
     padding-bottom: 96px;
 }
 
-/* ============================================
-   Magnetic Grid System (Restored & Cleaned)
-   ============================================ */
-
-.widget-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    /* Enforce 4 Cols */
-    grid-auto-rows: 160px;
-    /* Standardize height for rowSpan logic */
-    gap: 24px;
-    position: relative;
-    padding-bottom: 200px;
-    grid-auto-flow: row dense;
-}
-
-/* ... (keep existing spans) ... */
+/* Grid handled via Tailwind */
 
 /* ============================================
    CDK Drag & Drop — Magnetic Snapping
@@ -226,37 +139,29 @@ app-dashboard-widget {
    CDK Drag & Drop — Magnetic Snapping
    ============================================ */
 .cdk-drag-preview {
-    /* CRITICAL: Do NOT force width/height to 100% or it will fill the screen/body */
-    box-sizing: border-box !important;
+    /* Límite de seguridad */
+    opacity: 0.8 !important;
 
     /* Visuals - Glassmorphism Card during drag */
     border-radius: 24px !important;
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(12px) !important;
     box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25) !important;
-    border: 2px solid #00B5AD !important;
+    border: 2px solid rgba(13, 148, 136, 1) !important;
 
     /* PREVENT GHOSTING & layout shifts */
     margin: 0 !important;
     pointer-events: none !important;
     overflow: hidden !important;
-
-    /* FORCE DIMENSIONS TO BE REASONABLE */
-    max-width: 400px !important;
-    max-height: 400px !important;
     display: block !important;
+    z-index: 9999 !important;
 }
 
-/* Force the internal host to NOT be 100% of viewport */
-.cdk-drag-preview app-dashboard-widget {
-    width: 100% !important;
-    height: 100% !important;
-    /* This will now be relative to the preview's max-width/height */
-}
+
 
 .cdk-drag-placeholder {
-    background: rgba(0, 181, 173, 0.05);
-    border: 2px dashed rgba(0, 181, 173, 0.3);
+    background: rgba(13, 148, 136, 0.1) !important;
+    border: 2px dashed rgba(13, 148, 136, 0.3);
     border-radius: 24px;
     opacity: 0.6;
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
@@ -398,14 +303,14 @@ app-dashboard-widget:nth-child(12) {
     justify-content: center;
     cursor: pointer;
     transition: all 0.25s ease;
-    background: #0f172a;
+    background: #00B5AD;
     color: white;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 181, 173, 0.25);
 }
 
 .edit-fab:hover {
-    transform: scale(1.06);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 181, 173, 0.4);
 }
 
 .edit-fab:active {

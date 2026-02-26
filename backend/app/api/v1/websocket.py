@@ -102,5 +102,5 @@ async def websocket_endpoint(
         if user_id:
             manager.disconnect(websocket, user_id)
     except Exception as e:
-        print(f"Error en WebSocket: {e}")
+        # print(f"Error en WebSocket: {e}")
         await websocket.close(code=1011, reason="Error interno")

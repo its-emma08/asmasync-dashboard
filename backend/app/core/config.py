@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     # Seguridad
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # 60 minutos * 24 horas * 8 días = 8 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 5
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # Base de Datos

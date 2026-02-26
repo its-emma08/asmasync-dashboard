@@ -11,7 +11,8 @@ export interface User {
     id: number;
     full_name: string;
     email: string;
-    role: 'nurse' | 'admin';
+    role: 'nurse' | 'admin' | 'doctor' | 'patient';
+    is_2fa_enabled?: boolean;
 }
 
 export interface LoginResponse {
@@ -20,6 +21,7 @@ export interface LoginResponse {
     user?: User;
     requires2FA?: boolean; // New flag
     temp_token?: string;   // Temporary token for 2FA verification
+    options?: string[];    // Array of string options for interactive 2FA
 }
 
 @Injectable({
@@ -27,6 +29,7 @@ export interface LoginResponse {
 })
 export class AuthService implements OnDestroy {
     private apiUrl = `${environment.apiUrl}/auth`;
+    private usersApiUrl = `${environment.apiUrl}/users`;
     private currentUserSubject = new BehaviorSubject<User | null>(null);
     public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -48,6 +51,13 @@ export class AuthService implements OnDestroy {
             this.loadUserFromSession();
             this.setupActivityListeners();
         }
+    }
+
+    register(payload: any): Observable<any> {
+        if (environment.mockMode) {
+            return of({ message: "Mock register successful" });
+        }
+        return this.http.post(`${this.apiUrl}/register`, payload);
     }
 
     login(email: string, password: string): Observable<LoginResponse> {
@@ -72,7 +82,12 @@ export class AuthService implements OnDestroy {
 
         // REAL MODE: Hit backend
         return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-            tap(response => this.handleLoginSuccess(response)),
+            tap(response => {
+                if (response.temp_token && this.isBrowser) {
+                    this.storageService.setItem('temp_2fa_token', response.temp_token);
+                }
+                this.handleLoginSuccess(response);
+            }),
             catchError(error => throwError(() => error))
         );
     }
@@ -96,8 +111,23 @@ export class AuthService implements OnDestroy {
             return throwError(() => new Error('Código incorrecto'));
         }
 
-        // Real implementation would go here
-        return throwError(() => new Error('Backend not implemented'));
+        const tempToken = this.storageService.getItem('temp_2fa_token');
+        return this.http.post<LoginResponse>(`${this.apiUrl}/login/2fa`, { temp_token: tempToken, code }).pipe(
+            tap(response => this.handleLoginSuccess(response)),
+            catchError(error => throwError(() => error))
+        );
+    }
+
+    setup2FA(): Observable<{ secret: string, qr_code: string }> {
+        return this.http.post<{ secret: string, qr_code: string }>(`${this.apiUrl}/2fa/setup`, {});
+    }
+
+    verify2FASetup(code: string, secret_key: string): Observable<{ message: string }> {
+        return this.http.post<{ message: string }>(`${this.apiUrl}/2fa/verify`, { code, secret_key });
+    }
+
+    disable2FA(password: string): Observable<{ message: string }> {
+        return this.http.post<{ message: string }>(`${this.apiUrl}/2fa/disable`, { password });
     }
 
     changePassword(oldPass: string, newPass: string): Observable<void> {
@@ -107,7 +137,51 @@ export class AuthService implements OnDestroy {
             }
             return throwError(() => new Error('La contraseña actual es incorrecta'));
         }
-        return this.http.post<void>(`${this.apiUrl}/change-password`, { oldPass, newPass });
+        return this.http.put<void>(`${this.usersApiUrl}/me/password`, { current_password: oldPass, new_password: newPass });
+    }
+
+    updateProfile(data: any): Observable<User> {
+        if (environment.mockMode) {
+            const mockUser = this.currentUserSubject.value || {} as User;
+            const updatedUser = { ...mockUser, ...data };
+            this.handleUserUpdateSuccess(updatedUser);
+            return of(updatedUser);
+        }
+        return this.http.put<User>(`${this.usersApiUrl}/me`, data).pipe(
+            tap(user => this.handleUserUpdateSuccess(user))
+        );
+    }
+
+    public handleUserUpdateSuccess(user: User): void {
+        if (this.isBrowser) {
+            this.storageService.setItem('user', user);
+            this.currentUserSubject.next(user);
+        }
+    }
+
+    forgotPassword(email: string): Observable<{ message: string }> {
+        if (environment.mockMode) {
+            // console.log(`[Mock] Enviando código OTP a ${email}`);
+            return of({ message: "Si el correo está registrado, recibirás un código de 6 dígitos." });
+        }
+        return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, { email });
+    }
+
+    verifyResetCode(email: string, code: string): Observable<{ temp_token: string }> {
+        if (environment.mockMode) {
+            if (code === '123456') {
+                return of({ temp_token: 'mock-temp-reset-token' });
+            }
+            return throwError(() => new Error('El código es inválido o ha expirado.'));
+        }
+        return this.http.post<{ temp_token: string }>(`${this.apiUrl}/verify-reset-code`, { email, code });
+    }
+
+    resetPassword(token: string, new_password: string): Observable<{ message: string }> {
+        if (environment.mockMode) {
+            return of({ message: "Contraseña actualizada exitosamente." });
+        }
+        return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, { token, new_password });
     }
 
     public handleLoginSuccess(response: LoginResponse): void {
@@ -125,8 +199,8 @@ export class AuthService implements OnDestroy {
                 this.storageService.setItem('user', response.user);
                 this.currentUserSubject.next(response.user);
 
-                // Clear temp items
-                localStorage.removeItem('temp_2fa_token');
+                // SEC-001: Clear temp token via encrypted StorageService (not raw localStorage)
+                this.storageService.removeItem('temp_2fa_token');
 
                 this.startAutoLogoutTimer();
             }
@@ -185,6 +259,31 @@ export class AuthService implements OnDestroy {
 
     getCurrentUser(): Observable<User | null> {
         return this.currentUser$;
+    }
+
+    fetchCurrentUser(): Observable<User> {
+        if (environment.mockMode) {
+            const mockUser = this.currentUserSubject.value || {} as User;
+            return of(mockUser);
+        }
+        return this.http.get<User>(`${this.usersApiUrl}/me`).pipe(
+            tap(user => {
+                this.currentUserSubject.next(user);
+                if (this.isBrowser) {
+                    this.storageService.setItem('user', user);
+                }
+            })
+        );
+    }
+
+    getAuditLogs(limit: number = 50): Observable<any[]> {
+        if (environment.mockMode) {
+            return of([
+                { id: 1, action: 'LOGIN', entity: 'USER', ip_address: '127.0.0.1', created_at: new Date().toISOString() }
+            ]);
+        }
+        // BUG-003 fix: env.apiUrl already contains /api/v1, no need to add /v1 again
+        return this.http.get<any[]>(`${environment.apiUrl}/security/audit-logs?limit=${limit}`);
     }
 
     private loadUserFromSession(): void {

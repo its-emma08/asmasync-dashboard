@@ -47,7 +47,7 @@ async def get_clinical_history_pdf(
     try:
         pdf_bytes = PDFService.generate_clinical_history_pdf(patient, history, exams)
     except Exception as e:
-        print(f"Error generating PDF: {e}")
+        # print(f"Error generating PDF: {e}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Error generating PDF report")
 

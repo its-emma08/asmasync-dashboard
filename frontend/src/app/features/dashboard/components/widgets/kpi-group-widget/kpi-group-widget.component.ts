@@ -29,12 +29,15 @@ export class KpiGroupWidgetComponent implements OnChanges {
     private updateVisibility(): void {
         const max = this.kpis.length || 4;
 
-        // Explicit breakpoints for better stability
-        let calculated = 1;
-        if (this.colSpan >= 10) calculated = 4;      // 10-12 cols: Show 4
-        else if (this.colSpan >= 7) calculated = 3;  // 7-9 cols: Show 3
-        else if (this.colSpan >= 4) calculated = 2;  // 4-6 cols: Show 2
-        else calculated = 1;                         // 1-3 cols: Show 1
+        // If colSpan >= 4 in a 4-col grid = full width, show all 4
+        // colSpan is the raw Tailwind col-span number, NOT a percentage
+        let calculated: number;
+        if (max <= 1) {
+            calculated = 1;
+        } else {
+            // Always try to show all KPIs; visibility is controlled by responsive Tailwind grid on parent
+            calculated = max;
+        }
 
         this.visibleCount = Math.min(max, calculated);
         this.visibleKpis = this.kpis.slice(0, this.visibleCount).map(kpi => ({

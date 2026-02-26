@@ -18,4 +18,16 @@ export class ToastService {
 
         this.snackBar.open(message, 'OK', config);
     }
+
+    success(message: string): void {
+        this.show(message, 'success');
+    }
+
+    error(message: string): void {
+        this.show(message, 'error', 5000);
+    }
+
+    info(message: string): void {
+        this.show(message, 'info');
+    }
 }

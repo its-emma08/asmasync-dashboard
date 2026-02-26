@@ -1,4 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -73,15 +75,17 @@ interface ReportConfig {
     templateUrl: './report-generator.component.html',
     styleUrls: ['./report-generator.component.scss']
 })
-export class ReportGeneratorComponent implements OnInit {
+export class ReportGeneratorComponent implements OnInit, OnDestroy {
     @ViewChild('reportContent') reportContent!: ElementRef;
 
     today = new Date();
     patients: Patient[] = [];
     selectedPatient: Patient | null = null;
+    private destroy$ = new Subject<void>();
 
     // New: Edited Patient (In-Situ Editing)
     editedPatient: any = {};
+    hasPatients: boolean = false;
 
     pefTrend: PEFTrend[] = [];
 
@@ -145,10 +149,14 @@ export class ReportGeneratorComponent implements OnInit {
 
     loadPatients(): void {
         this.isLoadingPatients = true;
-        this.patientService.getAllPatients().subscribe({
+        this.patientService.getAllPatients().pipe(takeUntil(this.destroy$)).subscribe({
             next: (data) => {
                 this.patients = data;
                 this.isLoadingPatients = false;
+
+                this.hasPatients = this.patients && this.patients.length > 0;
+                this.cd.detectChanges();
+
                 // Auto-select first patient for better UX
                 if (data.length > 0) {
                     this.selectPatient(data[0].id);
@@ -176,7 +184,7 @@ export class ReportGeneratorComponent implements OnInit {
                 this.chartInstance = null;
             }
 
-            this.patientService.getPatientById(id).subscribe(p => {
+            this.patientService.getPatientById(id).pipe(takeUntil(this.destroy$)).subscribe(p => {
                 this.selectedPatient = p;
                 // Clone for editing
                 this.editedPatient = JSON.parse(JSON.stringify(p));
@@ -197,7 +205,7 @@ export class ReportGeneratorComponent implements OnInit {
                 this.calculateDerivedData(); // Update computed properties
                 this.cd.markForCheck();
             });
-            this.patientService.getPEFTrend(id).subscribe(t => {
+            this.patientService.getPEFTrend(id).pipe(takeUntil(this.destroy$)).subscribe(t => {
                 this.pefTrend = t;
                 if (this.selectedPatient) this.renderChart(); // Re-render if trend comes later
                 this.cd.markForCheck();
@@ -306,103 +314,89 @@ export class ReportGeneratorComponent implements OnInit {
             return;
         }
 
-        // FORCE ANGULAR CYCLE
+        // Evita NG0100
+        await new Promise(resolve => setTimeout(resolve, 0));
+        this.isGenerating = true;
+        this.cd.detectChanges();
 
-        // Wrap start in setTimeout to ensure button click event finishes bubbling
-        setTimeout(() => {
-            this.isGenerating = true;
-
-            // WRAP IN TIMEOUT TO AVOID NG0100
-            setTimeout(async () => {
+        try {
+            // 1. CHART RENDER HACK FOR PDF
+            if (this.chartInstance) {
                 try {
-                    // 1. CHART RENDER HACK FOR PDF
-                    if (this.chartInstance) {
-                        try {
-                            const canvas = document.getElementById('reportChartCanvas') as HTMLCanvasElement;
-                            if (canvas) {
-                                this.chartImageSrc = canvas.toDataURL('image/png');
-                            } else {
-                                this.chartImageSrc = this.chartInstance.toBase64Image();
-                            }
-                        } catch (e) {
-                            console.warn('Could not export chart', e);
-                        }
-                        this.cd.detectChanges(); // Update view to show <img> and hide <canvas>
-
-                        // Wait for image to render in DOM
-                        await new Promise(resolve => setTimeout(resolve, 200));
+                    const canvas = document.getElementById('reportChartCanvas') as HTMLCanvasElement;
+                    if (canvas) {
+                        this.chartImageSrc = canvas.toDataURL('image/png');
+                    } else {
+                        this.chartImageSrc = this.chartInstance.toBase64Image();
                     }
-
-                    const content = this.reportContent.nativeElement;
-
-                    // 2. Capture High-Res Canvas
-                    // Wait for chart image to stabilize
-                    setTimeout(async () => {
-                        const canvas = await html2canvas(content, {
-                            scale: 2, // 2x resolution
-                            useCORS: true,
-                            logging: false,
-                            windowWidth: 1200 // Consistent width
-                        });
-
-                        // 3. Generate PDF
-                        const imgData = canvas.toDataURL('image/png');
-
-                        // Dynamic Format based on Config
-                        const pdf = new jsPDF({
-                            orientation: 'portrait',
-                            unit: 'mm',
-                            format: this.config.paperSize as any
-                        });
-
-                        // Calculate dimensions based on paper size
-                        let pdfWidth = 210;
-                        let pdfPageHeight = 297;
-                        switch (this.config.paperSize) {
-                            case 'letter': pdfWidth = 215.9; pdfPageHeight = 279.4; break;
-                            case 'legal': pdfWidth = 215.9; pdfPageHeight = 355.6; break;
-                            case 'a4': default: pdfWidth = 210; pdfPageHeight = 297; break;
-                        }
-
-                        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-                        let heightLeft = imgHeight;
-                        let position = 0;
-
-                        // First page
-                        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                        heightLeft -= pdfPageHeight;
-
-                        while (heightLeft >= 0) {
-                            position = heightLeft - imgHeight;
-                            pdf.addPage();
-                            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                            heightLeft -= pdfPageHeight;
-                        }
-
-                        // 4. Save
-                        const filename = `Reporte_${(this.selectedPatient?.full_name || 'Paciente').replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
-                        pdf.save(filename);
-
-                        this.snackBar.open('Reporte generado exitosamente', 'OK', { duration: 3000 });
-
-                        // Restore lock
-                        this.isGenerating = false;
-                        this.chartImageSrc = null; // Hide the temp image
-                        this.cd.detectChanges();
-
-                    }, 100); // 100ms delay to ensure DOM is painted
-
-                } catch (error) {
-                    console.error('PDF Generation Error:', error);
-                    this.snackBar.open('Error al generar PDF', 'Cerrar', { duration: 3000 });
-                } finally {
-                    // Restore State
-                    this.chartImageSrc = null;
-                    this.isGenerating = false;
-                    // this.cd.detectChanges(); // REMOVED: Auto-detection should handle this at end of macrotask
+                } catch (e) {
+                    console.warn('Could not export chart', e);
                 }
-            }, 0);
-        }, 0);
+                this.cd.detectChanges(); // Update view to show <img> and hide <canvas>
+
+                // Wait for image to render in DOM
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            const content = this.reportContent.nativeElement;
+
+            // 2. Capture High-Res Canvas
+            const canvas = await html2canvas(content, {
+                scale: 2, // 2x resolution
+                useCORS: true,
+                logging: false,
+                windowWidth: 1200 // Consistent width
+            });
+
+            // 3. Generate PDF
+            const imgData = canvas.toDataURL('image/png');
+
+            // Dynamic Format based on Config
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: this.config.paperSize as any
+            });
+
+            // Calculate dimensions based on paper size
+            let pdfWidth = 210;
+            let pdfPageHeight = 297;
+            switch (this.config.paperSize) {
+                case 'letter': pdfWidth = 215.9; pdfPageHeight = 279.4; break;
+                case 'legal': pdfWidth = 215.9; pdfPageHeight = 355.6; break;
+                case 'a4': default: pdfWidth = 210; pdfPageHeight = 297; break;
+            }
+
+            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            // First page
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdfPageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfPageHeight;
+            }
+
+            // 4. Save
+            const filename = `Reporte_${(this.selectedPatient?.full_name || 'Paciente').replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
+            pdf.save(filename);
+
+            this.snackBar.open('Reporte generado exitosamente', 'OK', { duration: 3000 });
+
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            this.snackBar.open('Error al generar PDF', 'Cerrar', { duration: 3000 });
+        } finally {
+            // Restore State
+            this.chartImageSrc = null;
+            this.isGenerating = false;
+            this.cd.detectChanges();
+        }
     }
 
     // --- Computed Properties for Stability (Fix NG0100) ---
@@ -433,6 +427,14 @@ export class ReportGeneratorComponent implements OnInit {
             case 'yellow': return 'RIESGO MODERADO';
             case 'green': return 'BAJO RIESGO';
             default: return 'DESCONOCIDO';
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
         }
     }
 }

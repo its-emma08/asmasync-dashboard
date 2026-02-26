@@ -1,0 +1,31 @@
+/* Global styles are applied via angular.json */
+
+:host {
+    display: block;
+    height: 100%;
+}
+
+.icon-small {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Material Symbols Font Variation not fully supported via standard CSS unless using variable font 
+   Using standard override for thinner weight if available */
+.font-variation-settings-light {
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+@keyframes ping-slow {
+
+    75%,
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+.animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

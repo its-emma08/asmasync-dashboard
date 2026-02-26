@@ -97,16 +97,19 @@ export class DashboardWidgetComponent {
       // I should fix this to 4.
 
       const gridCols = 4;
-      const colUnit = this.containerWidth / gridCols;
-      let newColSpan = Math.round(newWidth / colUnit);
+      // Account for 32px gap in horizontal math:
+      // containerWidth includes 3 gaps roughly? Actually containerWidth is 100%. 
+      // colUnit is (containerWidth + 32) / 4 (to account for the missing gap at the end)
+      const colUnit = (this.containerWidth + 32) / gridCols;
+      let newColSpan = Math.round((newWidth + 32) / colUnit);
       newColSpan = Math.max(1, Math.min(gridCols, newColSpan));
 
       // Vertical (RowSpan)
-      // Row Height = 160px + 24px gap = 184px
-      const rowUnit = 184;
+      // Row Height = 160px + 32px gap = 192px
+      const rowUnit = 192;
       const deltaY = event.clientY - this.startY;
       const newHeight = this.startHeight + deltaY;
-      let newRowSpan = Math.round((newHeight + 24) / rowUnit);
+      let newRowSpan = Math.round((newHeight + 32) / rowUnit);
       newRowSpan = Math.max(1, newRowSpan);
 
       let changed = false;

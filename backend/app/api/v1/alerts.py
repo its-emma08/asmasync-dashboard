@@ -87,7 +87,7 @@ async def create_test_alert(
     """
     Dev endpoint: Crear alerta de prueba.
     """
-    print(f"DEBUG: create_test_alert patient_id={patient_id} user_id={current_user.id}")
+    # DEBUG: create_test_alert patient_id={patient_id} user_id={current_user.id}
     
     # Verify patient ownership
     stmt = (
@@ -100,10 +100,11 @@ async def create_test_alert(
     patient = result.scalars().first()
     
     if not patient:
-        print(f"DEBUG: Patient NOT FOUND for user {current_user.id}")
+        # DEBUG: Patient NOT FOUND
         raise HTTPException(status_code=404, detail="Paciente no encontrado o no asignado")
     
-    print(f"DEBUG: Patient found: {patient.full_name}")
+    
+    # DEBUG: Patient found: {patient.full_name}
     
     alert_in = AlertCreate(
         patient_id=patient.id,

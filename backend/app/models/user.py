@@ -23,7 +23,11 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False) # [NEW] Added for IDOR checks
     doctor_code = Column(String, nullable=True) # Linked doctor code
+    failed_login_attempts = Column(Integer, default=0, nullable=True)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
     last_login = Column(DateTime(timezone=True), nullable=True)
+    totp_secret = Column(String, nullable=True)
+    is_2fa_enabled = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -67,4 +71,11 @@ class MedicalProfile(Base):
     
     user = relationship("User", back_populates="medical_profile")
 
+class PasswordResetCode(Base):
+    __tablename__ = "password_reset_codes"
 
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True, nullable=False)
+    code = Column(String(6), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -14,21 +14,21 @@ import { takeUntil } from 'rxjs/operators';
     imports: [CommonModule, RouterModule, MatIconModule, AgePipe, SafeDatePipe],
     template: `
     <div class="glass-card p-4 h-full flex flex-col">
-        <div class="flex justify-between items-center mb-2 flex-shrink-0">
+        <div class="flex justify-between items-center mb-4 flex-shrink-0 px-2 lg:px-4">
             <div class="flex items-center gap-2 min-w-0">
-                <h3 class="font-bold text-brand-dark text-sm uppercase tracking-wide truncate">Alertas Urgentes ({{ filteredPatients.length }})</h3>
+                <h3 class="font-bold text-slate-900 dark:text-white tracking-tight text-lg truncate">Alertas Urgentes ({{ filteredPatients.length }})</h3>
             </div>
             
             <div class="flex gap-2 flex-shrink-0">
-                <button (click)="markAll.emit()" class="text-[10px] text-slate-500 hover:text-slate-800 px-2 py-1 border border-slate-200 rounded-lg font-medium transition-colors">
+                <button (click)="markAll.emit()" class="text-xs text-brand-cyan border border-brand-cyan/20 hover:bg-brand-cyan/5 px-3 py-1.5 rounded-xl font-bold transition-all duration-300 active:scale-95">
                     Marcar todas
                 </button>
             </div>
         </div>
 
         <!-- Scrollable Area -->
-        <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x flex-1 min-h-0 items-center">
-            <div *ngFor="let p of filteredPatients" class="urgent-card min-w-[260px] max-w-[280px] h-full border border-gray-100 rounded-2xl p-3 hover:shadow-md transition-shadow bg-white flex flex-col gap-2 relative group snap-start">
+        <div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x flex-1 min-h-0 items-center px-2 lg:px-4">
+            <div *ngFor="let p of filteredPatients" class="urgent-card min-w-[260px] max-w-[280px] h-full border border-gray-100 dark:border-slate-700/50 rounded-3xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-out bg-white dark:bg-slate-800/80 flex flex-col gap-2 relative group snap-start cursor-pointer border-l-4" [class.border-l-red-500]="p.riskLevel === 'red'" [class.border-l-yellow-500]="p.riskLevel === 'yellow'">
                 <!-- Badges -->
                 <span *ngIf="p.riskLevel === 'red'" class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-500 flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Crítico
