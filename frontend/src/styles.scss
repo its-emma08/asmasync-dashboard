@@ -16,11 +16,9 @@
 .page-scroll-container {
     height: 100%;
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
     padding: 1rem;
     /* p-4 */
-    scroll-behavior: smooth;
+    /* Removed overflow-y: auto here to depend on #main-content scrolling from dashboard-layout */
 }
 
 @media (min-width: 768px) {
@@ -111,6 +109,9 @@ textarea:focus {
     --muted: #f1f5f9;
     --muted-foreground: #64748b;
     --radius: 0.625rem;
+
+    /* Layout content area */
+    --color-background-main: #f0f4f8;
 }
 
 /* ============================================
@@ -453,6 +454,9 @@ body.dark {
     --input-background: #1e293b;
     --muted: #1e293b;
     --muted-foreground: #cbd5e1;
+
+    /* Layout content area */
+    --color-background-main: #0d1117;
 
     /* Tailwind utility overrides for hardcoded classes */
     .bg-white {
@@ -1004,5 +1008,174 @@ body.dark {
     /* Table header sticky */
     .mat-mdc-table .mat-mdc-header-row {
         background: #1e293b !important;
+    }
+
+    /* ─── Page container & content area ─── */
+    .page-container,
+    .main-layout-container,
+    .layout-content,
+    .dashboard-content-wrapper {
+        background-color: var(--color-background-main, #0d1117) !important;
+    }
+
+    /* ─── Fix Tailwind opacity variants not caught by standard override ─── */
+    [class*="bg-gray-100"],
+    [class*="bg-gray-50"],
+    [class*="bg-slate-50"],
+    [class*="bg-slate-100"] {
+        background-color: #1e293b !important;
+        color: #e2e8f0 !important;
+    }
+
+    /* Alert panel hardcoded white elements */
+    .alert-filter-tab-group {
+        background-color: #1e293b !important;
+    }
+
+    /* Settings side-panel (left nav in settings page) */
+    .settings-side-nav,
+    .settings-content-panel {
+        background-color: #1a2236 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Settings item cards */
+    .settings-item-card {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Fix hardcoded bg-white for search inputs inside pages */
+    input[type="text"][class*="bg-white"],
+    input[type="search"][class*="bg-white"] {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Filter/Tab group containers using gray backgrounds */
+    div[class*="bg-gray-100"],
+    div[class*="bg-slate-100"] {
+        background-color: rgba(30, 41, 59, 0.6) !important;
+    }
+
+    /* Active tab indicator inside filter groups */
+    div[class*="bg-gray-100"] button.bg-white,
+    div[class*="bg-slate-100"] button.bg-white {
+        background-color: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Report left panel  */
+    .report-design-panel {
+        background-color: #1a2236 !important;
+        border-color: #334155 !important;
+    }
+
+    /* Stat mini-boxes on alert card vitals */
+    div[class*="bg-gray-50"] {
+        background-color: #0f172a !important;
+        color: #cbd5e1 !important;
+    }
+
+    /* KPI group grid cards */
+    .kpi-card,
+    .kpi-group-card {
+        background-color: #1e293b !important;
+        color: #f1f5f9 !important;
+        border-color: #334155 !important;
+    }
+}
+
+/* ============================================
+   Settings Component — Dark Mode Overrides
+   (Angular inline styles don't process Tailwind dark:)
+   ============================================ */
+body.dark {
+    .settings-layout {
+        background-color: #0d1117 !important;
+    }
+
+    .settings-sidebar {
+        background-color: rgba(17, 24, 39, 0.9) !important;
+        border-right-color: #334155 !important;
+        backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    .settings-sidebar .sidebar-header h2 {
+        color: #f8fafc !important;
+    }
+
+    .settings-sidebar .nav-item {
+        color: #94a3b8 !important;
+    }
+
+    .settings-sidebar .nav-item:hover {
+        background-color: rgba(30, 41, 59, 0.7) !important;
+        color: #e2e8f0 !important;
+    }
+
+    .settings-sidebar .nav-item.active {
+        background-color: rgba(59, 130, 246, 0.15) !important;
+        color: #60a5fa !important;
+    }
+
+    .settings-sidebar .version-text {
+        color: #475569 !important;
+    }
+
+    .settings-content {
+        background-color: #0d1117 !important;
+        color: #f1f5f9 !important;
+    }
+
+    .settings-section .section-header h3 {
+        color: #f8fafc !important;
+    }
+
+    .settings-section .section-header p {
+        color: #94a3b8 !important;
+    }
+
+    .settings-section .glass-card {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-color: #334155 !important;
+    }
+
+    .settings-section .setting-title {
+        color: #e2e8f0 !important;
+    }
+
+    .settings-section .setting-desc {
+        color: #64748b !important;
+    }
+
+    .settings-section .divider {
+        background-color: #334155 !important;
+    }
+
+    .settings-section .card-subtitle {
+        color: #64748b !important;
+    }
+
+    .settings-section .profile-info h4 {
+        color: #f8fafc !important;
+    }
+
+    .settings-section .profile-info p {
+        color: #94a3b8 !important;
+    }
+
+    .settings-section .channel-icon {
+        background-color: rgba(30, 41, 59, 0.6) !important;
+    }
+
+    .settings-section .session-item {
+        color: #cbd5e1 !important;
+    }
+
+    .settings-section .sidebar-footer {
+        border-top-color: #334155 !important;
     }
 }

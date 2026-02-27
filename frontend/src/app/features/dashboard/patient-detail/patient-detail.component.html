@@ -2,17 +2,22 @@
     <div class="w-full max-w-full pb-20 space-y-6" *ngIf="!loading && patient; else loadingTpl">
 
         <!-- 1. Header del Paciente -->
+        <div class="print-only mb-6">
+            <h1 class="text-2xl font-black text-slate-800">Expediente Médico</h1>
+            <p class="text-sm text-slate-500">AsmaSync • Generado el {{ todayDate | date:'medium' }}</p>
+        </div>
+
         <div
             class="glass-card p-8 flex flex-col xl:flex-row gap-6 justify-between items-center relative overflow-hidden">
             <!-- Back Button -->
-            <button class="absolute top-4 left-4 text-gray-400 hover:text-brand-dark z-20 cursor-pointer"
+            <button class="absolute top-4 left-4 text-gray-400 hover:text-brand-dark z-20 cursor-pointer hide-on-print"
                 routerLink="/dashboard/patients" matTooltip="Volver a la lista">
                 <mat-icon>arrow_back</mat-icon>
             </button>
 
             <!-- Background decoration -->
             <div
-                class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-brand-cyan/10 to-transparent pointer-events-none">
+                class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-brand-cyan/10 to-transparent pointer-events-none hide-on-print">
             </div>
 
             <div class="flex flex-col md:flex-row items-center gap-6 z-10 w-full xl:w-auto">
@@ -23,7 +28,7 @@
                         (error)="$event.target.style.display='none'">
                     <div
                         [class]="getRiskColorClass(patient.riskLevel || 'green') + ' absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-bold uppercase shadow-sm border border-white flex items-center gap-1'">
-                        <span class="w-2 h-2 rounded-full bg-current animate-pulse"></span>
+                        <span class="w-2 h-2 rounded-full bg-current animate-pulse hide-on-print"></span>
                         {{ (getRiskLabel(patient.riskLevel || 'green') || '').split('-')[0] }}
                     </div>
                 </div>
@@ -33,13 +38,20 @@
                     <h1 class="text-3xl font-bold text-brand-dark mb-1">{{ patient.full_name }}</h1>
                     <div
                         class="flex items-center justify-center md:justify-start gap-3 text-sm text-gray-500 font-medium mb-2">
-                        <span class="bg-gray-100 px-2 py-0.5 rounded-lg">ID: #{{ patient.id }}</span>
+                        <span class="bg-gray-100 px-2 py-0.5 rounded-lg border border-gray-200">ID: #{{ patient.id
+                            }}</span>
                         <span>•</span>
                         <span>{{ patient.date_of_birth | age }} Años</span>
                         <span>•</span>
                         <span>{{ patient.gender }}</span>
+                        <span class="hide-on-print">•</span>
+                        <span class="hide-on-print whitespace-nowrap"><mat-icon
+                                class="scale-75 align-middle text-brand-cyan">monitor_weight</mat-icon> 72 kg</span>
+                        <span class="hide-on-print">•</span>
+                        <span class="hide-on-print whitespace-nowrap"><mat-icon
+                                class="scale-75 align-middle text-brand-cyan">height</mat-icon> 1.75 m</span>
                     </div>
-                    <div class="flex gap-2 justify-center md:justify-start flex-wrap">
+                    <div class="flex gap-2 justify-center md:justify-start flex-wrap hide-on-print mt-3">
                         <button (click)="navigateToEdit()"
                             class="text-xs bg-brand-cyan/10 text-brand-cyan px-3 py-1.5 rounded-lg font-bold hover:bg-brand-cyan/20 transition-colors cursor-pointer">
                             <mat-icon class="scale-75 inline-block align-middle mr-1">edit</mat-icon> Editar
@@ -49,12 +61,12 @@
                             <mat-icon class="scale-75 inline-block align-middle mr-1">history_edu</mat-icon> Historia
                         </button>
                         <button (click)="exportPDF()"
-                            class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors cursor-pointer"
-                            matTooltip="Exportar Expediente">
-                            <mat-icon class="scale-75 inline-block align-middle mr-1">print</mat-icon> Exp.
+                            class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-slate-700 transition-colors cursor-pointer shadow-md"
+                            matTooltip="Exportar Expediente (PDF)">
+                            <mat-icon class="scale-75 inline-block align-middle mr-1">picture_as_pdf</mat-icon> Exp. PDF
                         </button>
                         <button (click)="sharePatient()"
-                            class="text-xs bg-brand-cyan/10 text-brand-cyan px-3 py-1.5 rounded-lg font-bold hover:bg-brand-cyan/20 transition-colors cursor-pointer"
+                            class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors cursor-pointer"
                             matTooltip="Copiar Resumen">
                             <mat-icon class="scale-75 inline-block align-middle mr-1">content_copy</mat-icon> Copiar
                         </button>
@@ -200,6 +212,39 @@
                                     <canvas baseChart [data]="pefChartData" [options]="pefChartOptions"
                                         [type]="pefChartType">
                                     </canvas>
+                                </div>
+                            </div>
+
+                            <!-- Botton Row: Active Medications & Simple Info in Summary -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 hide-on-print">
+                                <div class="glass-card p-6 border-l-4 border-indigo-500">
+                                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                        <mat-icon class="text-indigo-500 scale-75">medication</mat-icon> Medicación
+                                        Activa
+                                    </h3>
+                                    <ul class="space-y-3">
+                                        <li
+                                            class="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
+                                            <span class="font-bold text-slate-700">Salbutamol</span>
+                                            <span class="text-xs text-slate-400">Rescate PRN</span>
+                                        </li>
+                                        <li
+                                            class="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
+                                            <span class="font-bold text-slate-700">Budesonida</span>
+                                            <span class="text-xs text-slate-400">2 inh / 12 hrs</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="glass-card p-6 border-l-4 border-teal-500">
+                                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                        <mat-icon class="text-teal-500 scale-75">fact_check</mat-icon> Notas Clínicas
+                                        (Última Visita)
+                                    </h3>
+                                    <p
+                                        class="text-xs text-slate-500 leading-relaxed italic border-l-2 border-slate-200 pl-3">
+                                        "Paciente reporta mejoría en síntomas nocturnos. Se recomienda continuar con
+                                        esquema actual y monitoreo semanal de FEM."
+                                    </p>
                                 </div>
                             </div>
                         </div>

@@ -167,11 +167,12 @@ async def login(
     refresh_token = security.create_refresh_token(user.id)
     
     # Secure Cookie for Refresh Token
+    is_secure = settings.ENVIRONMENT != "development"
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True, # Requires HTTPS (locally might need false if plain http, but standard is true)
+        secure=is_secure,
         samesite="lax",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     )
@@ -238,11 +239,12 @@ async def login_2fa(
     refresh_token = security.create_refresh_token(user.id)
     
     # Secure Cookie for Refresh Token
+    is_secure = settings.ENVIRONMENT != "development"
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
+        secure=is_secure,
         samesite="lax",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     )
@@ -510,3 +512,48 @@ async def reset_password(
     await db.commit()
     return {"message": "Contraseña actualizada exitosamente."}
 
+
+from app.schemas.auth import ChangePasswordRequest
+
+@router.post("/change-password")
+async def change_password(
+    request: Request,
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(deps.get_current_user),
+    db: AsyncSession = Depends(deps.get_db)
+) -> Any:
+    """
+    Cambia la contraseña del usuario autenticado.
+    Requiere la contraseña actual para verificar la identidad.
+    """
+    # Verify current password
+    if not security.verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña actual es incorrecta."
+        )
+
+    # Check new password is different
+    if security.verify_password(payload.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La nueva contraseña debe ser diferente a la actual."
+        )
+
+    # Update password
+    current_user.password_hash = security.get_password_hash(payload.new_password)
+    db.add(current_user)
+
+    # Audit log
+    await AuditService.log_action(
+        db,
+        action="PASSWORD_CHANGE",
+        entity="auth",
+        user_id=current_user.id,
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent"),
+        changes={"field": "password_hash"}
+    )
+
+    await db.commit()
+    return {"message": "Contraseña cambiada exitosamente."}

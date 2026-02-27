@@ -20,7 +20,7 @@ origins = settings.CORS_ORIGINS or [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(o) for o in origins],
+    allow_origins=[str(o).rstrip("/") for o in origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

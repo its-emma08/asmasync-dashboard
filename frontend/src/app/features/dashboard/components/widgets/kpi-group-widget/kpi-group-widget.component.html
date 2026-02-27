@@ -1,59 +1,74 @@
 <div class="grid gap-4 h-full" [class.grid-cols-1]="visibleCount === 1" [class.grid-cols-2]="visibleCount === 2"
     [class.grid-cols-3]="visibleCount === 3" [class.grid-cols-4]="visibleCount === 4">
 
-    <div *ngFor="let kpi of visibleKpis" (click)="navigateToDetail(kpi)"
-        class="bg-white dark:bg-slate-800/80 rounded-3xl p-6 flex flex-col justify-between h-full relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 active:scale-[0.97] transition-all duration-300 ease-out border border-gray-100 dark:border-slate-700 min-w-0 cursor-pointer">
+    <div *ngFor="let kpi of visibleKpis; let i = index" (click)="navigateToDetail(kpi)"
+        class="kpi-card group relative overflow-hidden rounded-2xl cursor-pointer bg-white dark:bg-slate-800/80 border border-slate-100/80 dark:border-slate-700/50 shadow-[0_2px_16px_rgb(0,0,0,0.06)] dark:shadow-[0_2px_16px_rgb(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(0,0,0,0.10)] active:scale-[0.98] flex flex-col justify-between p-5 min-w-0"
+        [style.animation-delay]="(i * 0.05) + 's'">
 
-        <!-- Context Icon (Top Right, Faded) -->
-        <div class="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-            <mat-icon [class]="'text-6xl ' + kpi.color">{{ kpi.icon }}</mat-icon>
-        </div>
+        <!-- Colored left accent strip -->
+        <div class="kpi-accent" [ngClass]="kpi.accentClass || 'accent-teal'"></div>
 
-        <!-- Header with Timeframe Menu -->
-        <div class="z-10 flex justify-between items-start">
-            <div class="truncate pr-8">
-                <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1 truncate">
-                    {{ kpi.title }}</p>
-                <div class="flex items-center gap-3">
-                    <h3 class="text-5xl font-black tracking-tighter text-slate-800 dark:text-white">{{ kpi.value }}
+        <!-- Top row: title + icon bubble -->
+        <div class="flex items-start justify-between mb-3 z-10 relative">
+            <div class="flex-1 min-w-0">
+                <p
+                    class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1 truncate">
+                    {{ kpi.title }}
+                </p>
+                <div class="flex items-end gap-2.5 flex-wrap">
+                    <h3 class="text-3xl font-black tracking-tight text-slate-800 dark:text-white leading-none">
+                        {{ kpi.value }}
                     </h3>
-                    <!-- Trend Indicator -->
-                    <span *ngIf="kpi.trend"
-                        [class]="(kpi.trend === 'up' ? 'text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-red-500 bg-red-50 dark:bg-red-500/10') + ' rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5 min-w-min'">
-                        <mat-icon class="scale-50 w-3 h-3">{{ kpi.trend === 'up' ? 'north' : 'south' }}</mat-icon>
+                    <!-- Trend chip -->
+                    <span *ngIf="kpi.trend" class="trend-chip" [class.trend-up]="kpi.trend === 'up'"
+                        [class.trend-down]="kpi.trend === 'down'">
+                        <mat-icon class="trend-icon">{{ kpi.trend === 'up' ? 'trending_up' : 'trending_down'
+                            }}</mat-icon>
                         {{ kpi.trendValue }}
                     </span>
                 </div>
             </div>
 
-            <!-- Timeframe Toggle -->
-            <button mat-icon-button [matMenuTriggerFor]="timeMenu" (click)="$event.stopPropagation()"
-                class="scale-75 text-slate-400 hover:text-brand-primary -mt-2 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <mat-icon>more_horiz</mat-icon>
-            </button>
-            <mat-menu #timeMenu="matMenu" xPosition="before">
-                <button mat-menu-item (click)="onTimeframeChange(kpi, 'Hoy')">
-                    <span [class.font-bold]="kpi.timeframe === 'Hoy'">Hoy</span>
-                </button>
-                <button mat-menu-item (click)="onTimeframeChange(kpi, '7 Días')">
-                    <span [class.font-bold]="kpi.timeframe === '7 Días'">7 Días</span>
-                </button>
-                <button mat-menu-item (click)="onTimeframeChange(kpi, '30 Días')">
-                    <span [class.font-bold]="kpi.timeframe === '30 Días'">30 Días</span>
-                </button>
-            </mat-menu>
-        </div>
-
-        <!-- Footer: Progress Bar -->
-        <div class="z-10 mt-auto pt-2">
-            <div class="flex justify-between text-[10px] text-slate-400 font-medium mb-1">
-                <span>Meta {{ kpi.timeframe || 'Mensual' }}</span>
-                <span>{{ kpi.progress || 75 }}%</span>
+            <!-- Icon bubble -->
+            <div class="kpi-icon-bubble" [ngClass]="kpi.bubbleClass || 'bubble-teal'">
+                <mat-icon class="kpi-icon-inner">{{ kpi.icon }}</mat-icon>
             </div>
-            <mat-progress-bar mode="determinate" [value]="kpi.progress || 75" class="rounded-full h-1.5"
-                [ngClass]="kpi.progressBarColor || 'accent-brand-cyan'">
-            </mat-progress-bar>
         </div>
 
+        <!-- Context text -->
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium z-10 relative truncate">
+            {{ kpi.subtitle || ('Meta ' + (kpi.timeframe || 'Mensual')) }}
+        </p>
+
+        <!-- Progress track -->
+        <div class="mt-2 z-10 relative">
+            <div class="progress-track">
+                <div class="progress-fill" [ngClass]="kpi.progressColorClass || 'fill-teal'"
+                    [style.width.%]="kpi.progress || 75"></div>
+            </div>
+            <div class="flex justify-between mt-1">
+                <span class="text-[9px] text-slate-300 dark:text-slate-600 font-medium">0</span>
+                <span class="text-[9px] font-bold" [ngClass]="kpi.textColorClass || 'text-teal-500'">{{ kpi.progress ||
+                    75 }}%</span>
+            </div>
+        </div>
+
+        <!-- Timeframe menu (on hover) -->
+        <button mat-icon-button [matMenuTriggerFor]="timeMenu" (click)="$event.stopPropagation()"
+            class="!absolute bottom-3 right-3 !scale-75 text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <mat-icon>more_horiz</mat-icon>
+        </button>
+        <mat-menu #timeMenu="matMenu" xPosition="before">
+            <button mat-menu-item (click)="onTimeframeChange(kpi, 'Hoy')">
+                <span [class.font-bold]="kpi.timeframe === 'Hoy'">Hoy</span>
+            </button>
+            <button mat-menu-item (click)="onTimeframeChange(kpi, '7 Días')">
+                <span [class.font-bold]="kpi.timeframe === '7 Días'">7 Días</span>
+            </button>
+            <button mat-menu-item (click)="onTimeframeChange(kpi, '30 Días')">
+                <span [class.font-bold]="kpi.timeframe === '30 Días'">30 Días</span>
+            </button>
+        </mat-menu>
     </div>
+
 </div>

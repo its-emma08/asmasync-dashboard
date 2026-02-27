@@ -1,6 +1,8 @@
 import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterModule } from '@angular/router';
 import { SearchService } from '../../../../../core/services/search.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -8,51 +10,83 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
     selector: 'app-patients-table-widget',
     standalone: true,
-    imports: [CommonModule, MatIconModule],
+    imports: [CommonModule, MatIconModule, MatButtonModule, RouterModule],
     template: `
-    <div class="glass-card p-6 h-full flex flex-col">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-900 dark:text-white tracking-tight text-lg">Pacientes con cambios recientes</h3>
-            <button class="text-brand-cyan text-sm font-bold hover:underline transition-all duration-300 active:scale-95">Ver más..</button>
+    <div class="h-full flex flex-col bg-white dark:bg-slate-800/80 rounded-3xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center">
+                    <mat-icon class="text-teal-600 dark:text-teal-400 !text-lg">group</mat-icon>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-white text-sm leading-tight">Pacientes Recientes</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">{{ patients.length }} paciente{{ patients.length !== 1 ? 's' : '' }} registrado{{ patients.length !== 1 ? 's' : '' }}</p>
+                </div>
+            </div>
+            <a routerLink="/dashboard/patients"
+                class="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline transition-all flex items-center gap-1">
+                Ver todos
+                <mat-icon class="!text-sm !w-3.5 !h-3.5">chevron_right</mat-icon>
+            </a>
         </div>
 
-        <div class="overflow-x-auto flex-1 min-h-0 custom-scrollbar">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="text-gray-400 text-xs border-b border-gray-50">
-                        <th class="pb-3 font-medium pl-2">Nombre</th>
-                        <th class="pb-3 font-medium">PEF Anterior</th>
-                        <th class="pb-3 font-medium">PEF Actual</th>
-                        <th class="pb-3 font-medium">Tendencia</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm">
-                    <tr *ngFor="let p of filteredPatients" class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-300 cursor-pointer rounded-lg border-b border-gray-50 dark:border-slate-700 last:border-0 hover:shadow-sm">
-                        <td class="py-4 pl-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold overflow-hidden relative">
-                                    <img [src]="p.profilePicture" class="w-full h-full object-cover" (error)="$event.target.style.display='none'">
-                                    <mat-icon class="text-slate-300 dark:text-slate-500 absolute" *ngIf="!p.profilePicture">account_circle</mat-icon>
-                                </div>
-                                <span class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-cyan dark:group-hover:text-brand-cyan transition-colors">{{ p.full_name }}</span>
-                            </div>
-                        </td>
-                        <td class="py-4 text-slate-500 font-medium">380 L/min</td>
-                        <td class="py-4 text-slate-800 dark:text-slate-100 font-bold">{{ p.latest_pef }} L/min</td>
-                        <td class="py-4">
-                            <span class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded bg-red-50 text-red-500 w-fit dark:bg-red-500/20 dark:text-red-400">
-                                ▼ 5%
-                            </span>
-                        </td>
-                    </tr>
-                    <!-- Empty State -->
-                    <tr *ngIf="filteredPatients.length === 0">
-                        <td colspan="4" class="py-8 text-center text-gray-400 text-sm">
-                            No se encontraron pacientes
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Column headers -->
+        <div class="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-5 py-2 flex-shrink-0">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">PEF</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center">Riesgo</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right w-12">Trend</span>
+        </div>
+
+        <!-- Row list -->
+        <div class="flex-1 overflow-y-auto min-h-0 scrollbar-hide divide-y divide-slate-50 dark:divide-slate-700/50">
+
+            <a *ngFor="let p of filteredPatients"
+                [routerLink]="['/dashboard/patients', p.id]"
+                class="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors duration-150 cursor-pointer group">
+
+                <!-- Name + avatar -->
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                        <img *ngIf="p.profilePicture" [src]="p.profilePicture" class="w-full h-full object-cover" (error)="$event.target.style.display='none'">
+                        <span class="text-xs font-black text-slate-500">{{ p.full_name?.charAt(0) }}</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{{ p.full_name }}</p>
+                    </div>
+                </div>
+
+                <!-- PEF value -->
+                <span class="text-sm font-bold text-slate-700 dark:text-slate-200 tabular-nums text-right">{{ p.latest_pef }}<span class="text-[9px] text-slate-400 ml-0.5">L/m</span></span>
+
+                <!-- Risk badge -->
+                <span class="text-[9px] font-black uppercase px-2 py-1 rounded-lg text-center"
+                    [class]="p.riskLevel === 'red' ? 'bg-red-50 text-red-500 dark:bg-red-500/10' :
+                             p.riskLevel === 'yellow' ? 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10' :
+                             'bg-green-50 text-green-600 dark:bg-green-500/10'">
+                    {{ p.riskLevel === 'red' ? 'Alto' : p.riskLevel === 'yellow' ? 'Medio' : 'Ok' }}
+                </span>
+
+                <!-- Trend -->
+                <div class="w-12 flex justify-end">
+                    <span class="flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-md"
+                        [class]="(p.trend === 'up') ? 'text-green-600 bg-green-50 dark:bg-green-500/10' : 'text-red-500 bg-red-50 dark:bg-red-500/10'">
+                        <mat-icon class="!text-xs !w-3 !h-3">{{ p.trend !== 'down' ? 'trending_up' : 'trending_down' }}</mat-icon>
+                        {{ p.trendValue || '5%' }}
+                    </span>
+                </div>
+            </a>
+
+            <!-- Empty state -->
+            <div *ngIf="filteredPatients.length === 0"
+                class="flex flex-col items-center justify-center py-10 text-slate-400 gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-700 flex items-center justify-center">
+                    <mat-icon class="text-slate-300 dark:text-slate-500 !text-2xl">person_search</mat-icon>
+                </div>
+                <p class="text-sm text-slate-400">No se encontraron pacientes</p>
+            </div>
         </div>
     </div>
   `

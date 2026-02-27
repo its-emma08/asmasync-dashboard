@@ -23,6 +23,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
 
     isMobile = false;
     sidebarOpen$: Observable<boolean>;
+    sidebarCollapsed = false;
     private breakpointSubscription: Subscription | undefined;
 
     constructor(
@@ -31,19 +32,25 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
         private layoutService: LayoutService
     ) {
         this.sidebarOpen$ = this.layoutService.sidebarOpen$;
+        // Read initial collapse state from localStorage
+        this.sidebarCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
     }
 
     ngOnInit(): void {
-        // Detect screen size changes
         this.breakpointSubscription = this.breakpointObserver
             .observe([Breakpoints.Handset, Breakpoints.TabletPortrait])
             .subscribe(result => {
                 this.isMobile = result.matches;
                 if (!this.isMobile) {
-                    this.layoutService.closeSidebar(); // Reset when going to desktop
+                    this.layoutService.closeSidebar();
                 }
                 this.cdRef.detectChanges();
             });
+    }
+
+    onSidebarCollapsedChange(collapsed: boolean): void {
+        this.sidebarCollapsed = collapsed;
+        this.cdRef.detectChanges();
     }
 
     closeSidebar(): void {

@@ -26,24 +26,42 @@ export class KpiGroupWidgetComponent implements OnChanges {
         this.updateVisibility();
     }
 
+    private readonly COLOR_MAP: Record<string, { accent: string; bubble: string; progress: string; text: string }> = {
+        'text-teal-500': { accent: 'accent-teal', bubble: 'bubble-teal', progress: 'fill-teal', text: 'text-teal-500' },
+        'text-cyan-500': { accent: 'accent-teal', bubble: 'bubble-teal', progress: 'fill-teal', text: 'text-teal-500' },
+        'text-red-500': { accent: 'accent-red', bubble: 'bubble-red', progress: 'fill-red', text: 'text-red-500' },
+        'text-rose-500': { accent: 'accent-red', bubble: 'bubble-red', progress: 'fill-red', text: 'text-red-500' },
+        'text-green-500': { accent: 'accent-green', bubble: 'bubble-green', progress: 'fill-green', text: 'text-green-500' },
+        'text-emerald-500': { accent: 'accent-green', bubble: 'bubble-green', progress: 'fill-green', text: 'text-green-500' },
+        'text-yellow-500': { accent: 'accent-yellow', bubble: 'bubble-yellow', progress: 'fill-yellow', text: 'text-yellow-500' },
+        'text-amber-500': { accent: 'accent-yellow', bubble: 'bubble-yellow', progress: 'fill-yellow', text: 'text-yellow-500' },
+        'text-purple-500': { accent: 'accent-purple', bubble: 'bubble-purple', progress: 'fill-purple', text: 'text-purple-500' },
+        'text-violet-500': { accent: 'accent-purple', bubble: 'bubble-purple', progress: 'fill-purple', text: 'text-purple-500' },
+    };
+
+    private getColors(kpi: any) {
+        // Try exact match on kpi.color
+        if (kpi.color && this.COLOR_MAP[kpi.color]) return this.COLOR_MAP[kpi.color];
+        // Fallback by position index
+        const fallbacks = ['accent-teal', 'accent-red', 'accent-green', 'accent-yellow'];
+        return { accent: 'accent-teal', bubble: 'bubble-teal', progress: 'fill-teal', text: 'text-teal-500' };
+    }
+
     private updateVisibility(): void {
         const max = this.kpis.length || 4;
-
-        // If colSpan >= 4 in a 4-col grid = full width, show all 4
-        // colSpan is the raw Tailwind col-span number, NOT a percentage
-        let calculated: number;
-        if (max <= 1) {
-            calculated = 1;
-        } else {
-            // Always try to show all KPIs; visibility is controlled by responsive Tailwind grid on parent
-            calculated = max;
-        }
-
-        this.visibleCount = Math.min(max, calculated);
-        this.visibleKpis = this.kpis.slice(0, this.visibleCount).map(kpi => ({
-            ...kpi,
-            timeframe: 'Hoy' // Default timeframe
-        }));
+        this.visibleCount = max;
+        this.visibleKpis = this.kpis.slice(0, this.visibleCount).map((kpi, i) => {
+            const colorSet = this.COLOR_MAP[kpi.color] ||
+                Object.values(this.COLOR_MAP)[i % Object.values(this.COLOR_MAP).length];
+            return {
+                ...kpi,
+                timeframe: kpi.timeframe || 'Hoy',
+                accentClass: colorSet.accent,
+                bubbleClass: colorSet.bubble,
+                progressColorClass: colorSet.progress,
+                textColorClass: colorSet.text,
+            };
+        });
     }
 
     onTimeframeChange(kpi: any, timeframe: string): void {

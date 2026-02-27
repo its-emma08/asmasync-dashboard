@@ -1,53 +1,37 @@
 /* ============================================
-   Dashboard — Clinical Clean Layout (Grid Refactor)
+   Dashboard Home — Clinical Premium Layout
    ============================================ */
 
 :host {
     display: block;
-    min-height: 100vh;
-    @apply bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-300;
+    min-height: 100%;
+    background-color: #f8fafc;
+    color: #0f172a;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Container */
+/* ─── Container ─── */
 .dashboard-container {
-    padding: 24px 32px;
-    min-height: 100vh;
+    padding: 18px 22px 80px;
+    min-height: 100%;
     position: relative;
     max-width: 100%;
 }
 
-/* Loading / Error states */
-.loading-state,
-.error-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-    text-align: center;
+/* ─── Dashboard Grid ─── */
+.dashboard-content {
+    padding-bottom: 96px;
 }
 
-/* Grid Handled via Tailwind in HTML */
-/* ============================================
-   WIDGET WRAPPER (Host styling)
-   ============================================ */
-
-/* Force standard behavior on the custom element wrapper */
+/* Widget host — let it grow to fill its grid cell */
 app-dashboard-widget {
     display: block;
     height: 100%;
     width: 100%;
-    min-height: 100%;
-    /* Ensure content inside expands */
-
-    /* Default Span: 1 Column */
+    min-height: 0;
+    /* allow grid to control height */
     grid-column: span 1;
 }
-
-/* Span utilities handled by Tailwind */
-/* ============================================
-   Specific Widget Tweaks
-   ============================================ */
 
 /* Chart Container Fix for Chart.js */
 ::ng-deep .chart-container {
@@ -55,202 +39,150 @@ app-dashboard-widget {
     height: 100% !important;
     width: 100% !important;
     min-height: 300px;
-    /* Ensure chart has height */
 }
 
-/* KPI Group - Internal Layout */
+/* KPI Group — fills 100% height of row naturally */
 ::ng-deep app-kpi-group-widget {
     display: block;
     height: 100%;
+    width: 100%;
 }
 
-
-/* Container */
-.dashboard-container {
-    padding: 24px 32px;
-    min-height: 100vh;
-    position: relative;
-    max-width: 100%;
+/* Grid: use auto-rows so rows breathe */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(200px, auto);
+    gap: 24px;
 }
-
-/* Loading / Error states */
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-}
-
-.loading-text {
-    color: #94a3b8;
-    margin-top: 16px;
-    font-weight: 500;
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.4;
-    }
-}
-
-.error-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-    text-align: center;
-}
-
-.error-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: #ef4444;
-    margin-bottom: 16px;
-}
-
-.error-state h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #475569;
-    margin-bottom: 16px;
-}
-
-.dashboard-content {
-    /* Natural flow */
-    padding-bottom: 96px;
-}
-
-/* Grid handled via Tailwind */
 
 /* ============================================
-   CDK Drag & Drop — Magnetic Snapping
+   CDK Drag & Drop — Premium Behavior
    ============================================ */
-/* ============================================
-   CDK Drag & Drop — Magnetic Snapping
-   ============================================ */
+
+/* The drag PREVIEW card (flying element) */
 .cdk-drag-preview {
-    /* Límite de seguridad */
-    opacity: 0.8 !important;
-
-    /* Visuals - Glassmorphism Card during drag */
-    border-radius: 24px !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(12px) !important;
-    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25) !important;
-    border: 2px solid rgba(13, 148, 136, 1) !important;
-
-    /* PREVENT GHOSTING & layout shifts */
+    opacity: 0.92 !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    box-shadow:
+        0 32px 80px rgba(15, 23, 42, 0.2),
+        0 8px 24px rgba(15, 23, 42, 0.1),
+        0 0 0 1.5px rgba(0, 181, 173, 0.6) !important;
     margin: 0 !important;
     pointer-events: none !important;
     overflow: hidden !important;
     display: block !important;
     z-index: 9999 !important;
+    transform: scale(1.02) rotate(0.5deg) !important;
+    cursor: grabbing !important;
+
+    /* CRITICAL: maintain original dimensions, don't let CDK collapse it */
+    box-sizing: border-box !important;
 }
 
-
-
+/* Placeholder (ghost outline where widget will land) */
 .cdk-drag-placeholder {
-    background: rgba(13, 148, 136, 0.1) !important;
-    border: 2px dashed rgba(13, 148, 136, 0.3);
-    border-radius: 24px;
-    opacity: 0.6;
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
+    background: rgba(0, 181, 173, 0.05) !important;
+    border: 2px dashed rgba(0, 181, 173, 0.35) !important;
+    border-radius: 20px !important;
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) !important;
 
-/* Staggered Entrance Animation for Widgets */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    /* Hide all children inside placeholder */
+    &>* {
+        opacity: 0 !important;
     }
 }
 
-app-dashboard-widget {
-    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
-/* Stagger delays for up to 12 items */
-app-dashboard-widget:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-app-dashboard-widget:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-app-dashboard-widget:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-app-dashboard-widget:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-app-dashboard-widget:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-app-dashboard-widget:nth-child(6) {
-    animation-delay: 0.3s;
-}
-
-app-dashboard-widget:nth-child(7) {
-    animation-delay: 0.35s;
-}
-
-app-dashboard-widget:nth-child(8) {
-    animation-delay: 0.4s;
-}
-
-app-dashboard-widget:nth-child(9) {
-    animation-delay: 0.45s;
-}
-
-app-dashboard-widget:nth-child(10) {
-    animation-delay: 0.5s;
-}
-
-app-dashboard-widget:nth-child(11) {
-    animation-delay: 0.55s;
-}
-
-app-dashboard-widget:nth-child(12) {
-    animation-delay: 0.6s;
-}
-
-.cdk-drag-placeholder {
-    background: rgba(0, 181, 173, 0.05);
-    border: 2px dashed rgba(0, 181, 173, 0.3);
-    border-radius: 24px;
-    opacity: 0.6;
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
+/* Smooth sibling movement during drag */
 .cdk-drop-list-dragging .cdk-drag {
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
+/* Snap-back animation when dropped */
 .cdk-drag-animating {
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+    transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .cdk-drop-list-dragging app-dashboard-widget:not(.cdk-drag-placeholder) {
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Grab cursor when in edit mode */
+:host ::ng-deep .cdk-drag:not(.cdk-drag-disabled) {
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+/* ============================================
+   Staggered Entrance Animations
+   ============================================ */
+@keyframes widgetFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+app-dashboard-widget {
+    animation: widgetFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+app-dashboard-widget:nth-child(1) {
+    animation-delay: 0.04s;
+}
+
+app-dashboard-widget:nth-child(2) {
+    animation-delay: 0.08s;
+}
+
+app-dashboard-widget:nth-child(3) {
+    animation-delay: 0.12s;
+}
+
+app-dashboard-widget:nth-child(4) {
+    animation-delay: 0.16s;
+}
+
+app-dashboard-widget:nth-child(5) {
+    animation-delay: 0.20s;
+}
+
+app-dashboard-widget:nth-child(6) {
+    animation-delay: 0.24s;
+}
+
+app-dashboard-widget:nth-child(7) {
+    animation-delay: 0.28s;
+}
+
+app-dashboard-widget:nth-child(8) {
+    animation-delay: 0.32s;
+}
+
+app-dashboard-widget:nth-child(9) {
+    animation-delay: 0.36s;
+}
+
+app-dashboard-widget:nth-child(10) {
+    animation-delay: 0.40s;
+}
+
+app-dashboard-widget:nth-child(11) {
+    animation-delay: 0.44s;
+}
+
+app-dashboard-widget:nth-child(12) {
+    animation-delay: 0.48s;
 }
 
 /* ============================================
@@ -260,7 +192,7 @@ app-dashboard-widget:nth-child(12) {
     grid-column: span 4;
     min-height: 160px;
     border: 2px dashed #e2e8f0;
-    border-radius: 24px;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -270,20 +202,21 @@ app-dashboard-widget:nth-child(12) {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     background: transparent;
-}
 
-.add-widget-placeholder:hover {
-    border-color: #00B5AD;
-    color: #00B5AD;
-    background: rgba(0, 181, 173, 0.03);
-}
+    mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+    }
 
-.add-widget-placeholder mat-icon {
-    font-size: 32px;
-    width: 32px;
-    height: 32px;
+    &:hover {
+        border-color: #00B5AD;
+        color: #00B5AD;
+        background: rgba(0, 181, 173, 0.04);
+        transform: scale(1.005);
+    }
 }
 
 /* ============================================
@@ -302,58 +235,57 @@ app-dashboard-widget:nth-child(12) {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.25s ease;
-    background: #00B5AD;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: linear-gradient(135deg, #00B5AD, #0EA5E9);
     color: white;
-    box-shadow: 0 4px 16px rgba(0, 181, 173, 0.25);
-}
+    box-shadow: 0 4px 20px rgba(0, 181, 173, 0.3);
 
-.edit-fab:hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 24px rgba(0, 181, 173, 0.4);
-}
+    mat-icon {
+        font-size: 22px;
+    }
 
-.edit-fab:active {
-    transform: scale(0.95);
-}
+    &:hover {
+        transform: scale(1.12) translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 181, 173, 0.45);
+    }
 
-.edit-fab mat-icon {
-    font-size: 22px;
-}
+    &:active {
+        transform: scale(0.94);
+    }
 
-/* Active state — teal brand with pulse ring */
-.edit-fab.is-active {
-    background: #00B5AD;
-    animation: fab-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    &.is-active {
+        background: linear-gradient(135deg, #0d9488, #0284c7);
+        animation: fab-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
 }
 
 @keyframes fab-pulse {
 
     0%,
     100% {
-        box-shadow: 0 0 0 0 rgba(0, 181, 173, 0.4), 0 4px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0 0 0 rgba(0, 181, 173, 0.45), 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 
     50% {
-        box-shadow: 0 0 0 10px rgba(0, 181, 173, 0), 0 4px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0 0 12px rgba(0, 181, 173, 0), 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 }
 
-/* Menu header */
+/* ─── Menu Header ─── */
 .menu-header {
     display: block;
-    padding: 8px 16px;
-    font-size: 11px;
+    padding: 8px 16px 4px;
+    font-size: 10px;
     font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
 }
 
-/* KPI specifics */
-.kpi-icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+/* ─── Dark Mode Drag Preview ─── */
+body.dark .cdk-drag-preview {
+    background: rgba(15, 23, 42, 0.96) !important;
+    box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.5),
+        0 0 0 1.5px rgba(0, 181, 173, 0.5) !important;
 }
