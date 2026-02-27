@@ -14,10 +14,25 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
-/* Edit mode: iPhone jiggle - Tamed (User Request) */
 .widget-shell.is-editing {
     cursor: grab;
     animation: jiggle 0.4s ease-in-out 1;
+}
+
+@keyframes jiggle {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    20% {
+        transform: rotate(-0.6deg);
+    }
+
+    70% {
+        transform: rotate(0.6deg);
+    }
 }
 
 /* ... existing code ... */
@@ -67,35 +82,36 @@
     z-index: 1;
 }
 
-/* Delete button (top-right red circle) */
+/* Delete button — red pill top-left */
 .widget-delete-btn {
     position: absolute;
     top: -8px;
     left: -8px;
     z-index: 50;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: #ef4444;
+    background: linear-gradient(135deg, #F43F5E, #EF4444);
     color: white;
-    border: 2px solid white;
+    border: 2.5px solid white;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
     cursor: pointer;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s;
     padding: 0;
-}
 
-.widget-delete-btn:hover {
-    transform: scale(1.15);
-}
+    &:hover {
+        transform: scale(1.2);
+        box-shadow: 0 6px 16px rgba(244, 63, 94, 0.5);
+    }
 
-.widget-delete-btn mat-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
 }
 
 /* Resize toggle button (bottom-left) */
@@ -131,35 +147,38 @@
     height: 16px;
 }
 
-/* Drag grip dots (top center) */
+/* Drag grip — teal pill top-center */
 .widget-grip {
     position: absolute;
-    top: 6px;
+    top: 8px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
     display: flex;
     gap: 3px;
-    padding: 3px 8px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.04);
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 12px;
+    background: rgba(0, 181, 173, 0.1);
+    border: 1px solid rgba(0, 181, 173, 0.2);
     cursor: grab;
-    transition: background 0.15s ease;
-}
+    transition: background 0.15s ease, transform 0.15s;
 
-.widget-grip:hover {
-    background: rgba(0, 0, 0, 0.08);
-}
+    &:hover {
+        background: rgba(0, 181, 173, 0.2);
+        transform: translateX(-50%) scale(1.05);
+    }
 
-.widget-grip:active {
-    cursor: grabbing;
-}
+    &:active {
+        cursor: grabbing;
+    }
 
-.widget-grip span {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: rgba(100, 116, 139, 0.5);
+    span {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(0, 181, 173, 0.6);
+    }
 }
 
 /* Resize corner handle */

@@ -64,17 +64,19 @@ export class AuthService implements OnDestroy {
         // MOCK MODE: Return mock immediately — zero network calls
         if (environment.mockMode) {
             if (email === 'admin@asmasync.com' && password === 'Admin123!') {
-                // SIMULATE 2FA REQUIREMENT
+                // VISUAL AUDIT MODE: bypass 2FA, return direct access token
                 const mockResponse: LoginResponse = {
-                    requires2FA: true,
-                    temp_token: 'temp-2fa-token-123'
+                    access_token: 'mock-access-token-for-audit',
+                    refresh_token: 'mock-refresh-token',
+                    requires2FA: false,
+                    user: {
+                        id: 1,
+                        full_name: 'Dr. Admin Mock',
+                        email: 'admin@asmasync.com',
+                        role: 'admin'
+                    }
                 };
-
-                // Store temp token
-                if (this.isBrowser) {
-                    this.storageService.setItem('temp_2fa_token', mockResponse.temp_token);
-                }
-
+                this.handleLoginSuccess(mockResponse);
                 return of(mockResponse);
             }
             return throwError(() => new Error('Credenciales inválidas'));
@@ -130,14 +132,17 @@ export class AuthService implements OnDestroy {
         return this.http.post<{ message: string }>(`${this.apiUrl}/2fa/disable`, { password });
     }
 
-    changePassword(oldPass: string, newPass: string): Observable<void> {
+    changePassword(oldPass: string, newPass: string): Observable<{ message: string }> {
         if (environment.mockMode) {
             if (oldPass === 'Admin123!') {
-                return of(void 0);
+                return of({ message: 'Contraseña cambiada exitosamente.' });
             }
             return throwError(() => new Error('La contraseña actual es incorrecta'));
         }
-        return this.http.put<void>(`${this.usersApiUrl}/me/password`, { current_password: oldPass, new_password: newPass });
+        return this.http.post<{ message: string }>(`${this.apiUrl}/auth/change-password`, {
+            current_password: oldPass,
+            new_password: newPass
+        });
     }
 
     updateProfile(data: any): Observable<User> {

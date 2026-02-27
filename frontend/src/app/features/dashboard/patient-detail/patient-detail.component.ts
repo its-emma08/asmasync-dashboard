@@ -83,7 +83,62 @@ import { ActionPlanWidgetComponent } from '../components/widgets/action-plan-wid
     ],
     providers: [provideCharts(withDefaultRegisterables(Annotation))],
     templateUrl: './patient-detail.component.html',
-    styleUrls: ['./patient-detail.component.scss']
+    styles: [`
+        /* Specific Print Styles for Medical Record */
+        @media print {
+            @page { margin: 1cm; }
+            body { background: white !important; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+            /* Hide unnecessary UI elements */
+            .hide-on-print,
+            app-sidebar,
+            .main-layout-container aside,
+            app-dashboard-header,
+            .mat-mdc-icon-button,
+            .mat-mdc-tab-header,
+            button,
+            .page-scroll-container,
+            .clean-tabs {
+                display: none !important;
+            }
+
+            .main-layout-container { display: block !important; height: auto !important; overflow: visible !important; }
+            .layout-content, #main-content { overflow: visible !important; height: auto !important; padding: 0 !important; }
+
+            /* Force all tabs content to display for print */
+            .mat-mdc-tab-body-wrapper, .mat-mdc-tab-body { 
+                display: block !important; 
+                visibility: visible !important;
+                position: static !important;
+                opacity: 1 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            /* Adjust Cards for Print */
+            .glass-card { 
+                box-shadow: none !important; 
+                border: 1px solid #e2e8f0 !important; 
+                border-radius: 8px !important;
+                padding: 16px !important;
+                background: white !important;
+                break-inside: avoid;
+            }
+
+            canvas { max-height: 250px !important; }
+
+            /* Print Header specific to this page */
+            .print-medical-header {
+                display: block !important;
+                border-bottom: 2px solid #00B5AD;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+        }
+        
+        .print-only { display: none; }
+        @media print { .print-only { display: block; } }
+    `]
 })
 export class PatientDetailComponent implements OnInit, OnDestroy {
 
@@ -93,6 +148,7 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     loading = true;
+    todayDate = new Date(); // ADDED FOR PRINT HEADER
     patient: Patient | null = null;
     history: any[] = [];
     symptoms: Symptom[] = [];

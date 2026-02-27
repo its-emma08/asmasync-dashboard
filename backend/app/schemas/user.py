@@ -56,7 +56,7 @@ class UserInDBBase(UserBase):
     created_at: datetime
     updated_at: datetime
     last_login: Optional[datetime] = None
-    is_2fa_enabled: bool = False
+    is_2fa_enabled: Optional[bool] = False
     
     # Nested Profile
     profile: Optional[UserProfileBase] = None

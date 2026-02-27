@@ -9,3 +9,80 @@
     align-self: flex-start;
     margin-top: 16px;
 }
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(body.dark) {
+
+    /* Entire panel background */
+    :host>div,
+    &>div {
+        background-color: var(--color-background-main, #0d1117);
+        color: var(--text-primary, #f8fafc);
+    }
+
+    /* Filter tab group (bg-gray-100/50) */
+    ::ng-deep div[class*="bg-gray-100"] {
+        background-color: rgba(30, 41, 59, 0.7) !important;
+    }
+
+    /* Active tab in filter group */
+    ::ng-deep div[class*="bg-gray-100"] button.bg-white,
+    ::ng-deep div[class*="bg-gray-100"] button[class*="bg-white"] {
+        background-color: #334155 !important;
+        color: #f1f5f9 !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Inactive tab text */
+    ::ng-deep div[class*="bg-gray-100"] button.text-gray-500 {
+        color: #94a3b8 !important;
+    }
+
+    /* Search input */
+    input[class*="bg-white"],
+    ::ng-deep input[class*="bg-white"] {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Filters button */
+    button[class*="bg-white"] {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+    }
+
+    /* Patient card vitals mini-boxes */
+    ::ng-deep div[class*="bg-gray-50"] {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        color: #cbd5e1 !important;
+    }
+
+    /* Section titles */
+    ::ng-deep .text-brand-dark {
+        color: #f1f5f9 !important;
+    }
+
+    /* Empty state */
+    ::ng-deep .text-gray-400 {
+        color: #64748b !important;
+    }
+
+    /* Alert patient card */
+    ::ng-deep .glass-card {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-color: #334155 !important;
+    }
+
+    /* Action buttons inside cards */
+    ::ng-deep .bg-cyan-50 {
+        background-color: rgba(0, 181, 173, 0.12) !important;
+        color: #2dd4bf !important;
+    }
+
+    ::ng-deep .bg-green-50 {
+        background-color: rgba(34, 197, 94, 0.1) !important;
+        color: #4ade80 !important;
+    }
+}

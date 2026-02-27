@@ -32,16 +32,15 @@
         <!-- Dashboard Content -->
         <div *ngIf="dataReady" class="dashboard-content">
 
-            <!-- Magnetic Grid Engine (Bento Box) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-24 grid-flow-row-dense" cdkDropList
-                cdkDropListOrientation="mixed" (cdkDropListDropped)="drop($event)"
-                [cdkDropListDisabled]="!(editMode$ | async)">
+            <!-- Bento Grid Engine -->
+            <div class="bento-grid grid-flow-row-dense" cdkDropList cdkDropListOrientation="mixed"
+                (cdkDropListDropped)="drop($event)" [cdkDropListDisabled]="!(editMode$ | async)">
 
                 <app-dashboard-widget *ngFor="let widget of widgets$ | async; trackBy: trackWidget" [widget]="widget"
                     [editMode]="(editMode$ | async) || false" (delete)="deleteWidget($event)"
                     (resize)="resizeWidget($event)" (updateSize)="onWidgetResize($event)" cdkDrag
-                    [cdkDragDisabled]="!(editMode$ | async)"
-                    [ngClass]="'md:col-span-' + (widget.colSpan === 4 ? 3 : widget.colSpan) + ' lg:col-span-' + widget.colSpan + ' row-span-' + (widget.rowSpan || 1)">
+                    [cdkDragDisabled]="!(editMode$ | async)" [style.grid-column]="'span ' + widget.colSpan"
+                    [style.grid-row]="'span ' + (widget.rowSpan || 1)">
 
                     <!-- Widget Resolver -->
                     <ng-container [ngSwitch]="widget.type">

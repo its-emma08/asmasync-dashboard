@@ -1,44 +1,51 @@
-<div
-    class="h-full w-[260px] dashboard-sidebar backdrop-blur-md bg-white/80 dark:bg-slate-900/80 p-6 flex flex-col justify-between border-r border-slate-200/60 dark:border-slate-700 flex-shrink-0 z-50 relative transition-colors duration-300">
-    <div>
-        <div class="flex items-center gap-2 mb-10 text-brand-cyan font-bold text-xl">
-            <mat-icon class="text-2xl h-6 w-6">lungs</mat-icon> AsmaSync
+<div class="sidebar-wrapper" [class.is-collapsed]="isCollapsed" [style.width]="isCollapsed ? '72px' : '260px'">
+
+    <!-- ─── Logo Block ─── -->
+    <div class="logo-block">
+        <div class="logo-icon">
+            <img src="assets/logo-lung.png" alt="AsmaSync" class="logo-img"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            <mat-icon
+                style="display:none; color:white; font-size:20px; width:20px; height:20px; justify-content:center; align-items:center;">lungs</mat-icon>
         </div>
-        <nav class="space-y-4">
-            <a routerLink="/dashboard"
-                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
-                [routerLinkActiveOptions]="{exact: true}"
-                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
-                <mat-icon class="text-lg w-5 h-5">grid_view</mat-icon> Dashboard
-            </a>
-            <a routerLink="/dashboard/alerts"
-                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
-                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
-                <mat-icon class="text-lg w-5 h-5">notifications</mat-icon> Alertas
-            </a>
-            <a routerLink="/dashboard/patients"
-                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
-                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
-                <mat-icon class="text-lg w-5 h-5">people</mat-icon> Pacientes
-            </a>
-            <a routerLink="/dashboard/reports"
-                routerLinkActive="bg-gradient-to-r from-brand-cyan/10 to-transparent border-brand-cyan text-brand-cyan font-bold"
-                class="flex items-center gap-4 p-3 pr-4 border-l-4 border-transparent text-gray-500 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-dark dark:hover:text-white rounded-r-2xl transition-all duration-200 active:scale-[0.98]">
-                <mat-icon class="text-lg w-5 h-5">description</mat-icon> Reportes
-            </a>
-        </nav>
+        <div class="logo-text" [class.hidden]="isCollapsed">
+            <span class="logo-name">AsmaSync</span>
+            <span class="logo-tagline">Medical Dashboard</span>
+        </div>
+        <button class="collapse-btn" [class.is-collapsed]="isCollapsed" (click)="toggleCollapse()"
+            [matTooltip]="isCollapsed ? 'Expandir menú' : 'Contraer menú'" matTooltipPosition="right">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
     </div>
 
-    <div class="border-t pt-6">
-        <nav class="space-y-2 text-gray-500 text-sm flex flex-col items-start">
-            <a routerLink="/dashboard/help"
-                class="flex items-center gap-2 p-2 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-cyan rounded-xl transition-all duration-200 active:scale-[0.98] w-full">
-                <mat-icon class="text-lg w-5 h-5 scale-75">help_outline</mat-icon> Ayuda
+    <!-- ─── Main Navigation ─── -->
+    <div class="nav-section">
+        <span class="nav-section-label" [class.hidden]="isCollapsed">MENÚ PRINCIPAL</span>
+
+        <ng-container *ngFor="let item of navItems">
+            <a [routerLink]="item.route" [routerLinkActiveOptions]="item.exact ? {exact: true} : {exact: false}"
+                routerLinkActive="active" class="nav-item" [matTooltip]="isCollapsed ? item.label : ''"
+                matTooltipPosition="right">
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span>{{ item.label }}</span>
+                <ng-container *ngIf="item.badge && (unreadAlerts$ | async) as count">
+                    <span *ngIf="count > 0" class="nav-badge">{{ count > 99 ? '99+' : count }}</span>
+                </ng-container>
             </a>
-            <a routerLink="/dashboard/settings"
-                class="flex items-center gap-2 p-2 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-brand-cyan rounded-xl transition-all duration-200 active:scale-[0.98] w-full">
-                <mat-icon class="text-lg w-5 h-5 scale-75">settings</mat-icon> Configuración
-            </a>
-        </nav>
+        </ng-container>
     </div>
+
+    <!-- ─── Footer Navigation ─── -->
+    <div class="sidebar-footer">
+        <span class="nav-section-label" [class.hidden]="isCollapsed"
+            style="padding-top: 0; padding-bottom: 6px;">SISTEMA</span>
+        <ng-container *ngFor="let item of footerItems">
+            <a [routerLink]="item.route" routerLinkActive="active" class="nav-item"
+                [matTooltip]="isCollapsed ? item.label : ''" matTooltipPosition="right">
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span>{{ item.label }}</span>
+            </a>
+        </ng-container>
+    </div>
+
 </div>
