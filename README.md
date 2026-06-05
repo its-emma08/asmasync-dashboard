@@ -1,6 +1,14 @@
 # 🫁 AsmaSync - Sistema Inteligente de Monitoreo y Predicción
 
-**AsmaSync** es un ecosistema tecnológico integral orientado al sector salud, diseñado específicamente para el monitoreo en tiempo real y la predicción temprana de crisis asmáticas. El sistema conecta a pacientes con profesionales médicos a través de algoritmos de inteligencia artificial, asegurando una intervención oportuna.
+**AsmaSync** es un ecosistema tecnológico integral orientado al sector salud, diseñado específicamente para el monitoreo clínico en tiempo real y la predicción temprana de crisis asmáticas. El sistema conecta a pacientes con profesionales médicos a través de biosensores y algoritmos de inteligencia artificial, asegurando una intervención oportuna antes de que el evento asmático sea crítico.
+
+### 🖥️ El Propósito del Dashboard Médico (Angular)
+El **Dashboard de AsmaSync** es la herramienta central para el personal médico e instituciones de salud. Sus principales objetivos son:
+1. **Monitoreo Centralizado en Tiempo Real:** Visualizar de forma inmediata los signos vitales, oximetría y frecuencia respiratoria de los pacientes provenientes de dispositivos IoT.
+2. **Alertas Predictivas:** Recibir notificaciones anticipadas (generadas por modelos de Machine Learning) sobre pacientes con un riesgo inminente de sufrir una crisis, permitiendo pasar de una medicina reactiva a una medicina preventiva.
+3. **Gestión de Planes de Acción y Medicamentos:** Asignar, modificar y hacer seguimiento a las dosis de rescate y controladores para cada paciente de manera personalizada.
+4. **Visión 360° del Paciente:** Facilitar al doctor un historial clínico completo, incluyendo reportes exportables, control de citas, adherencia al tratamiento y evolución del puntaje ACT (Asthma Control Test).
+5. **Comunicación Directa:** Establecer un puente de comunicación y notificaciones directas hacia la aplicación móvil de los pacientes para alertarles sobre zonas de riesgo ambiental o cambios en su receta médica.
 
 ---
 
