@@ -1,477 +1,593 @@
-<div class="page-scroll-container">
-    <div class="w-full max-w-full pb-20 space-y-6" *ngIf="!loading && patient; else loadingTpl">
+<div class="page-scroll-container relative">
+    
+    <!-- Ambient Atmosphere -->
+    <div class="ambient-glow">
+        <div class="glow-circle primary opacity-10"></div>
+        <div class="glow-circle accent opacity-10"></div>
+    </div>
 
-        <!-- 1. Header del Paciente -->
-        <div class="print-only mb-6">
-            <h1 class="text-2xl font-black text-slate-800">Expediente Médico</h1>
-            <p class="text-sm text-slate-500">AsmaSync • Generado el {{ todayDate | date:'medium' }}</p>
-        </div>
+    <div class="content-wrap p-6 max-w-full pb-20 relative z-10" *ngIf="!loading && patient; else loadingTpl">
 
-        <div
-            class="glass-card p-8 flex flex-col xl:flex-row gap-6 justify-between items-center relative overflow-hidden">
-            <!-- Back Button -->
-            <button class="absolute top-4 left-4 text-gray-400 hover:text-brand-dark z-20 cursor-pointer hide-on-print"
-                routerLink="/dashboard/patients" matTooltip="Volver a la lista">
-                <mat-icon>arrow_back</mat-icon>
+        <!-- Hero Header -->
+        <div class="patient-hero-card glass-card-premium mb-6">
+
+            <!-- Accent strip based on risk -->
+            <div class="hero-risk-accent" [ngClass]="patient.riskLevel"></div>
+
+            <!-- Back button -->
+            <button class="action-btn-back hide-on-print" routerLink="/dashboard/patients" matTooltip="Volver">
+                <mat-icon>chevron_left</mat-icon>
             </button>
 
-            <!-- Background decoration -->
-            <div
-                class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-brand-cyan/10 to-transparent pointer-events-none hide-on-print">
-            </div>
+            <div class="hero-body">
+                <!-- Left: Avatar + Identity -->
+                <div class="hero-identity">
+                    <div class="profile-avatar-container">
+                        <div class="avatar-frame" [ngClass]="patient.riskLevel">
+                            <div class="avatar-main">
+                                <img *ngIf="patient.profilePicture" [src]="patient.profilePicture" (error)="patient.profilePicture = undefined">
+                                <span *ngIf="!patient.profilePicture">{{ getInitials(patient.full_name) }}</span>
+                            </div>
+                        </div>
+                        <div class="status-indicator-pill" [ngClass]="patient.riskLevel">
+                            <span class="pulse-dot"></span>
+                            {{ getRiskLabel(patient.riskLevel) }}
+                        </div>
+                    </div>
 
-            <div class="flex flex-col md:flex-row items-center gap-6 z-10 w-full xl:w-auto">
-                <!-- Avatar -->
-                <div class="relative">
-                    <img [src]="patient.profilePicture"
-                        class="w-24 h-24 rounded-3xl object-cover shadow-lg border-4 border-white"
-                        (error)="$event.target.style.display='none'">
-                    <div
-                        [class]="getRiskColorClass(patient.riskLevel || 'green') + ' absolute -bottom-2 -right-2 px-3 py-1 rounded-full text-xs font-bold uppercase shadow-sm border border-white flex items-center gap-1'">
-                        <span class="w-2 h-2 rounded-full bg-current animate-pulse hide-on-print"></span>
-                        {{ (getRiskLabel(patient.riskLevel || 'green') || '').split('-')[0] }}
+                    <div class="hero-info">
+                        <div class="hero-badge-row">
+                            <span class="hero-label">EXPEDIENTE DIGITAL</span>
+                            <span class="hero-id">ID #{{ patient.id }}</span>
+                        </div>
+                        <h1 class="hero-name">{{ patient.full_name }}</h1>
+
+                        <div class="hero-chips">
+                            <span class="hero-chip" *ngIf="patient.date_of_birth">
+                                <mat-icon>cake</mat-icon>{{ patient.date_of_birth | age }} años
+                            </span>
+                            <span class="hero-chip">
+                                <mat-icon>{{ patient.gender === 'male' ? 'male' : (patient.gender === 'female' ? 'female' : 'person') }}</mat-icon>
+                                {{ patient.gender === 'male' ? 'Masculino' : (patient.gender === 'female' ? 'Femenino' : 'Otro') }}
+                            </span>
+                            <span class="hero-chip" *ngIf="patient.weight_kg">
+                                <mat-icon>monitor_weight</mat-icon>{{ patient.weight_kg }} kg
+                            </span>
+                            <span class="hero-chip" *ngIf="patient.height_cm">
+                                <mat-icon>height</mat-icon>{{ (patient.height_cm / 100).toFixed(2) }} m
+                            </span>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="hero-actions hide-on-print">
+                            <button (click)="navigateToEdit()" class="apple-secondary-btn small">
+                                <mat-icon>edit</mat-icon> Editar
+                            </button>
+                            <button (click)="openClinicalHistory()" class="apple-secondary-btn small indigo">
+                                <mat-icon>history_edu</mat-icon> Historia
+                            </button>
+                            <button (click)="exportPDF()" class="apple-primary-btn small">
+                                <mat-icon>picture_as_pdf</mat-icon> PDF
+                            </button>
+                            <button (click)="sharePatient()" class="apple-icon-btn small" matTooltip="Copiar resumen">
+                                <mat-icon>content_copy</mat-icon>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Info -->
-                <div class="text-center md:text-left">
-                    <h1 class="text-3xl font-bold text-brand-dark mb-1">{{ patient.full_name }}</h1>
-                    <div
-                        class="flex items-center justify-center md:justify-start gap-3 text-sm text-gray-500 font-medium mb-2">
-                        <span class="bg-gray-100 px-2 py-0.5 rounded-lg border border-gray-200">ID: #{{ patient.id
-                            }}</span>
-                        <span>•</span>
-                        <span>{{ patient.date_of_birth | age }} Años</span>
-                        <span>•</span>
-                        <span>{{ patient.gender }}</span>
-                        <span class="hide-on-print">•</span>
-                        <span class="hide-on-print whitespace-nowrap"><mat-icon
-                                class="scale-75 align-middle text-brand-cyan">monitor_weight</mat-icon> 72 kg</span>
-                        <span class="hide-on-print">•</span>
-                        <span class="hide-on-print whitespace-nowrap"><mat-icon
-                                class="scale-75 align-middle text-brand-cyan">height</mat-icon> 1.75 m</span>
+                <!-- Right: Stats -->
+                <div class="hero-stats">
+                    <!-- Adherence donut -->
+                    <div class="hero-stat-block">
+                        <div style="position:relative;width:80px;height:80px;flex-shrink:0;">
+                            <svg viewBox="0 0 36 36" style="transform:rotate(-90deg);width:80px;height:80px;display:block;">
+                                <path fill="none" stroke="#F3F4F6" stroke-width="3.5"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path fill="none" stroke-width="3.5" stroke-linecap="round"
+                                    [attr.stroke]="(patient.adherence ?? 0) >= 80 ? '#10B981' : ((patient.adherence ?? 0) >= 50 ? '#F59E0B' : '#EF4444')"
+                                    [attr.stroke-dasharray]="(patient.adherence ?? 0) + ', 100'"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+                                <span style="font-size:15px;font-weight:800;letter-spacing:-0.03em;color:#111827;line-height:1;">{{ patient.adherence ?? 0 }}%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p style="font-size:13px;font-weight:700;color:#111827;line-height:1.2;">Adherencia</p>
+                            <p style="font-size:9px;font-weight:800;color:#9CA3AF;letter-spacing:0.08em;margin-top:2px;">ÚLTIMOS 30 DÍAS</p>
+                        </div>
                     </div>
-                    <div class="flex gap-2 justify-center md:justify-start flex-wrap hide-on-print mt-3">
-                        <button (click)="navigateToEdit()"
-                            class="text-xs bg-brand-cyan/10 text-brand-cyan px-3 py-1.5 rounded-lg font-bold hover:bg-brand-cyan/20 transition-colors cursor-pointer">
-                            <mat-icon class="scale-75 inline-block align-middle mr-1">edit</mat-icon> Editar
-                        </button>
-                        <button (click)="openClinicalHistory()"
-                            class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors cursor-pointer">
-                            <mat-icon class="scale-75 inline-block align-middle mr-1">history_edu</mat-icon> Historia
-                        </button>
-                        <button (click)="exportPDF()"
-                            class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-slate-700 transition-colors cursor-pointer shadow-md"
-                            matTooltip="Exportar Expediente (PDF)">
-                            <mat-icon class="scale-75 inline-block align-middle mr-1">picture_as_pdf</mat-icon> Exp. PDF
-                        </button>
-                        <button (click)="sharePatient()"
-                            class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors cursor-pointer"
-                            matTooltip="Copiar Resumen">
-                            <mat-icon class="scale-75 inline-block align-middle mr-1">content_copy</mat-icon> Copiar
-                        </button>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Right Side Stats -->
-            <div
-                class="flex flex-col md:flex-row gap-8 items-center z-10 w-full xl:w-auto justify-center xl:justify-end">
+                    <div class="hero-divider"></div>
 
-                <!-- Completion Bar -->
-                <div class="flex flex-col gap-2 w-full md:w-48">
-                    <div class="flex justify-between text-xs font-bold text-gray-500">
-                        <span>Perfil Completado</span>
-                        <span class="text-brand-cyan">{{ getCompletionPercentage() }}%</span>
-                    </div>
-                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                        <div class="bg-brand-cyan h-full rounded-full transition-all duration-1000"
-                            [style.width.%]="getCompletionPercentage()"></div>
-                    </div>
-                    <p class="text-[10px] text-gray-400">Falta: historial vacunas</p>
-                </div>
-
-                <!-- Adherence Gauge (Mocked Visual) -->
-                <div class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="relative w-16 h-16 flex items-center justify-center">
-                        <mat-progress-spinner class="absolute" mode="determinate" [value]="patient.adherence || 0"
-                            diameter="60" strokeWidth="6" [color]="(patient.adherence || 0) > 80 ? 'primary' : 'warn'">
-                        </mat-progress-spinner>
-                        <span class="text-sm font-bold text-brand-dark">{{ patient.adherence || 0 }}%</span>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-brand-dark uppercase">Adherencia</p>
-                        <p class="text-[10px] text-gray-400">Ultimos 30 días</p>
+                    <!-- Completeness -->
+                    <div class="hero-stat-block column">
+                        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:6px;">
+                            <span style="font-size:9px;font-weight:800;color:#9CA3AF;letter-spacing:0.08em;text-transform:uppercase;">Expediente</span>
+                            <span style="font-size:13px;font-weight:800;color:#007AFF;">{{ getCompletionPercentage() }}%</span>
+                        </div>
+                        <div class="modern-progress-track" style="width:160px;">
+                            <div class="fill" [style.width.%]="getCompletionPercentage()"></div>
+                        </div>
+                        <p style="font-size:9px;font-weight:600;color:#9CA3AF;margin-top:6px;line-height:1.4;">{{ getMissingFields() }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tabs Navigation -->
-        <mat-tab-group [(selectedIndex)]="selectedTab" animationDuration="0ms" class="clean-tabs" dynamicHeight>
+        <!-- Custom Segmented Tabs -->
+        <div class="segmented-tabs-container mb-8">
+            <div class="segmented-tabs-rail">
+                <button [class.active]="selectedTab === 0" (click)="selectedTab = 0">Resumen</button>
+                <button [class.active]="selectedTab === 1" (click)="selectedTab = 1">Historia</button>
+                <button [class.active]="selectedTab === 2" (click)="selectedTab = 2">Tratamiento</button>
+                <button [class.active]="selectedTab === 3" (click)="selectedTab = 3">Expediente ECE</button>
+            </div>
+        </div>
 
-            <!-- Tab 1: Resumen General -->
-            <mat-tab label="Resumen General">
-                <div class="pt-6">
-                    <!-- Dashboard Grid -->
-                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- Tab Content Switcher -->
+        <div [ngSwitch]="selectedTab" class="animate-fade-in-up">
+            
+            <!-- Resumen Section -->
+            <div *ngSwitchCase="0" class="tab-content flex flex-col gap-6">
+                <!-- Bento Layout for Summary -->
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                    
+                    <!-- Left Column: Critical Status & Vitals (4 cols) -->
+                    <div class="xl:col-span-4 flex flex-col gap-6">
+                        <app-action-plan-widget
+                            [riskLevel]="patient.riskLevel"
+                            [personalBest]="patient.personal_best_pef || 500"
+                            [currentPEF]="patient.latest_pef"
+                            [patientId]="+patient.id">
+                        </app-action-plan-widget>
 
-                        <!-- Left Column: Vitals & Key Stats -->
-                        <div class="space-y-6">
-                            <!-- Action Plan Widget -->
-                            <app-action-plan-widget [riskLevel]="patient.riskLevel"
-                                [personalBest]="patient.personal_best_pef || 500" [currentPEF]="patient.latest_pef">
-                            </app-action-plan-widget>
-
-                            <!-- Vitals Cards -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <!-- PEF Card -->
-                                <div
-                                    class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 transition-all hover:shadow-md">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div class="bg-white p-2 rounded-xl shadow-sm text-brand-cyan">
-                                            <mat-icon>air</mat-icon>
-                                        </div>
-                                        <span
-                                            class="text-xs font-bold text-brand-cyan bg-white px-2 py-1 rounded-full shadow-sm">
-                                            {{ getPefPercentage(patient.latest_pef, patient.personal_best_pef) }}%
-                                        </span>
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- PEF Minimal Card -->
+                            <div class="vital-card-apple pef">
+                                <div class="icon-wrap"><mat-icon>air</mat-icon></div>
+                                <div class="content">
+                                    <span class="label">PICO FLUJO</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="value">{{ patient.latest_pef }}</span>
+                                        <span class="unit">L/m</span>
                                     </div>
-                                    <div class="mt-2">
-                                        <p class="text-3xl font-bold text-brand-dark">{{ patient.latest_pef }}</p>
-                                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">L/min (FEM)
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- SpO2 Card -->
-                                <div
-                                    class="bg-green-50/50 p-5 rounded-2xl border border-green-100 transition-all hover:shadow-md">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div class="bg-white p-2 rounded-xl shadow-sm text-brand-green">
-                                            <mat-icon>favorite</mat-icon>
-                                        </div>
-                                        <span
-                                            class="text-xs font-bold text-brand-green bg-white px-2 py-1 rounded-full shadow-sm">
-                                            Normal
-                                        </span>
-                                    </div>
-                                    <div class="mt-2">
-                                        <p class="text-3xl font-bold text-brand-dark">{{ patient.currentSpO2 }}%</p>
-                                        <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Saturación
-                                            O2
-                                        </p>
-                                    </div>
+                                    <span class="percent-tag">{{ getPefPercentage(patient.latest_pef, patient.personal_best_pef) }}%</span>
                                 </div>
                             </div>
 
-                            <!-- Next Appointment / Quick Actions -->
-                            <div class="glass-card p-6">
-                                <h3 class="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
-                                    <mat-icon
-                                        class="text-purple-500 bg-purple-50 p-1 rounded-lg">event_upcoming</mat-icon>
-                                    Próxima Consulta
-                                </h3>
-                                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center gap-4">
-                                    <div
-                                        class="text-center bg-white p-2 rounded-xl shadow-sm border border-gray-100 min-w-[60px]">
-                                        <p class="text-xs text-red-500 font-bold uppercase">FEB</p>
-                                        <p class="text-xl font-bold text-brand-dark">24</p>
+                            <!-- SpO2 Minimal Card -->
+                            <div class="vital-card-apple spo2">
+                                <div class="icon-wrap"><mat-icon>favorite</mat-icon></div>
+                                <div class="content">
+                                    <span class="label">SATURACIÓN</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="value">{{ patient.currentSpO2 || '--' }}</span>
+                                        <span class="unit">%</span>
                                     </div>
-                                    <div>
-                                        <p class="font-bold text-brand-dark">Consulta de Seguimiento</p>
-                                        <p class="text-sm text-gray-500">10:00 AM • Dr. Astudillo</p>
-                                    </div>
+                                    <span class="status-tag" [class.low]="patient.currentSpO2 < 95">
+                                        {{ patient.currentSpO2 >= 95 ? 'Normal' : 'Crítico' }}
+                                    </span>
                                 </div>
-                                <button mat-stroked-button color="primary" class="w-full mt-4 !rounded-xl !h-10">
-                                    <mat-icon>edit_calendar</mat-icon> Reprogramar
-                                </button>
                             </div>
                         </div>
 
-                        <!-- Center/Right: Main Chart (Spans 2 cols) -->
-                        <div class="xl:col-span-2 flex flex-col h-full">
-                            <div class="glass-card p-6 h-full flex flex-col">
-                                <div class="flex justify-between items-center mb-6">
-                                    <div>
-                                        <h3 class="text-lg font-bold text-brand-dark">Tendencia de Flujo Espiratorio
-                                        </h3>
-                                        <p class="text-sm text-gray-500">Últimos 7 días de monitoreo</p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <span
-                                            class="flex items-center gap-1 text-xs font-bold text-brand-green bg-green-50 px-2 py-1 rounded-lg border border-green-100">
-                                            <div class="w-2 h-2 rounded-full bg-brand-green"></div> Meta >80%
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- CHART CONTAINER FLEX HEIGHT -->
-                                <div
-                                    class="relative w-full flex-1 min-h-[320px] bg-gray-50/50 rounded-2xl border border-gray-100 p-2">
-                                    <canvas baseChart [data]="pefChartData" [options]="pefChartOptions"
-                                        [type]="pefChartType">
-                                    </canvas>
-                                </div>
-                            </div>
-
-                            <!-- Botton Row: Active Medications & Simple Info in Summary -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 hide-on-print">
-                                <div class="glass-card p-6 border-l-4 border-indigo-500">
-                                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                        <mat-icon class="text-indigo-500 scale-75">medication</mat-icon> Medicación
-                                        Activa
-                                    </h3>
-                                    <ul class="space-y-3">
-                                        <li
-                                            class="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
-                                            <span class="font-bold text-slate-700">Salbutamol</span>
-                                            <span class="text-xs text-slate-400">Rescate PRN</span>
-                                        </li>
-                                        <li
-                                            class="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
-                                            <span class="font-bold text-slate-700">Budesonida</span>
-                                            <span class="text-xs text-slate-400">2 inh / 12 hrs</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="glass-card p-6 border-l-4 border-teal-500">
-                                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                        <mat-icon class="text-teal-500 scale-75">fact_check</mat-icon> Notas Clínicas
-                                        (Última Visita)
-                                    </h3>
-                                    <p
-                                        class="text-xs text-slate-500 leading-relaxed italic border-l-2 border-slate-200 pl-3">
-                                        "Paciente reporta mejoría en síntomas nocturnos. Se recomienda continuar con
-                                        esquema actual y monitoreo semanal de FEM."
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </mat-tab>
-
-            <!-- Tab 2: Historia Clínica -->
-            <mat-tab label="Historia Clínica">
-                <div class="pt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left: Background & Allergies -->
-                    <div class="space-y-6">
-                        <div class="glass-card p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold text-brand-dark">Antecedentes</h3>
-                                <button mat-icon-button (click)="toggleAllergyEdit()" class="text-gray-400"
-                                    matTooltip="Editar Alergias">
-                                    <mat-icon>{{ isAllergyEditMode ? 'check' : 'edit' }}</mat-icon>
-                                </button>
-                            </div>
-
-                            <div class="space-y-4">
-                                <div>
-                                    <p class="text-xs text-gray-400 uppercase font-bold mb-1">Alergias Conocidas</p>
-                                    <div *ngIf="!isAllergyEditMode" class="flex flex-wrap gap-2">
-                                        <span *ngFor="let allergy of patient.background?.allergies"
-                                            class="px-2 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100">
-                                            {{ allergy }}
-                                        </span>
-                                        <span *ngIf="!patient.background?.allergies?.length"
-                                            class="text-sm text-gray-400 italic">Niega alergias</span>
-                                    </div>
-                                    <div *ngIf="isAllergyEditMode">
-                                        <mat-form-field appearance="outline" class="w-full text-sm">
-                                            <mat-label>Editar Alergias (sep. por comas)</mat-label>
-                                            <input matInput value="Polvo, Ácaros">
-                                        </mat-form-field>
-                                    </div>
-                                </div>
-
-                                <mat-divider></mat-divider>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p class="text-xs text-gray-400 uppercase font-bold mb-1">Tabaquismo</p>
-                                        <span [class]="patient.background?.smoking ? 'text-red-500' : 'text-green-600'"
-                                            class="font-bold text-sm flex items-center gap-1">
-                                            <mat-icon class="scale-75">{{ patient.background?.smoking ? 'smoking_rooms'
-                                                :
-                                                'smoke_free' }}</mat-icon>
-                                            {{ patient.background?.smoking ? 'Positivo' : 'Negativo' }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-400 uppercase font-bold mb-1">Comorbilidades</p>
-                                        <p class="text-sm font-medium text-brand-dark">Rinitis Alérgica</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right: Full History Table -->
-                    <div class="lg:col-span-2">
-                        <div class="glass-card p-6">
-                            <h3 class="text-lg font-bold text-brand-dark mb-4">Línea de Tiempo</h3>
-                            <div class="overflow-hidden rounded-2xl border border-gray-100">
-                                <table mat-table [dataSource]="history" class="w-full">
-                                    <!-- Date -->
-                                    <ng-container matColumnDef="date">
-                                        <th mat-header-cell *matHeaderCellDef
-                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs">Fecha</th>
-                                        <td mat-cell *matCellDef="let element"
-                                            class="text-sm font-medium text-brand-dark">
-                                            {{element.date | safeDate:'shortDate'}} <br>
-                                            <span class="text-xs text-gray-400 font-normal">{{element.date |
-                                                safeDate:'shortTime'}}</span>
-                                        </td>
-                                    </ng-container>
-
-                                    <!-- Type -->
-                                    <ng-container matColumnDef="type">
-                                        <th mat-header-cell *matHeaderCellDef
-                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs">Tipo</th>
-                                        <td mat-cell *matCellDef="let element">
-                                            <span
-                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border"
-                                                [ngClass]="{
-                                                'bg-blue-50 text-blue-600 border-blue-100': element.type === 'pef',
-                                                'bg-orange-50 text-orange-600 border-orange-100': element.type === 'symptom',
-                                                'bg-purple-50 text-purple-600 border-purple-100': element.type === 'medication',
-                                                'bg-teal-50 text-teal-600 border-teal-100': element.type === 'evolution'
-                                            }">
-                                                {{ element.type === 'pef' ? 'Flujo' : (element.type === 'evolution' ?
-                                                'Nota
-                                                Médica' : element.type) }}
-                                            </span>
-                                        </td>
-                                    </ng-container>
-
-                                    <!-- Description -->
-                                    <ng-container matColumnDef="description">
-                                        <th mat-header-cell *matHeaderCellDef
-                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs">Detalle</th>
-                                        <td mat-cell *matCellDef="let element" class="text-sm text-gray-600">
-                                            <p class="line-clamp-2">{{ element.description || element.notes || 'Registro
-                                                automático' }}</p>
-                                            <p *ngIf="element.doctor" class="text-xs text-teal-600 font-bold mt-0.5">
-                                                Por: {{
-                                                element.doctor }}</p>
-                                        </td>
-                                    </ng-container>
-
-                                    <!-- Value -->
-                                    <ng-container matColumnDef="value">
-                                        <th mat-header-cell *matHeaderCellDef
-                                            class="bg-gray-50 text-gray-400 font-bold uppercase text-xs text-right">
-                                            Valor
-                                        </th>
-                                        <td mat-cell *matCellDef="let element" class="text-right">
-                                            <span *ngIf="element.pef" class="font-bold text-brand-dark">{{ element.pef
-                                                }}
-                                                L/min</span>
-                                            <span *ngIf="element.dosage" class="text-xs text-gray-500 font-medium">{{
-                                                element.dosage }}</span>
-                                        </td>
-                                    </ng-container>
-
-                                    <tr mat-header-row *matHeaderRowDef="['date', 'type', 'description', 'value']">
-                                    </tr>
-                                    <tr mat-row *matRowDef="let row; columns: ['date', 'type', 'description', 'value'];"
-                                        class="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </mat-tab>
-
-            <!-- Tab 3: Plan de Tratamiento (New Clinical Station) -->
-            <mat-tab label="Plan de Tratamiento">
-                <div class="pt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                    <!-- Evolution Note -->
-                    <div class="glass-card p-6 flex flex-col h-full">
-                        <h3 class="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
-                            <mat-icon class="text-teal-600">edit_note</mat-icon> Nota de Evolución
-                        </h3>
-                        <mat-form-field appearance="outline" class="w-full flex-1">
-                            <mat-label>Escribir observaciones clínicas...</mat-label>
-                            <textarea matInput [(ngModel)]="clinicalNote" rows="8"
-                                placeholder="Paciente acude a consulta con mejoría en síntomas nocturnos..."></textarea>
-                        </mat-form-field>
-                        <div class="flex justify-end mt-4">
-                            <button mat-flat-button color="primary" (click)="saveClinicalNote()"
-                                [disabled]="!clinicalNote">
-                                <mat-icon>save</mat-icon> Guardar Nota
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Active Medications & Quick Prescribe -->
-                    <div class="space-y-6">
-                        <!-- Prescription Form -->
-                        <div class="glass-card p-6">
-                            <h3 class="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
-                                <mat-icon class="text-purple-600">prescription</mat-icon> Nueva Prescripción
+                        <!-- Next Appointment Card -->
+                        <div class="glass-card-premium p-6">
+                            <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider mb-6 flex items-center justify-between">
+                                PRÓXIMA CITA
+                                <mat-icon class="text-gray-300">event</mat-icon>
                             </h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <mat-form-field appearance="outline" class="w-full col-span-2">
-                                    <mat-label>Medicamento</mat-label>
-                                    <input matInput [(ngModel)]="newPrescription.name" placeholder="Ej. Salbutamol">
-                                </mat-form-field>
-                                <mat-form-field appearance="outline" class="w-full">
-                                    <mat-label>Dosis</mat-label>
-                                    <input matInput [(ngModel)]="newPrescription.dosage" placeholder="100mcg">
-                                </mat-form-field>
-                                <mat-form-field appearance="outline" class="w-full">
-                                    <mat-label>Frecuencia</mat-label>
-                                    <input matInput [(ngModel)]="newPrescription.frequency" placeholder="Cada 8 hrs">
-                                </mat-form-field>
-                            </div>
-                            <button mat-stroked-button color="primary" class="w-full mt-2" (click)="addPrescription()"
-                                [disabled]="!newPrescription.name">
-                                <mat-icon>add</mat-icon> Agregar al Esquema
-                            </button>
-                        </div>
-
-                        <!-- Current Meds List -->
-                        <div class="glass-card p-6">
-                            <h3 class="text-lg font-bold text-brand-dark mb-4">Esquema Actual</h3>
-                            <div class="space-y-3">
-                                <div *ngFor="let med of patient.medications"
-                                    class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 group hover:border-blue-200 transition-colors">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-white border border-gray-100 text-blue-600 flex items-center justify-center text-xs font-bold shadow-sm">
-                                        Rx
+                            <ng-container *ngIf="nextAppointment; else noAppointment">
+                                <div class="flex items-center gap-5 bg-gray-50/80 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/10">
+                                    <div class="calendar-tile">
+                                        <span class="month">{{ nextAppointment.date | date:'MMM':'':'es-MX' | uppercase }}</span>
+                                        <span class="day">{{ nextAppointment.date | date:'d' }}</span>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="font-bold text-brand-dark text-sm">{{ med.name }}</p>
-                                        <p class="text-xs text-gray-500">{{ med.dosage }} • <span
-                                                class="text-brand-cyan font-medium">{{ med.frequency }}</span></p>
+                                    <div>
+                                        <p class="font-bold text-gray-900 dark:text-white">{{ getAppointmentTypeLabel(nextAppointment.type) }}</p>
+                                        <p class="text-xs text-gray-500 font-medium">
+                                            {{ nextAppointment.date | date:'h:mm a' }}
+                                            <ng-container *ngIf="nextAppointment.location"> • {{ nextAppointment.location }}</ng-container>
+                                        </p>
                                     </div>
-                                    <button mat-icon-button color="warn"
-                                        class="scale-75 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <mat-icon>delete</mat-icon>
-                                    </button>
                                 </div>
-                                <p *ngIf="!patient.medications?.length" class="text-sm text-gray-400 text-center py-4">
-                                    Sin
-                                    medicamentos activos</p>
-                            </div>
+                            </ng-container>
+                            <ng-template #noAppointment>
+                                <div class="flex flex-col items-center justify-center py-4 text-center">
+                                    <mat-icon class="text-gray-300 !text-4xl mb-2">event_busy</mat-icon>
+                                    <p class="text-sm text-gray-400 font-medium">Sin citas programadas</p>
+                                </div>
+                            </ng-template>
+                            <button mat-flat-button class="apple-secondary-btn w-full mt-6" (click)="openAppointmentDialog()">
+                                {{ nextAppointment ? 'Reprogramar' : 'Agendar cita' }}
+                            </button>
                         </div>
                     </div>
 
+                    <!-- Right Column: Trend Analysis (8 cols) -->
+                    <div class="xl:col-span-8 flex flex-col gap-6">
+                        <div class="glass-card-premium p-6 flex-1 flex flex-col">
+                            <div class="flex justify-between items-center mb-8">
+                                <div>
+                                    <h3 class="text-lg font-extrabold text-gray-900 dark:text-white">Tendencias de Salud</h3>
+                                    <p class="text-xs text-gray-500 font-medium uppercase tracking-tight">Monitoreo de FEM (Últimos 7 días)</p>
+                                </div>
+                                <div class="chart-legend-apple">
+                                    <div class="legend-item"><span class="dot blue"></span> Real</div>
+                                    <div class="legend-item"><span class="dot green"></span> Meta</div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container-premium flex-1 min-h-[360px]">
+                                <canvas baseChart [data]="pefChartData" [options]="pefChartOptions" [type]="pefChartType"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- WearOS / Smartwatch Vitals -->
+                        <div class="glass-card-premium p-6">
+                            <div class="flex items-center justify-between mb-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                        <mat-icon class="!text-white !text-base !w-4 !h-4">watch</mat-icon>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-black text-gray-900 dark:text-white">Datos del Dispositivo</h4>
+                                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">WearOS / Health Connect</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase"
+                                     [class]="(patient.heart_rate || patient.currentSpO2) ? 'bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-white/5'">
+                                    <span class="w-1.5 h-1.5 rounded-full inline-block" [class]="(patient.heart_rate || patient.currentSpO2) ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"></span>
+                                    {{ (patient.heart_rate || patient.currentSpO2) ? 'Sincronizado' : 'Sin datos' }}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <!-- Heart Rate -->
+                                <div class="wearos-metric-card hr">
+                                    <div class="wearos-icon"><mat-icon>favorite</mat-icon></div>
+                                    <div class="wearos-data">
+                                        <span class="wearos-value">{{ patient.heart_rate || '--' }}</span>
+                                        <span class="wearos-unit">BPM</span>
+                                    </div>
+                                    <span class="wearos-label">Frec. Cardíaca</span>
+                                </div>
+                                <!-- SpO2 -->
+                                <div class="wearos-metric-card spo2">
+                                    <div class="wearos-icon"><mat-icon>air</mat-icon></div>
+                                    <div class="wearos-data">
+                                        <span class="wearos-value">{{ patient.currentSpO2 || '--' }}</span>
+                                        <span class="wearos-unit">%</span>
+                                    </div>
+                                    <span class="wearos-label">Saturación O₂</span>
+                                </div>
+                                <!-- Steps -->
+                                <div class="wearos-metric-card steps">
+                                    <div class="wearos-icon"><mat-icon>directions_walk</mat-icon></div>
+                                    <div class="wearos-data">
+                                        <span class="wearos-value">{{ patient.steps != null ? (patient.steps | number) : '--' }}</span>
+                                        <span class="wearos-unit" *ngIf="patient.steps != null">pasos</span>
+                                    </div>
+                                    <span class="wearos-label">Actividad</span>
+                                </div>
+                                <!-- Sleep -->
+                                <div class="wearos-metric-card sleep">
+                                    <div class="wearos-icon"><mat-icon>bedtime</mat-icon></div>
+                                    <div class="wearos-data">
+                                        <span class="wearos-value">{{ patient.sleep_hours != null ? patient.sleep_hours : '--' }}</span>
+                                        <span class="wearos-unit" *ngIf="patient.sleep_hours != null">h</span>
+                                    </div>
+                                    <span class="wearos-label">Sueño</span>
+                                </div>
+                            </div>
+
+                            <!-- Environmental Data Row -->
+                            <div *ngIf="patient.aqi || patient.temperature || patient.humidity || patient.pollen_level"
+                                 class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
+                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                    <mat-icon class="!text-[12px] !w-3 !h-3">eco</mat-icon>
+                                    Contexto Ambiental {{ patient.location_name ? '• ' + patient.location_name : '' }}
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    <div *ngIf="patient.aqi" class="env-pill aqi">
+                                        <mat-icon>air</mat-icon>
+                                        <span>ICA {{ patient.aqi }}</span>
+                                    </div>
+                                    <div *ngIf="patient.temperature" class="env-pill temp">
+                                        <mat-icon>device_thermostat</mat-icon>
+                                        <span>{{ patient.temperature }}°C</span>
+                                    </div>
+                                    <div *ngIf="patient.humidity" class="env-pill humidity">
+                                        <mat-icon>water_drop</mat-icon>
+                                        <span>{{ patient.humidity }}% Humedad</span>
+                                    </div>
+                                    <div *ngIf="patient.pollen_level" class="env-pill pollen"
+                                         [class.high]="patient.pollen_level === 'High'"
+                                         [class.medium]="patient.pollen_level === 'Moderate'">
+                                        <mat-icon>grass</mat-icon>
+                                        <span>Polen: {{ patient.pollen_level }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Meds Snippet -->
+                            <div class="glass-card-premium p-6 border-l-4 border-blue-500">
+                                <h4 class="text-[11px] font-black text-blue-500 uppercase tracking-widest mb-4">MEDicación Activa</h4>
+                                <div *ngIf="patient.medications?.length; else noMeds" class="meds-list-mini">
+                                    <div *ngFor="let med of patient.medications" class="med-item-mini">
+                                        <span class="bullet blue"></span>
+                                        <p class="name">{{ med.name }} <small *ngIf="med.dosage">{{ med.dosage }}</small></p>
+                                        <span class="info">{{ med.frequency || '' }}</span>
+                                    </div>
+                                </div>
+                                <ng-template #noMeds>
+                                    <p class="text-xs text-gray-400 italic">Sin medicación registrada</p>
+                                </ng-template>
+                            </div>
+                            <!-- Notes Snippet -->
+                            <div class="glass-card-premium p-6 border-l-4 border-teal-500">
+                                <h4 class="text-[11px] font-black text-teal-500 uppercase tracking-widest mb-4">Última Observación</h4>
+                                <p *ngIf="patient.recent_measurements?.[0]?.notes; else noNotes"
+                                   class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium italic">
+                                    "{{ patient.recent_measurements![0].notes }}"
+                                </p>
+                                <ng-template #noNotes>
+                                    <p class="text-xs text-gray-400 italic">Sin notas recientes</p>
+                                </ng-template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </mat-tab>
+            </div>
 
-        </mat-tab-group>
+            <!-- Other Switch Cases (Historia, Treatment, ECE) -->
+            <div *ngSwitchCase="1" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 flex flex-col gap-6">
+                    <div class="glass-card-premium p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-extrabold">Antecedentes</h3>
+                            <button mat-icon-button (click)="toggleAllergyEdit()" class="text-gray-400">
+                                <mat-icon>{{ isAllergyEditMode ? 'done' : 'edit' }}</mat-icon>
+                            </button>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="info-group-apple">
+                                <span class="label">ALERGENOS</span>
+                                <div class="tags-row mt-2" *ngIf="!isAllergyEditMode">
+                                    <ng-container *ngIf="patient.known_allergies; else noAllergies">
+                                        <span *ngFor="let a of getAllergiesList(patient.known_allergies)" class="apple-tag red">{{ a }}</span>
+                                    </ng-container>
+                                    <ng-template #noAllergies>
+                                        <span *ngFor="let a of (patient.background?.allergies || [])" class="apple-tag red">{{ a }}</span>
+                                        <span *ngIf="!patient.background?.allergies?.length" class="text-xs text-gray-400 italic">Sin alergias declaradas</span>
+                                    </ng-template>
+                                </div>
+                                <mat-form-field *ngIf="isAllergyEditMode" appearance="fill" class="w-full mt-2">
+                                    <mat-label>Alergias (separadas por coma)</mat-label>
+                                    <input matInput [(ngModel)]="editableAllergies" placeholder="Polvo, Ácaros, Látex..." class="text-sm">
+                                </mat-form-field>
+                            </div>
+                            <div *ngIf="patient.current_medications" class="info-group-apple">
+                                <span class="label">MEDICAMENTOS</span>
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{{ patient.current_medications }}</p>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="info-group-apple">
+                                    <span class="label">TIPO DE ASMA</span>
+                                    <p class="value-highlight">{{ patient.asthma_type || '—' }}</p>
+                                </div>
+                                <div class="info-group-apple">
+                                    <span class="label">GRUPO SANGUÍNEO</span>
+                                    <p class="value-highlight">{{ patient.blood_type || '—' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="lg:col-span-8">
+                    <div class="glass-card-premium p-0 flex flex-col overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex justify-between items-center">
+                            <h3 class="text-lg font-extrabold">Cronología Clínica</h3>
+                            <span class="text-[10px] font-black text-gray-400 uppercase">Histórico Completo</span>
+                        </div>
+                        <div class="table-scroll-wrap max-h-[600px] overflow-auto scrollbar-hide">
+                            <table mat-table [dataSource]="history" class="apple-table-dense">
+                                <ng-container matColumnDef="date">
+                                    <th mat-header-cell *matHeaderCellDef>FECHA</th>
+                                    <td mat-cell *matCellDef="let e">
+                                        <div class="flex flex-col">
+                                            <span class="text-[13px] font-bold">{{e.date | safeDate:'shortDate'}}</span>
+                                            <span class="text-[10px] text-gray-400 font-bold">{{e.date | safeDate:'shortTime'}}</span>
+                                        </div>
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="type">
+                                    <th mat-header-cell *matHeaderCellDef>TIPO</th>
+                                    <td mat-cell *matCellDef="let e">
+                                        <span class="type-pill" [class]="e.type">
+                                            {{ e.type === 'pef' ? 'FEM' : e.type }}
+                                        </span>
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="description">
+                                    <th mat-header-cell *matHeaderCellDef>DETALLE</th>
+                                    <td mat-cell *matCellDef="let e" class="max-w-[300px]">
+                                        <p class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate-2">{{ e.description || e.notes || 'Registro estable' }}</p>
+                                        <p *ngIf="e.doctor" class="text-[9px] font-black text-blue-500 uppercase mt-1">DR. {{ e.doctor }}</p>
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="value">
+                                    <th mat-header-cell *matHeaderCellDef class="text-right">RESULTADO</th>
+                                    <td mat-cell *matCellDef="let e" class="text-right">
+                                        <div class="flex flex-col items-end">
+                                            <span *ngIf="e.pef" class="font-black text-gray-900 dark:text-white text-sm">{{e.pef}} L/m</span>
+                                            <span *ngIf="e.spo2" class="text-[11px] font-bold text-green-500">{{e.spo2}}% SpO₂</span>
+                                        </div>
+                                    </td>
+                                </ng-container>
+                                <tr mat-header-row *matHeaderRowDef="['date', 'type', 'description', 'value']"></tr>
+                                <tr mat-row *matRowDef="let row; columns: ['date', 'type', 'description', 'value'];" class="apple-table-row"></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngSwitchCase="2" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="glass-card-premium p-8 flex flex-col gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="step-icon teal"><mat-icon>history_edu</mat-icon></div>
+                        <h3 class="text-xl font-extrabold">Evolución Médica</h3>
+                    </div>
+                    <div class="textarea-apple-container">
+                        <textarea [(ngModel)]="clinicalNote" placeholder="Describa el progreso clínico del paciente..." rows="10"></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button mat-flat-button class="apple-primary-btn px-8" (click)="saveClinicalNote()">
+                            Guardar Nota Clínica
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-6">
+                    <div class="glass-card-premium p-8">
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="step-icon purple"><mat-icon>medication</mat-icon></div>
+                            <h3 class="text-xl font-extrabold">Nueva Prescripción</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="apple-input-group col-span-2">
+                                <label>MEDICAMENTO</label>
+                                <input type="text" [(ngModel)]="newPrescription.name" placeholder="Ej. Budesonida">
+                            </div>
+                            <div class="apple-input-group">
+                                <label>DOSIS</label>
+                                <input type="text" [(ngModel)]="newPrescription.dosage" placeholder="100mcg">
+                            </div>
+                            <div class="apple-input-group">
+                                <label>FRECUENCIA</label>
+                                <input type="text" [(ngModel)]="newPrescription.frequency" placeholder="Cada 12 hrs">
+                            </div>
+                        </div>
+                        <button mat-stroked-button class="apple-secondary-btn w-full mt-8 indigo" (click)="addPrescription()">
+                            Agregar al Esquema
+                        </button>
+                    </div>
+
+                    <div class="glass-card-premium p-8">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">ESQUEMA VIGENTE</h4>
+                        <div class="meds-vertical-list">
+                            <div *ngFor="let med of patient.medications; let idx = index" class="med-card-compact animate-fade-in-up">
+                                <div class="med-info">
+                                    <p class="name">{{ med.name }}</p>
+                                    <p class="dose">{{ med.dosage }} • {{ med.frequency }}</p>
+                                </div>
+                                <button class="med-delete-btn" (click)="deletePrescription(idx)"><mat-icon>close</mat-icon></button>
+                            </div>
+                            <div *ngIf="!patient.medications?.length" class="empty-meds text-center p-8">
+                                <mat-icon class="text-gray-200 text-4xl mb-2">medication_liquid</mat-icon>
+                                <p class="text-xs text-gray-400 font-bold">SIN MEDICAMENTOS ACTIVOS</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intervenciones clínicas registradas -->
+                <div class="glass-card-premium p-8 flex flex-col gap-4">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="step-icon blue"><mat-icon>assignment_turned_in</mat-icon></div>
+                        <h3 class="text-xl font-extrabold">Intervenciones</h3>
+                    </div>
+                    <div *ngIf="!interventions.length" class="text-center py-8 text-gray-400">
+                        <mat-icon class="text-4xl opacity-20 mb-2">inbox</mat-icon>
+                        <p class="text-xs font-bold uppercase tracking-widest">Sin intervenciones registradas</p>
+                    </div>
+                    <div *ngFor="let iv of interventions" class="rounded-xl border border-slate-100 dark:border-white/10 p-4 flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-blue-500">{{ iv.type }}</span>
+                            <span class="text-[10px] text-gray-400">{{ iv.created_at | date:'d MMM yyyy' }}</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ iv.description }}</p>
+                        <p *ngIf="iv.recommendations" class="text-xs text-gray-500">💊 {{ iv.recommendations }}</p>
+                        <p *ngIf="iv.next_follow_up" class="text-xs text-teal-600 font-semibold">📅 Seguimiento: {{ iv.next_follow_up | date:'d MMM yyyy' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngSwitchCase="3" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-8">
+                    <div class="glass-card-premium overflow-hidden">
+                        <div class="px-8 py-6 border-b border-gray-100 dark:border-white/10 flex flex-col gap-1">
+                            <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">EXPEDIENTE DIGITAL PERSONAL</span>
+                            <h3 class="text-xl font-extrabold">Historia Clínica Digital (NOM-004)</h3>
+                        </div>
+                        <div class="p-4">
+                            <app-clinical-history-stepper [patientId]="patient.id" [initialData]="patient"></app-clinical-history-stepper>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-4 flex flex-col gap-8">
+                    <div class="glass-card-premium p-8">
+                        <h3 class="text-lg font-extrabold mb-6 flex items-center gap-2">
+                            <mat-icon class="text-blue-500">cloud_upload</mat-icon>
+                            Documentación
+                        </h3>
+                        <app-medical-document-upload [patientId]="patient.id" (uploadSuccess)="onUploadSuccess($event)"></app-medical-document-upload>
+                    </div>
+                    
+                    <div class="glass-card-premium p-8">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">ARCHIVOS ADJUNTOS</h4>
+                        <div *ngIf="patient.documents && patient.documents.length > 0; else emptyDocs" class="space-y-3">
+                            <div *ngFor="let doc of patient.documents" class="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl">
+                                <div class="flex items-center gap-3">
+                                    <mat-icon class="text-blue-500">{{ doc.type === 'pdf' ? 'picture_as_pdf' : 'insert_drive_file' }}</mat-icon>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-900 dark:text-white">{{ doc.name }}</p>
+                                        <p class="text-[10px] text-gray-400">{{ doc.date | date:'dd MMM yyyy' }}</p>
+                                    </div>
+                                </div>
+                                <a [href]="doc.url" target="_blank" class="apple-icon-btn small" matTooltip="Ver documento">
+                                    <mat-icon>visibility</mat-icon>
+                                </a>
+                            </div>
+                        </div>
+                        <ng-template #emptyDocs>
+                            <div class="file-list-empty text-center py-10">
+                                <mat-icon class="opacity-10 text-6xl">folder_off</mat-icon>
+                                <p class="text-xs font-bold text-gray-400 mt-4">EXPEDIENTE SIN ARCHIVOS EXTERNOS</p>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Loading Template -->
     <ng-template #loadingTpl>
-        <div class="p-6">
-            <app-skeleton-profile></app-skeleton-profile>
+        <div class="p-12 h-screen flex items-center justify-center flex-col gap-6">
+            <!-- Error State -->
+            <div *ngIf="loadError" class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md text-center">
+                <mat-icon class="text-red-600 text-5xl mb-3">error_outline</mat-icon>
+                <h3 class="text-lg font-semibold text-red-800 mb-2">Error cargando paciente</h3>
+                <p class="text-red-700 mb-4">{{ loadError }}</p>
+                <button mat-raised-button color="primary" (click)="loadPatientData(patientId || '')">
+                    <mat-icon>refresh</mat-icon>
+                    Reintentar
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div *ngIf="!loadError" class="flex flex-col items-center gap-4">
+                <div class="apple-loader-heavy"></div>
+                <p class="text-slate-500 text-sm">Cargando datos del paciente...</p>
+            </div>
         </div>
     </ng-template>
 </div>

@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
-import * as CryptoJS from 'crypto-js';
+import CryptoJS from 'crypto-js';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class StorageService {
 
-    private readonly SECRET_KEY = 'asmasync-super-secret-key-simulation'; // En prod: Environment var
+    private readonly SECRET_KEY = environment.storageEncryptionKey;
 
     constructor() {
         // console.log('🛡️ StorageService Initialized (Encryption Active)');

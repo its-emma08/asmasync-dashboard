@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { take } from 'rxjs/operators';
 
 @Component({
     selector: 'app-two-factor',
@@ -36,7 +37,7 @@ import { ToastService } from '../../../core/services/toast.service';
                 <mat-icon class="text-brand-cyan scale-150 transform" style="font-size: 40px; width: 40px; height: 40px;">lock</mat-icon>
             </div>
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Verificación de Dos Pasos</h2>
-            <p class="text-slate-500">Hemos enviado un código al dispositivo de tu administrador. (Mock: 123456)</p>
+            <p class="text-slate-500">Hemos enviado un código al correo de tu cuenta.</p>
         </div>
 
         <form [formGroup]="otpForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
@@ -96,7 +97,7 @@ export class TwoFactorComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        // console.log('🔐 Mock 2FA Code: 123456');
+        // En un entorno de producción, el código llega vía correo electrónico (Servicio configurado en backend).
     }
 
     onSubmit() {
@@ -105,7 +106,7 @@ export class TwoFactorComponent implements OnInit {
         this.isLoading.set(true);
         const code = this.otpForm.get('code')?.value;
 
-        this.authService.verifyTwoFactor(code).subscribe({
+        this.authService.verifyTwoFactor(code).pipe(take(1)).subscribe({
             next: () => {
                 this.isLoading.set(false);
                 this.toast.showSuccess('Verificación exitosa');

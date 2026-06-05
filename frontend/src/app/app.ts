@@ -8,13 +8,12 @@ import { StorageService } from './core/services/storage.service';
 import { interval, Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { routeAnimations } from './shared/animations/route-animations';
-import { LoadingScreenComponent } from './shared/components/loading-screen/loading-screen.component';
 import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, LoadingScreenComponent],
+  imports: [RouterOutlet, CommonModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   animations: [routeAnimations]
@@ -49,48 +48,35 @@ export class App implements OnInit, OnDestroy {
     return outlet?.activatedRouteData?.['animation'];
   }
 
-  ngOnInit() {
-    // Start Session Watchdog
-    this.sessionTimer.startMonitoring();
-    this.cleanupLegacyData();
+    ngOnInit() {
+        // Start Session Watchdog
+        this.sessionTimer.startMonitoring();
+        this.cleanupLegacyData();
 
-    // Splash Screen Logic (2.5 seconds)
-    const totalTime = 2500;
-    const intervalTime = 100;
-    const steps = totalTime / intervalTime;
-    let currentStep = 0;
-
-    const loader = setInterval(() => {
-      currentStep++;
-      // Progress calculation kept for internal state if needed, though 3D loader handles its own visuals
-      this.loadingProgress.set(Math.min(100, Math.round((currentStep / steps) * 100)));
-
-      if (currentStep >= steps) {
-        clearInterval(loader);
-
-        // Initiate fade out
+        // Immediate transition - Let components handle their own skeletons
+        this.isLoading.set(false);
         this.isFadingOut.set(true);
 
-        // Delay DOM removal until fade completes
-        setTimeout(() => {
-          this.isLoading.set(false);
-          // Auto-detection will handle the rest
-        }, 500);
-      }
-    }, intervalTime);
+        // Conectar WS si usuario autenticado
+        this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+            if (user) {
+                this.wsService.connect();
+                if (user.settings) {
+                    this.storageService.setItem('asmasync_settings', user.settings);
+                    this.themeService.applyThemeSettings(
+                        user.settings.theme || 'light',
+                        user.settings.accentColor,
+                        !!user.settings.compactMode
+                    );
+                }
+            } else {
+                this.wsService.disconnect();
+            }
+        });
 
-    // Conectar WS si usuario autenticado
-    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
-      if (user) {
-        this.wsService.connect();
-      } else {
-        this.wsService.disconnect();
-      }
-    });
-
-    // Mantener conexión viva
-    this.startHeartbeat();
-  }
+        // Mantener conexión viva
+        this.startHeartbeat();
+    }
 
   private startHeartbeat() {
     interval(30000).pipe(

@@ -1,4 +1,10 @@
 <div class="flex h-screen overflow-hidden relative main-layout-container">
+    
+    <!-- Offline Indicator -->
+    <div *ngIf="!(isOnline$ | async)" class="fixed top-0 left-0 w-full bg-amber-500 text-white text-[10px] font-bold py-1 px-4 z-[9999] flex items-center justify-center animate-pulse">
+        <mat-icon class="scale-75 mr-1">wifi_off</mat-icon>
+        MODO OFFLINE ACTIVADO - SINCRONIZACIÓN DETENIDA
+    </div>
 
     <!-- Mobile Backdrop -->
     <div *ngIf="isMobile && (sidebarOpen$ | async)"

@@ -19,13 +19,15 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 import { PatientService } from '../../../core/services/patient.service';
 import { StorageService } from '../../../core/services/storage.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Patient, PEFTrend } from '../../../core/models/patient.model';
+import { PdfExportService } from '../../../core/services/pdf-export.service';
+import * as riskHelper from '../../../core/utils/risk.helper';
 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Chart from 'chart.js/auto';
 
 interface ReportConfig {
@@ -70,7 +72,8 @@ interface ReportConfig {
         MatButtonToggleModule,
         MatTabsModule,
         MatDividerModule,
-        MatChipsModule
+        MatChipsModule,
+        QRCodeComponent
     ],
     templateUrl: './report-generator.component.html',
     styleUrls: ['./report-generator.component.scss']
@@ -91,7 +94,17 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
 
     isLoadingPatients = false;
     isGenerating = false;
+    isExportingWeekly = false;
     institutionLogo: string | null = null;
+
+    doctorName = 'Usuario';
+    doctorSpecialty = 'Especialista';
+
+    // Weekly export state
+    activePeriod: 'week' | 'month' | 'custom' = 'week';
+    weeklyFrom: string = '';
+    weeklyTo: string = '';
+    weeklySummaryStats: { total_patients: number, risk_distribution: { low: number, high: number } } | null = null;
 
     // Default Configuration
     config: ReportConfig = {
@@ -112,28 +125,52 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
             { id: 'vitals', label: 'Signos Vitales y Métricas', enabled: true, order: 1 },
             { id: 'charts', label: 'Gráfica de Evolución (FEM)', enabled: true, order: 2 },
             { id: 'medications', label: 'Esquema de Medicamentación', enabled: true, order: 3 },
-            { id: 'notes', label: 'Notas de Evolución', enabled: true, order: 4 },
-            { id: 'recommendations', label: 'Recomendaciones', enabled: true, order: 5 },
-            { id: 'signatures', label: 'Firmas', enabled: true, order: 6 }
+            { id: 'action_plan', label: 'Plan de Acción (Zonas)', enabled: true, order: 4 },
+            { id: 'notes', label: 'Notas de Evolución', enabled: true, order: 5 },
+            { id: 'recommendations', label: 'Recomendaciones', enabled: true, order: 6 },
+            { id: 'signatures', label: 'Firmas', enabled: true, order: 7 }
         ]
     };
 
     // UI helpers
     activeSectionTab = 0;
-    generatedPDF: any;
-    chartInstance: any; // Store chart instance
-    chartImageSrc: string | null = null; // For PDF generation
+    generatedPDF: Blob | null = null;
+    chartInstance: Chart<'line', number[], string | Date> | null = null;
+    chartImageSrc: string | null = null;
 
     constructor(
         private patientService: PatientService,
+        public authService: AuthService,
         private snackBar: MatSnackBar,
-        private cd: ChangeDetectorRef, // Injected for manual detection
-        private storageService: StorageService // Injected
+        private cd: ChangeDetectorRef,
+        private storageService: StorageService,
+        private pdfExport: PdfExportService
     ) { }
+
+    get currentDoctorName(): string {
+        return this.doctorName;
+    }
+
+    get qrData(): string {
+        if (!this.editedPatient) return 'AsmaSync Medical Center';
+        return `AsmaSync | Paciente: ${this.editedPatient.full_name} | ID: ${this.editedPatient.id} | Riesgo: ${this.editedPatient.riskLevel}`;
+    }
 
     ngOnInit(): void {
         this.loadSettings();
         this.loadPatients();
+        this.setPeriod('week'); // defaults
+
+        this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+            if (user) {
+                this.doctorName = user.full_name || 'Usuario';
+                this.doctorSpecialty = (user as any).specialty || 'Especialista';
+                // Only override institutionName if the user hasn't customised it
+                if (this.config.institutionName === 'AsmaSync Medical Center' && (user as any).hospital_name) {
+                    this.config.institutionName = (user as any).hospital_name;
+                }
+            }
+        });
     }
 
     loadSettings(): void {
@@ -151,20 +188,24 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
         this.isLoadingPatients = true;
         this.patientService.getAllPatients().pipe(takeUntil(this.destroy$)).subscribe({
             next: (data) => {
-                this.patients = data;
-                this.isLoadingPatients = false;
+                Promise.resolve().then(() => {
+                    this.patients = data;
+                    this.isLoadingPatients = false;
+                    this.hasPatients = this.patients && this.patients.length > 0;
+                    this.cd.detectChanges();
 
-                this.hasPatients = this.patients && this.patients.length > 0;
-                this.cd.detectChanges();
-
-                // Auto-select first patient for better UX
-                if (data.length > 0) {
-                    this.selectPatient(data[0].id);
-                }
+                    // Auto-select first patient for better UX
+                    if (data.length > 0) {
+                        this.selectPatient(data[0].id);
+                    }
+                });
             },
             error: (err) => {
-                console.error('Error loading patients', err);
-                this.isLoadingPatients = false;
+                Promise.resolve().then(() => {
+                    console.error('Error loading patients', err);
+                    this.isLoadingPatients = false;
+                    this.cd.detectChanges();
+                });
             }
         });
     }
@@ -172,8 +213,7 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
     selectPatient(id: string | number | null): void {
         if (!id) return;
 
-        // Wrap in setTimeout to decouple from view selection event (fixes NG0100)
-        setTimeout(() => {
+        Promise.resolve().then(() => {
             // 1. RESET STATE TO PREVENT GHOSTING
             this.selectedPatient = null;
             this.editedPatient = {};
@@ -183,32 +223,50 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
                 this.chartInstance.destroy();
                 this.chartInstance = null;
             }
+            this.cd.detectChanges();
 
             this.patientService.getPatientById(id).pipe(takeUntil(this.destroy$)).subscribe(p => {
-                this.selectedPatient = p;
-                // Clone for editing
-                this.editedPatient = JSON.parse(JSON.stringify(p));
-                // Ensure array fields exist
-                if (!this.editedPatient.allergies) this.editedPatient.allergies = [];
-                // Handle allergies if string (mock data messiness)
-                if (typeof this.editedPatient.allergies === 'string') {
-                    this.editedPatient.allergies = this.editedPatient.allergies.split(',').map((s: string) => s.trim()).filter((s: string) => s);
-                }
-                if (!this.editedPatient.medications) this.editedPatient.medications = [];
+                Promise.resolve().then(() => {
+                    this.selectedPatient = p;
+                    this.editedPatient = JSON.parse(JSON.stringify(p));
 
-                // Trigger chart render after view update
-                setTimeout(() => {
-                    this.renderChart();
-                    this.cd.markForCheck(); // Explicitly mark for check
-                }, 100);
+                    // --- Parse allergies: prefer structured array, fall back to comma-separated string ---
+                    if (!this.editedPatient.allergies || this.editedPatient.allergies.length === 0) {
+                        const raw = this.editedPatient.known_allergies || this.editedPatient.known_allergies_text || '';
+                        this.editedPatient.allergies = raw
+                            ? raw.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
+                            : [];
+                    } else if (typeof this.editedPatient.allergies === 'string') {
+                        this.editedPatient.allergies = (this.editedPatient.allergies as string)
+                            .split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+                    }
 
-                this.calculateDerivedData(); // Update computed properties
-                this.cd.markForCheck();
+                    // --- Parse medications: prefer structured array, fall back to current_medications string ---
+                    if (!this.editedPatient.medications || this.editedPatient.medications.length === 0) {
+                        const raw = this.editedPatient.current_medications || '';
+                        if (raw) {
+                            this.editedPatient.medications = raw
+                                .split(/[,;\n]/)
+                                .map((s: string) => s.trim())
+                                .filter((s: string) => s.length > 0)
+                                .map((name: string) => ({ name, dosage: '', frequency: '' }));
+                        } else {
+                            this.editedPatient.medications = [];
+                        }
+                    }
+
+                    this.calculateDerivedData();
+                    this.cd.detectChanges();
+                    // Render chart after DOM settles
+                    setTimeout(() => { this.renderChart(); }, 100);
+                });
             });
             this.patientService.getPEFTrend(id).pipe(takeUntil(this.destroy$)).subscribe(t => {
-                this.pefTrend = t;
-                if (this.selectedPatient) this.renderChart(); // Re-render if trend comes later
-                this.cd.markForCheck();
+                Promise.resolve().then(() => {
+                    this.pefTrend = t;
+                    if (this.selectedPatient) this.renderChart();
+                    this.cd.detectChanges();
+                });
             });
         });
     }
@@ -251,6 +309,17 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
         const index = this.editedPatient.allergies.indexOf(allergy);
         if (index >= 0) {
             this.editedPatient.allergies.splice(index, 1);
+        }
+    }
+
+    addMedication(): void {
+        if (!this.editedPatient.medications) this.editedPatient.medications = [];
+        this.editedPatient.medications.push({ name: '', dosage: '', frequency: '' });
+    }
+
+    removeMedication(index: number): void {
+        if (this.editedPatient.medications) {
+            this.editedPatient.medications.splice(index, 1);
         }
     }
 
@@ -306,96 +375,51 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
         });
     }
 
-    // --- PDF GENERATION ENGINE ---
-    // --- PDF GENERATION ENGINE ---
     async downloadPDF() {
         if (!this.selectedPatient) {
             this.snackBar.open('Seleccione un paciente primero', 'Cerrar', { duration: 3000 });
             return;
         }
 
-        // Evita NG0100
-        await new Promise(resolve => setTimeout(resolve, 0));
+        // Step 1: Capture chart image BEFORE isGenerating changes the DOM
+        if (this.chartInstance) {
+            try {
+                const canvas = document.getElementById('reportChartCanvas') as HTMLCanvasElement;
+                this.chartImageSrc = canvas ? canvas.toDataURL('image/png') : this.chartInstance.toBase64Image();
+            } catch (e) { console.warn('Could not export chart image', e); }
+        }
+
+        // Step 2: Update state, wait for Angular to fully render the reportContent
         this.isGenerating = true;
         this.cd.detectChanges();
+        // Wait for DOM to settle (2 animation frames + extra buffer)
+        await new Promise(resolve => requestAnimationFrame(() =>
+            requestAnimationFrame(() => setTimeout(resolve, 150))
+        ));
 
         try {
-            // 1. CHART RENDER HACK FOR PDF
-            if (this.chartInstance) {
-                try {
-                    const canvas = document.getElementById('reportChartCanvas') as HTMLCanvasElement;
-                    if (canvas) {
-                        this.chartImageSrc = canvas.toDataURL('image/png');
-                    } else {
-                        this.chartImageSrc = this.chartInstance.toBase64Image();
-                    }
-                } catch (e) {
-                    console.warn('Could not export chart', e);
-                }
-                this.cd.detectChanges(); // Update view to show <img> and hide <canvas>
+            const content = this.reportContent.nativeElement as HTMLElement;
+            const rawName = this.selectedPatient?.full_name || 'Paciente';
+            const safeName = this.pdfExport.sanitizeName(rawName);
+            const filename = `Reporte_${safeName}_${Date.now()}.pdf`;
 
-                // Wait for image to render in DOM
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-
-            const content = this.reportContent.nativeElement;
-
-            // 2. Capture High-Res Canvas
-            const canvas = await html2canvas(content, {
-                scale: 2, // 2x resolution
-                useCORS: true,
-                logging: false,
-                windowWidth: 1200 // Consistent width
+            await this.pdfExport.exportElement(content, {
+                filename,
+                paperSize: this.config.paperSize,
+                scale: 2
             });
 
-            // 3. Generate PDF
-            const imgData = canvas.toDataURL('image/png');
-
-            // Dynamic Format based on Config
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: this.config.paperSize as any
-            });
-
-            // Calculate dimensions based on paper size
-            let pdfWidth = 210;
-            let pdfPageHeight = 297;
-            switch (this.config.paperSize) {
-                case 'letter': pdfWidth = 215.9; pdfPageHeight = 279.4; break;
-                case 'legal': pdfWidth = 215.9; pdfPageHeight = 355.6; break;
-                case 'a4': default: pdfWidth = 210; pdfPageHeight = 297; break;
-            }
-
-            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            // First page
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= pdfPageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                heightLeft -= pdfPageHeight;
-            }
-
-            // 4. Save
-            const filename = `Reporte_${(this.selectedPatient?.full_name || 'Paciente').replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
-            pdf.save(filename);
-
-            this.snackBar.open('Reporte generado exitosamente', 'OK', { duration: 3000 });
+            this.snackBar.open('¡Reporte generado exitosamente!', 'OK', { duration: 3000 });
 
         } catch (error) {
             console.error('PDF Generation Error:', error);
-            this.snackBar.open('Error al generar PDF', 'Cerrar', { duration: 3000 });
+            this.snackBar.open('Error al generar PDF. Revisa la consola.', 'Cerrar', { duration: 4000 });
         } finally {
-            // Restore State
-            this.chartImageSrc = null;
-            this.isGenerating = false;
-            this.cd.detectChanges();
+            Promise.resolve().then(() => {
+                this.chartImageSrc = null;
+                this.isGenerating = false;
+                this.cd.detectChanges();
+            });
         }
     }
 
@@ -411,23 +435,22 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
             this.computedAge = 0;
         }
 
-        // CURP
-        if (!this.selectedPatient || !this.selectedPatient.full_name) {
-            this.computedCurp = '';
-        } else {
-            const namePart = (this.selectedPatient.full_name || 'XXXX').substring(0, 4).toUpperCase();
-            const dobPart = this.selectedPatient.date_of_birth ? this.selectedPatient.date_of_birth.replace(/-/g, '').substring(2, 8) : '010101';
-            this.computedCurp = `${namePart}${dobPart}HMXRNS00`.padEnd(18, '0');
-        }
+        // CURP — only show if the patient has a real CURP on record
+        this.computedCurp = (this.selectedPatient as any)?.curp || '';
+    }
+
+    getPatientInitials(fullName: string): string {
+        if (!fullName) return '??';
+        return fullName.split(' ')
+            .filter(w => w.length > 0)
+            .map(w => w[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || '??';
     }
 
     getRiskLabel(level: string): string {
-        switch (level) {
-            case 'red': return 'RIESGO ALTO';
-            case 'yellow': return 'RIESGO MODERADO';
-            case 'green': return 'BAJO RIESGO';
-            default: return 'DESCONOCIDO';
-        }
+        return riskHelper.getRiskLabel(level);
     }
 
     ngOnDestroy(): void {
@@ -435,6 +458,140 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
         if (this.chartInstance) {
             this.chartInstance.destroy();
+        }
+    }
+
+    setPeriod(period: 'week' | 'month' | 'custom'): void {
+        this.activePeriod = period;
+        const today = new Date();
+        const fmt = (d: Date) => d.toISOString().split('T')[0];
+
+        if (period === 'week') {
+            const from = new Date(today); from.setDate(today.getDate() - 7);
+            this.weeklyFrom = fmt(from);
+            this.weeklyTo = fmt(today);
+        } else if (period === 'month') {
+            const from = new Date(today); from.setDate(today.getDate() - 30);
+            this.weeklyFrom = fmt(from);
+            this.weeklyTo = fmt(today);
+        }
+        // Load preview summary stats
+        if (period !== 'custom') this.loadWeeklySummary();
+    }
+
+    loadWeeklySummary(): void {
+        this.patientService.getWeeklySummary(this.weeklyFrom, this.weeklyTo)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (data) => Promise.resolve().then(() => {
+                    this.weeklySummaryStats = data;
+                    this.cd.detectChanges();
+                }),
+                error: () => Promise.resolve().then(() => {
+                    this.weeklySummaryStats = null;
+                    this.cd.detectChanges();
+                })
+            });
+    }
+
+    downloadWeeklyReport(): void {
+        this.isExportingWeekly = true;
+        this.patientService.downloadWeeklyPdf(this.weeklyFrom, this.weeklyTo)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (blob: Blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const from = this.weeklyFrom.replace(/-/g, '');
+                    const to = this.weeklyTo.replace(/-/g, '');
+                    const ext = blob.type.includes('html') ? 'html' : 'pdf';
+                    a.download = `Reporte_Pacientes_${from}_${to}.${ext}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.isExportingWeekly = false;
+                    this.snackBar.open('Reporte grupal generado', 'OK', { duration: 4000 });
+                    this.loadWeeklySummary();
+                },
+                error: () => {
+                    // Backend endpoint not available — generate client-side summary PDF
+                    this.generateClientSideWeeklyPdf();
+                }
+            });
+    }
+
+    private async generateClientSideWeeklyPdf(): Promise<void> {
+        const stats = this.weeklySummaryStats;
+        const total = stats?.total_patients ?? this.patients.length;
+        const low = stats?.risk_distribution?.low ?? this.patients.filter(p => p.riskLevel === 'low').length;
+        const high   = stats?.risk_distribution?.high ?? this.patients.filter(p => p.riskLevel === 'high').length;
+        const moderate = total - low - high;
+
+        const rowsHtml = this.patients.map(p => `
+          <tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:6px 8px;font-size:11px;font-weight:600;">${p.full_name}</td>
+            <td style="padding:6px 8px;font-size:11px;text-align:center;">
+              <span style="padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:700;
+                background:${riskHelper.getRiskColor(p.riskLevel)}22;
+                color:${riskHelper.getRiskColor(p.riskLevel)};">
+                ${riskHelper.getRiskLabel(p.riskLevel)}
+              </span>
+            </td>
+            <td style="padding:6px 8px;font-size:11px;text-align:center;">${p.latest_pef || '—'}</td>
+            <td style="padding:6px 8px;font-size:11px;text-align:center;">${p.currentSpO2 ? p.currentSpO2+'%' : '—'}</td>
+          </tr>`).join('');
+
+        const html = `
+<div style="font-family:'Inter',Arial,sans-serif;color:#1e293b;background:white;">
+  <div style="background:linear-gradient(135deg,#0f766e,#14b8a6);padding:20px;border-radius:12px;margin-bottom:20px;">
+    <div style="color:white;font-size:20px;font-weight:800;">Reporte Grupal de Pacientes</div>
+    <div style="color:rgba(255,255,255,0.8);font-size:12px;margin-top:4px;">
+      ${this.weeklyFrom} — ${this.weeklyTo} · ${this.doctorName}
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+    <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:#16a34a;">${low}</div>
+      <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;">Estables</div>
+    </div>
+    <div style="background:#fefce8;border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:#ca8a04;">${moderate}</div>
+      <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;">Moderados</div>
+    </div>
+    <div style="background:#fef2f2;border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:#dc2626;">${high}</div>
+      <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;">Críticos</div>
+    </div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="background:#f8fafc;">
+        <th style="padding:8px;font-size:10px;text-align:left;font-weight:700;text-transform:uppercase;color:#64748b;">Paciente</th>
+        <th style="padding:8px;font-size:10px;text-align:center;font-weight:700;text-transform:uppercase;color:#64748b;">Riesgo</th>
+        <th style="padding:8px;font-size:10px;text-align:center;font-weight:700;text-transform:uppercase;color:#64748b;">PEF</th>
+        <th style="padding:8px;font-size:10px;text-align:center;font-weight:700;text-transform:uppercase;color:#64748b;">SpO₂</th>
+      </tr>
+    </thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+  <div style="margin-top:20px;padding-top:10px;border-top:1px solid #e2e8f0;text-align:center;">
+    <p style="font-size:9px;color:#94a3b8;margin:0;">AsmaSync Medical Dashboard — Total: ${total} pacientes</p>
+  </div>
+</div>`;
+
+        try {
+            const from = this.weeklyFrom.replace(/-/g, '');
+            const to   = this.weeklyTo.replace(/-/g, '');
+            await this.pdfExport.exportFromHtml(html, {
+                filename: `Reporte_Grupal_${from}_${to}.pdf`,
+                paperSize: this.config.paperSize
+            });
+            this.snackBar.open('Reporte grupal generado', 'OK', { duration: 3000 });
+        } catch (e) {
+            this.snackBar.open('Error al generar reporte grupal.', 'Cerrar', { duration: 4000 });
+        } finally {
+            this.isExportingWeekly = false;
+            this.cd.detectChanges();
         }
     }
 }

@@ -1,7 +1,7 @@
 <div class="intervention-container p-6 flex justify-center">
     <mat-card class="w-full max-w-3xl">
         <mat-card-header class="mb-4 border-b pb-4">
-            <mat-icon mat-card-avatar color="primary" class="scale-150 ml-2 mt-2">medical_services</mat-icon>
+            <mat-icon mat-card-avatar class="scale-150 ml-2 mt-2 brand-primary-text">medical_services</mat-icon>
             <mat-card-title class="ml-4 text-2xl">Registrar Nueva Intervención</mat-card-title>
             <mat-card-subtitle class="ml-4">Complete los detalles del seguimiento realizado</mat-card-subtitle>
         </mat-card-header>
@@ -78,9 +78,9 @@
 
                 <!-- Actions -->
                 <div class="form-actions flex justify-end gap-3 mt-4 pt-4 border-t">
-                    <button mat-button type="button" (click)="cancel()" [disabled]="loading">Cancelar</button>
-                    <button mat-raised-button color="primary" type="submit"
-                        [disabled]="!interventionForm.valid || loading" class="px-8">
+                    <button mat-button type="button" (click)="cancel()" [disabled]="loading" class="cancel-btn">Cancelar</button>
+                    <button mat-raised-button type="submit"
+                        [disabled]="!interventionForm.valid || loading" class="brand-primary-btn">
                         <span *ngIf="!loading">Guardar Intervención</span>
                         <span *ngIf="loading">Guardando...</span>
                     </button>

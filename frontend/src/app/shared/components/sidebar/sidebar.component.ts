@@ -32,18 +32,27 @@ export class SidebarComponent implements OnInit {
     unreadAlerts$: Observable<number>;
     isCollapsed = false;
 
-    navItems = [
-        { label: 'Dashboard', icon: 'grid_view', route: '/dashboard', exact: true },
+    _navItems = [
+        { label: 'Tablero', icon: 'grid_view', route: '/dashboard', exact: true },
         { label: 'Alertas', icon: 'notifications', route: '/dashboard/alerts', badge: true },
         { label: 'Pacientes', icon: 'people', route: '/dashboard/patients' },
-        { label: 'Reportes', icon: 'description', route: '/dashboard/reports' },
+        { label: 'Reportes', icon: 'description', route: '/dashboard/reports', roles: ['admin', 'doctor'] },
         { label: 'Calendario', icon: 'calendar_month', route: '/dashboard/calendar' },
+        { label: 'Hospital', icon: 'local_hospital', route: '/dashboard/hospital', roles: ['admin'] },
     ];
+
+    get navItems() {
+        const user = this.authService.currentUserValue;
+        const role = user?.role || 'patient';
+        return this._navItems.filter(item => !item.roles || item.roles.includes(role));
+    }
 
     footerItems = [
         { label: 'Ayuda', icon: 'help_outline', route: '/dashboard/help' },
         { label: 'Configuración', icon: 'settings', route: '/dashboard/settings' },
     ];
+
+    appVersion = '2.1.4-build.2026';
 
     constructor(
         private alertService: AlertService,

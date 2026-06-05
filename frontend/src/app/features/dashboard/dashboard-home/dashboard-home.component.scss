@@ -1,291 +1,351 @@
 /* ============================================
-   Dashboard Home — Clinical Premium Layout
+   Dashboard Home — Apple Premium Layout
    ============================================ */
-
 :host {
     display: block;
     min-height: 100%;
-    background-color: #f8fafc;
-    color: #0f172a;
-    transition: background-color 0.3s, color 0.3s;
+    background: transparent;
+    color: var(--text-primary);
 }
 
 /* ─── Container ─── */
 .dashboard-container {
-    padding: 18px 22px 80px;
+    padding: 24px 8px;
     min-height: 100%;
     position: relative;
     max-width: 100%;
 }
 
-/* ─── Dashboard Grid ─── */
+/* ─── Ambient Glow (Refined) ─── */
+.ambient-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+
+    .glow-circle {
+        position: absolute;
+        filter: blur(120px);
+        opacity: 0.15;
+        border-radius: 50%;
+        transition: all 1s ease;
+
+        &.primary {
+            width: 600px;
+            height: 600px;
+            background: var(--brand-primary);
+            top: -200px;
+            right: -100px;
+        }
+
+        &.accent {
+            width: 400px;
+            height: 400px;
+            background: #38bdf8;
+            bottom: -100px;
+            left: -50px;
+        }
+    }
+}
+
 .dashboard-content {
+    position: relative;
+    z-index: 1;
     padding-bottom: 96px;
 }
 
-/* Widget host — let it grow to fill its grid cell */
-app-dashboard-widget {
-    display: block;
-    height: 100%;
-    width: 100%;
-    min-height: 0;
-    /* allow grid to control height */
-    grid-column: span 1;
-}
-
-/* Chart Container Fix for Chart.js */
-::ng-deep .chart-container {
-    position: relative;
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 300px;
-}
-
-/* KPI Group — fills 100% height of row naturally */
-::ng-deep app-kpi-group-widget {
-    display: block;
-    height: 100%;
-    width: 100%;
-}
-
-/* Grid: use auto-rows so rows breathe */
+/* ─── Bento Grid ─── */
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: minmax(200px, auto);
+    grid-auto-rows: 140px;
+    grid-auto-flow: row dense;
     gap: 24px;
-}
 
-/* ============================================
-   CDK Drag & Drop — Premium Behavior
-   ============================================ */
-
-/* The drag PREVIEW card (flying element) */
-.cdk-drag-preview {
-    opacity: 0.92 !important;
-    border-radius: 20px !important;
-    background: rgba(255, 255, 255, 0.96) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    box-shadow:
-        0 32px 80px rgba(15, 23, 42, 0.2),
-        0 8px 24px rgba(15, 23, 42, 0.1),
-        0 0 0 1.5px rgba(0, 181, 173, 0.6) !important;
-    margin: 0 !important;
-    pointer-events: none !important;
-    overflow: hidden !important;
-    display: block !important;
-    z-index: 9999 !important;
-    transform: scale(1.02) rotate(0.5deg) !important;
-    cursor: grabbing !important;
-
-    /* CRITICAL: maintain original dimensions, don't let CDK collapse it */
-    box-sizing: border-box !important;
-}
-
-/* Placeholder (ghost outline where widget will land) */
-.cdk-drag-placeholder {
-    background: rgba(0, 181, 173, 0.05) !important;
-    border: 2px dashed rgba(0, 181, 173, 0.35) !important;
-    border-radius: 20px !important;
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) !important;
-
-    /* Hide all children inside placeholder */
-    &>* {
-        opacity: 0 !important;
+    /* Cuando hay arrastre activo, todos los items (excepto el
+       placeholder) reciben la transición de reordenamiento. */
+    &.cdk-drop-list-dragging {
+        app-widget-shell:not(.cdk-drag-placeholder) {
+            transition: transform 220ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        }
     }
 }
 
-/* Smooth sibling movement during drag */
-.cdk-drop-list-dragging .cdk-drag {
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+app-widget-shell {
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 
-/* Snap-back animation when dropped */
-.cdk-drag-animating {
-    transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.cdk-drop-list-dragging app-dashboard-widget:not(.cdk-drag-placeholder) {
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-/* Grab cursor when in edit mode */
-:host ::ng-deep .cdk-drag:not(.cdk-drag-disabled) {
-    cursor: grab;
-
-    &:active {
-        cursor: grabbing;
+/* ─── Responsive Bento Grid ─── */
+@media (max-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 140px;
+    }
+    
+    app-widget-shell.size-full,
+    app-widget-shell.size-full-large {
+        grid-column: span 2;
+    }
+    app-widget-shell.size-wide {
+        grid-column: span 2;
     }
 }
 
-/* ============================================
-   Staggered Entrance Animations
-   ============================================ */
-@keyframes widgetFadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(16px) scale(0.98);
+@media (max-width: 640px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: minmax(140px, auto);
+    }
+    
+    app-widget-shell.size-small,
+    app-widget-shell.size-medium,
+    app-widget-shell.size-wide,
+    app-widget-shell.size-large,
+    app-widget-shell.size-tall,
+    app-widget-shell.size-full,
+    app-widget-shell.size-full-large {
+        grid-column: span 1;
+        grid-row: span 1; /* Reset row span to 1 on small screens to prevent layout gaps */
+    }
+}
+
+/* ─── Vitals Strip (Apple Crystalline) ─── */
+.vitals-strip {
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    height: 72px;
+    
+    .vital-item {
+        display: flex;
+        flex-direction: column;
+        
+        .label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--brand-primary);
+            letter-spacing: -0.03em;
+            display: flex;
+            align-items: baseline;
+            
+            small {
+                font-size: 12px;
+                font-weight: 600;
+                margin-left: 2px;
+                color: var(--text-secondary);
+                opacity: 0.8;
+            }
+
+            &.status-good { color: var(--brand-success); }
+        }
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+    .divider {
+        width: 1px;
+        height: 28px;
+        background: linear-gradient(to bottom, transparent, var(--border-color), transparent);
     }
 }
 
-app-dashboard-widget {
-    animation: widgetFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
-app-dashboard-widget:nth-child(1) {
-    animation-delay: 0.04s;
-}
-
-app-dashboard-widget:nth-child(2) {
-    animation-delay: 0.08s;
-}
-
-app-dashboard-widget:nth-child(3) {
-    animation-delay: 0.12s;
-}
-
-app-dashboard-widget:nth-child(4) {
-    animation-delay: 0.16s;
-}
-
-app-dashboard-widget:nth-child(5) {
-    animation-delay: 0.20s;
-}
-
-app-dashboard-widget:nth-child(6) {
-    animation-delay: 0.24s;
-}
-
-app-dashboard-widget:nth-child(7) {
-    animation-delay: 0.28s;
-}
-
-app-dashboard-widget:nth-child(8) {
-    animation-delay: 0.32s;
-}
-
-app-dashboard-widget:nth-child(9) {
-    animation-delay: 0.36s;
-}
-
-app-dashboard-widget:nth-child(10) {
-    animation-delay: 0.40s;
-}
-
-app-dashboard-widget:nth-child(11) {
-    animation-delay: 0.44s;
-}
-
-app-dashboard-widget:nth-child(12) {
-    animation-delay: 0.48s;
-}
-
-/* ============================================
-   Add Widget Placeholder
-   ============================================ */
+/* ─── Add Widget Placeholder (Refined) ─── */
 .add-widget-placeholder {
     grid-column: span 4;
-    min-height: 160px;
-    border: 2px dashed #e2e8f0;
-    border-radius: 20px;
+    min-height: 180px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    color: #94a3b8;
+    gap: 12px;
+    color: var(--text-muted);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    background: transparent;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: rgba(0, 0, 0, 0.02) !important;
+    border: 2px dashed var(--border-color) !important;
 
-    mat-icon {
-        font-size: 32px;
-        width: 32px;
-        height: 32px;
+    .icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-sm);
+        transition: inherit;
+        
+        mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+            color: var(--text-muted);
+        }
     }
 
     &:hover {
-        border-color: #00B5AD;
-        color: #00B5AD;
-        background: rgba(0, 181, 173, 0.04);
-        transform: scale(1.005);
+        background: white !important;
+        border-color: var(--brand-primary) !important;
+        color: var(--brand-primary);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+
+        .icon-wrap {
+            background: var(--brand-primary);
+            mat-icon { color: white; }
+        }
     }
 }
 
-/* ============================================
-   Floating Edit FAB
-   ============================================ */
+/* ─── Floating Edit FAB (Apple Control Center) ─── */
 .edit-fab {
     position: fixed;
     bottom: 32px;
     right: 32px;
     z-index: 100;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px; /* Apple squircle-like */
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    background: linear-gradient(135deg, #00B5AD, #0EA5E9);
-    color: white;
-    box-shadow: 0 4px 20px rgba(0, 181, 173, 0.3);
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-lg);
 
     mat-icon {
-        font-size: 22px;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
     }
 
     &:hover {
-        transform: scale(1.12) translateY(-2px);
-        box-shadow: 0 10px 30px rgba(0, 181, 173, 0.45);
-    }
-
-    &:active {
-        transform: scale(0.94);
+        transform: scale(1.1) translateY(-4px);
+        box-shadow: var(--shadow-xl);
+        background: white;
     }
 
     &.is-active {
-        background: linear-gradient(135deg, #0d9488, #0284c7);
-        animation: fab-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        background: var(--brand-primary);
+        color: white;
+        border-color: var(--brand-primary);
+        box-shadow: 0 10px 30px rgba(0, 113, 227, 0.3);
     }
 }
 
-@keyframes fab-pulse {
+/* ─── Dark Mode Overrides ─── */
+:host-context(body.dark) {
+    .ambient-glow .glow-circle {
+        opacity: 0.1;
+        &.primary { background: #1e40af; }
+        &.accent { background: #0369a1; }
+    }
+    
+    .vitals-strip {
+        background: rgba(30, 41, 59, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        
+        .divider { background: rgba(255, 255, 255, 0.1); }
+        .value { color: white; }
+    }
+    
+    .add-widget-placeholder {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        
+        .icon-wrap {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    0%,
+        &:hover {
+            background: rgba(30, 41, 59, 0.8) !important;
+            border-color: var(--brand-primary) !important;
+            color: var(--brand-primary);
+
+            .icon-wrap {
+                background: var(--brand-primary) !important;
+                mat-icon { color: white; }
+            }
+        }
+    }
+    
+    .edit-fab:not(.is-active) {
+        background: rgba(30, 41, 59, 0.8);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.08);
+
+        &:hover {
+            background: rgba(30, 41, 59, 0.95);
+            color: var(--brand-primary);
+            border-color: var(--brand-primary);
+        }
+    }
+}
+
+/* ─── Animations ─── */
+@keyframes widgetFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+app-widget-shell {
+    animation: widgetFadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    @for $i from 1 through 12 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.05}s;
+        }
+    }
+}
+
+/* ─── Premium Micro-Animations (Wow Factor) ─── */
+@keyframes critical-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
     100% {
-        box-shadow: 0 0 0 0 rgba(0, 181, 173, 0.45), 0 4px 16px rgba(0, 0, 0, 0.15);
-    }
-
-    50% {
-        box-shadow: 0 0 0 12px rgba(0, 181, 173, 0), 0 4px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
 }
 
-/* ─── Menu Header ─── */
-.menu-header {
-    display: block;
-    padding: 8px 16px 4px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-/* ─── Dark Mode Drag Preview ─── */
-body.dark .cdk-drag-preview {
-    background: rgba(15, 23, 42, 0.96) !important;
-    box-shadow:
-        0 32px 80px rgba(0, 0, 0, 0.5),
-        0 0 0 1.5px rgba(0, 181, 173, 0.5) !important;
+.animate-critical-pulse {
+    animation: critical-pulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
+    border-color: rgba(239, 68, 68, 0.5) !important;
 }

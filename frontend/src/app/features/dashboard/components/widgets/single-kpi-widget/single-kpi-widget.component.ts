@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -7,8 +7,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 @Component({
     selector: 'app-single-kpi-widget',
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    <div class="h-full bg-white dark:bg-slate-800/80 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:border-brand-cyan/20 hover:-translate-y-1 active:scale-[0.97] transition-all duration-300 ease-out border border-slate-100 dark:border-slate-700 min-w-0 cursor-pointer min-h-[160px]">
+    <div class="h-full p-6 flex flex-col justify-between relative overflow-hidden group min-w-0 min-h-[160px] bg-transparent">
         <!-- Context Icon (Top Right, Faded) -->
         <div class="absolute top-4 right-4 opacity-20">
             <mat-icon [class]="'text-4xl ' + (config.color === 'blue' ? 'text-blue-500' : config.color === 'green' ? 'text-green-500' : config.color === 'red' ? 'text-red-500' : 'text-cyan-500')">
@@ -32,12 +33,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
         </div>
 
         <!-- Footer: Progress Bar -->
-        <div class="z-10 mt-auto pt-4">
+        <div class="z-10 mt-auto pt-4" *ngIf="config.progressValue !== undefined">
              <div class="flex justify-between text-[10px] text-gray-400 font-medium mb-1">
-                <span>Progreso Mensual</span>
-                <span>75%</span>
+                <span>{{ config.progressLabel || 'Progreso' }}</span>
+                <span>{{ config.progressValue }}%</span>
             </div>
-            <mat-progress-bar mode="determinate" value="75" class="rounded-full h-1.5"
+            <mat-progress-bar mode="determinate" [value]="config.progressValue" class="rounded-full h-1.5"
                 [color]="config.color === 'red' ? 'warn' : 'primary'">
             </mat-progress-bar>
         </div>

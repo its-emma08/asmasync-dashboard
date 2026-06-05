@@ -4,5 +4,8 @@ export interface DashboardMetrics {
     criticalAlerts: number;
     moderateRisk: number;
     interventionsToday: number;
+    adherenceRate: number | null;
+    averagePef: number;
     riskDistribution: { level: string; count: number }[];
+    predictorOnline?: boolean;
 }

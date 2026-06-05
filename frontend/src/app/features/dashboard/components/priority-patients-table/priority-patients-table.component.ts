@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Patient } from '../../../../core/models/patient.model';
 import { RelativeTimePipe } from '../../../../shared/pipes/relative-time.pipe';
 import { AgePipe } from '../../../../shared/pipes/age-pipe';
+import * as riskHelper from '../../../../core/utils/risk.helper';
 
 @Component({
     selector: 'app-priority-patients-table',
@@ -28,29 +29,36 @@ export class PriorityPatientsTableComponent {
     displayedColumns: string[] = ['fullName', 'riskLevel', 'pef', 'lastUpdate', 'tendencia', 'actions'];
 
     getRiskLabel(level: string): string {
-        switch (level) {
-            case 'red': return 'Crítico';
-            case 'yellow': return 'Moderado';
-            case 'green': return 'Bajo';
-            default: return level;
-        }
+        return riskHelper.getRiskLabel(level);
     }
 
     getRiskClass(level: string): string {
-        switch (level) {
-            case 'red': return 'bg-red-50 text-brand-coral border border-red-100';
-            case 'yellow': return 'bg-yellow-50 text-[#FFB547] border border-yellow-100';
-            case 'green': return 'bg-green-50 text-brand-green border border-green-100';
-            default: return 'bg-gray-50 text-gray-500';
-        }
+        return riskHelper.getRiskClass(level);
     }
 
-    getTrendIcon(trend: string): string {
-        return 'arrow_downward'; // Mock logic, ideally comes from backend/model
+    /** Derives trend from real PEF data instead of a mock value. */
+    getTrend(latest: number, best: number): 'up' | 'stable' | 'down' {
+        if (!latest || !best) return 'down';
+        const pct = (latest / best) * 100;
+        if (pct >= 80) return 'up';
+        if (pct >= 50) return 'stable';
+        return 'down';
     }
 
-    getTrendColor(trend: string): string {
-        return 'text-brand-coral'; // Mock logic
+    getTrendIcon(latest: number, best: number): string {
+        const t = this.getTrend(latest, best);
+        return t === 'up' ? 'trending_up' : t === 'stable' ? 'trending_flat' : 'trending_down';
+    }
+
+    getTrendColor(latest: number, best: number): string {
+        const t = this.getTrend(latest, best);
+        return t === 'up' ? 'text-brand-green' : t === 'stable' ? 'text-yellow-500' : 'text-brand-coral';
+    }
+
+    getTrendLabel(latest: number, best: number): string {
+        if (!best || best === 0) return '--';
+        const pct = Math.round((latest / best) * 100);
+        return `${pct}%`;
     }
 
     getPefDrop(current: number, best: number): number {

@@ -1,175 +1,200 @@
-<div class="page-scroll-container">
-    <div class="dashboard-container">
+<app-skeleton-dashboard *ngIf="isLoading"></app-skeleton-dashboard>
 
-        <!-- Loading State -->
-        <!-- Loading State (Skeleton) -->
-        <div *ngIf="isLoading" class="dashboard-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <app-skeleton-card class="h-40" *ngFor="let i of [1,2,3,4]"></app-skeleton-card>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                <app-skeleton-card class="h-96 col-span-2"></app-skeleton-card>
-                <app-skeleton-card class="h-96"></app-skeleton-card>
-            </div>
+<div class="page-scroll-container" *ngIf="!isLoading">
+    <div class="dashboard-container relative" [class]="'status-' + alertService.healthStatus()">
+        
+        <!-- Ambient Atmosphere Layer (Only when loaded) -->
+        <div class="ambient-glow">
+            <div class="glow-circle primary"></div>
+            <div class="glow-circle accent"></div>
         </div>
 
-        <!-- Error State -->
-        <div *ngIf="!isLoading && !dataReady"
-            class="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-3xl border border-dashed border-slate-300">
-            <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                <mat-icon class="text-slate-300 scale-150 transform">wifi_off</mat-icon>
+        <!-- Error State (Premium Glass Card) -->
+        <div *ngIf="!dataReady"
+            class="flex flex-col items-center justify-center min-h-[400px] text-center p-12 glass-card border-dashed">
+            <div class="w-20 h-20 bg-gray-100/50 rounded-full flex items-center justify-center mb-6 shadow-sm">
+                <mat-icon class="text-gray-400 scale-150">cloud_off</mat-icon>
             </div>
-            <h3 class="text-xl font-bold text-slate-700 mb-2">No se pudo conectar</h3>
-            <p class="text-slate-500 max-w-sm mx-auto mb-8">Verifica tu conexión a internet o asegúrate de que el
-                servidor
-                esté activo.</p>
-            <button mat-flat-button color="primary" class="rounded-full px-8 py-6" (click)="ngOnInit()">
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Conexión en pausa</h3>
+            <p class="text-gray-500 max-w-sm mx-auto mb-8 text-sm">No pudimos sincronizar los datos de salud. Verifica tu conexión o intenta de nuevo.</p>
+            <button mat-flat-button color="primary" class="rounded-2xl px-8 py-6 h-auto font-bold" (click)="loadDashboardData()">
                 <mat-icon class="mr-2">refresh</mat-icon>
-                Reintentar Conexión
+                Reintentar Ahora
             </button>
         </div>
 
         <!-- Dashboard Content -->
-        <div *ngIf="dataReady" class="dashboard-content">
+        <div *ngIf="dataReady" class="dashboard-content animate-fade-in">
+
+            <!-- Apple-Style Page Header -->
+            <div class="mb-10 px-2 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <div class="header-left">
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] mb-3 block">CENTRO BIOMÉDICO</span>
+                    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">Panel de Control</h1>
+                    
+                    <div class="flex items-center gap-4 mt-4 text-[13px] font-semibold">
+                        <div class="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-full border border-white/40 shadow-xs">
+                            <span class="text-gray-400 font-bold uppercase text-[9px] tracking-wider">Paciente:</span>
+                            <span class="text-gray-700 dark:text-gray-200">{{ urgentPatients[0]?.full_name || recentPatients[0]?.full_name || 'Vista General' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-full border border-white/40 shadow-xs" [class.animate-critical-pulse]="alertService.healthStatus() === 'Red'">
+                            <span class="text-gray-400 font-bold uppercase text-[9px] tracking-wider">Protocolo:</span>
+                            <span class="font-bold flex items-center gap-1.5"
+                                [class]="alertService.healthStatus() === 'Red' ? 'text-red-500' : 'text-green-500'">
+                                <span class="w-2 h-2 rounded-full" [class]="alertService.healthStatus() === 'Red' ? 'bg-red-500' : 'bg-green-500'"></span>
+                                {{ alertService.healthStatus() === 'Red' ? 'Emergencia' : 'Estable' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consolidated Vitals Strip (Refined Apple Look) -->
+                <div class="vitals-strip glass-card px-8 py-4 flex items-center gap-10">
+                    <div class="vital-item">
+                        <span class="label">SpO2</span>
+                        <span class="value">{{ urgentPatients[0]?.currentSpO2 || recentPatients[0]?.currentSpO2 || '--' }}<small *ngIf="urgentPatients[0]?.currentSpO2 || recentPatients[0]?.currentSpO2">%</small></span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="vital-item">
+                        <span class="label">Pico Flujo</span>
+                        <span class="value">{{ urgentPatients[0]?.latest_pef || recentPatients[0]?.latest_pef || '--' }}<small *ngIf="urgentPatients[0]?.latest_pef || recentPatients[0]?.latest_pef">L/m</small></span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="vital-item">
+                        <span class="label">Humedad</span>
+                        <span class="value">{{ weather?.humidity ?? '--' }}<small *ngIf="weather?.humidity != null">%</small></span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="vital-item">
+                        <span class="label">Aire</span>
+                        <span class="value"
+                            [class.text-green-500]="weather?.riskLevel === 'Low'"
+                            [class.text-yellow-500]="weather?.riskLevel === 'Medium'"
+                            [class.text-red-500]="weather?.riskLevel === 'High'">
+                            {{ weather?.riskLevel === 'Low' ? 'Buena' : weather?.riskLevel === 'Medium' ? 'Moderada' : weather?.riskLevel === 'High' ? 'Alta' : '--' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
 
             <!-- Bento Grid Engine -->
-            <div class="bento-grid grid-flow-row-dense" cdkDropList cdkDropListOrientation="mixed"
+            <div class="bento-grid" cdkDropList cdkDropListOrientation="mixed"
                 (cdkDropListDropped)="drop($event)" [cdkDropListDisabled]="!(editMode$ | async)">
 
-                <app-dashboard-widget *ngFor="let widget of widgets$ | async; trackBy: trackWidget" [widget]="widget"
-                    [editMode]="(editMode$ | async) || false" (delete)="deleteWidget($event)"
-                    (resize)="resizeWidget($event)" (updateSize)="onWidgetResize($event)" cdkDrag
-                    [cdkDragDisabled]="!(editMode$ | async)" [style.grid-column]="'span ' + widget.colSpan"
-                    [style.grid-row]="'span ' + (widget.rowSpan || 1)">
+                <app-widget-shell *ngFor="let widget of widgets$ | async; trackBy: trackWidget"
+                    [editMode]="(editMode$ | async) || false" 
+                    [currentSize]="widget.size"
+                    [widgetType]="widget.type"
+                    (deleted)="deleteWidget(widget.id)"
+                    cdkDrag
+                    [cdkDragDisabled]="!(editMode$ | async)">
 
                     <!-- Widget Resolver -->
-                    <ng-container [ngSwitch]="widget.type">
-                        <ng-container *ngSwitchCase="'kpi-group'">
-                            <app-kpi-group-widget *ngIf="hasPatients" [kpis]="kpis"
-                                [colSpan]="widget.colSpan"></app-kpi-group-widget>
-                            <div *ngIf="!hasPatients"
-                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
-                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
-                            </div>
-                        </ng-container>
-                        <ng-container *ngSwitchCase="'alerts-panel'">
-                            <app-alerts-widget *ngIf="hasPatients" [patients]="urgentPatients"
-                                (resolve)="markAsResolved($event)" (markAll)="markAllAsResolved()"></app-alerts-widget>
-                            <div *ngIf="!hasPatients"
-                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
-                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
-                            </div>
-                        </ng-container>
-                        <ng-container *ngSwitchCase="'patients-table'">
-                            <app-patients-table-widget *ngIf="hasPatients"
-                                [patients]="recentPatients"></app-patients-table-widget>
-                            <div *ngIf="!hasPatients"
-                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
-                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
-                            </div>
-                        </ng-container>
-                        <ng-container *ngSwitchCase="'trend-chart'">
-                            <app-trend-widget *ngIf="hasPatients" [data]="trendChartData"
-                                [options]="trendChartOptions"></app-trend-widget>
-                            <div *ngIf="!hasPatients"
-                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
-                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
-                            </div>
-                        </ng-container>
-                        <ng-container *ngSwitchCase="'activity-list'">
-                            <app-activity-widget *ngIf="hasPatients"
-                                [activities]="recentActivity"></app-activity-widget>
-                            <div *ngIf="!hasPatients"
-                                class="flex flex-col items-center justify-center h-full w-full opacity-50">
-                                <mat-icon class="mb-2">hourglass_empty</mat-icon><span>Esperando datos...</span>
-                            </div>
-                        </ng-container>
-                        <app-weather-widget *ngSwitchCase="'weather'"></app-weather-widget>
-                        <app-calendar-widget *ngSwitchCase="'calendar'"></app-calendar-widget>
-                        <app-quick-actions-widget *ngSwitchCase="'quick-actions'"></app-quick-actions-widget>
-                        <app-medication-widget *ngSwitchCase="'medication'"></app-medication-widget>
-                        <app-device-status-widget *ngSwitchCase="'device-status'"></app-device-status-widget>
-                        <app-act-score-widget *ngSwitchCase="'act-score'"></app-act-score-widget>
-                        <app-single-kpi-widget *ngSwitchCase="'single-kpi'"
-                            [config]="widget.config"></app-single-kpi-widget>
-                        <app-birthdays-widget *ngSwitchCase="'birthdays'"></app-birthdays-widget>
-                        <app-reminders-widget *ngSwitchCase="'reminders'"></app-reminders-widget>
-                        <app-shortcuts-widget *ngSwitchCase="'shortcuts'"></app-shortcuts-widget>
-                    </ng-container>
-                </app-dashboard-widget>
+                    @switch (widget.type) {
+                        @case ('kpi-group') {
+                            @if (hasPatients) {
+                                <app-kpi-group-widget [kpis]="kpis"></app-kpi-group-widget>
+                            } @else {
+                                <app-empty-state icon="analytics" title="Sin métricas hoy"
+                                    message="Los indicadores clave aparecerán cuando haya pacientes registrados.">
+                                </app-empty-state>
+                            }
+                        }
+                        @case ('alerts-panel') {
+                            @if (hasPatients) {
+                                <app-alerts-widget [patients]="urgentPatients"
+                                    (resolve)="markAsResolved($event)" (markAll)="markAllAsResolved()"></app-alerts-widget>
+                            } @else {
+                                <app-empty-state icon="notifications_paused" title="Todo bajo control"
+                                    message="No hay alertas críticas en este momento.">
+                                </app-empty-state>
+                            }
+                        }
+                        @case ('patients-table') {
+                            @if (hasPatients) {
+                                <app-patients-table-widget [patients]="recentPatients"></app-patients-table-widget>
+                            } @else {
+                                <app-empty-state icon="person_search" title="Lista vacía"
+                                    message="Comienza agregando tu primer paciente en el sistema.">
+                                </app-empty-state>
+                            }
+                        }
+                        @case ('trend-chart') {
+                            @if (hasPatients) {
+                                <app-trend-widget [data]="trendChartData" [options]="trendChartOptions" (periodChange)="onTrendPeriodChange($event)"></app-trend-widget>
+                            } @else {
+                                <app-empty-state icon="show_chart" title="Sin tendencias"
+                                    message="Necesitamos datos históricos para proyectar la salud de tus pacientes.">
+                                </app-empty-state>
+                            }
+                        }
+                        @case ('activity-list') {
+                            @if (hasPatients) {
+                                <app-activity-widget [activities]="recentActivity"></app-activity-widget>
+                            } @else {
+                                <app-empty-state icon="history" title="Sin actividad"
+                                    message="Las acciones y cambios se verán reflejados en este panel cronológico.">
+                                </app-empty-state>
+                            }
+                        }
+                        @case ('weather') { <app-weather-widget></app-weather-widget> }
+                        @case ('calendar') { <app-calendar-widget></app-calendar-widget> }
+                        @case ('quick-actions') { <app-quick-actions-widget></app-quick-actions-widget> }
+                        @case ('medication') { <app-medication-widget></app-medication-widget> }
+                        @case ('device-status') { <app-device-status-widget></app-device-status-widget> }
+                        @case ('act-score') { <app-act-score-widget></app-act-score-widget> }
+                        @case ('single-kpi') { <app-single-kpi-widget [config]="getWidgetConfig(widget)"></app-single-kpi-widget> }
+                        @case ('birthdays') { <app-birthdays-widget></app-birthdays-widget> }
+                        @case ('reminders') { <app-reminders-widget></app-reminders-widget> }
+                        @case ('shortcuts') { <app-shortcuts-widget></app-shortcuts-widget> }
+                    }
+                </app-widget-shell>
 
-                <!-- Add Widget Placeholder (Edit Mode) -->
-                <div *ngIf="editMode$ | async" class="add-widget-placeholder" [matMenuTriggerFor]="addWidgetMenu">
-                    <mat-icon>add_circle_outline</mat-icon>
-                    <span>Agregar Widget</span>
+                <!-- Add Widget Placeholder (Refined) -->
+                <div *ngIf="editMode$ | async" class="add-widget-placeholder glass-card" [matMenuTriggerFor]="addWidgetMenu">
+                    <div class="icon-wrap">
+                        <mat-icon>add</mat-icon>
+                    </div>
+                    <span>Nuevo Widget</span>
                 </div>
             </div>
         </div>
 
-        <!-- Floating Edit Button -->
+        <!-- Floating Edit Button (Apple Control Style) -->
         <button (click)="toggleEdit()" class="edit-fab" [class.is-active]="editMode$ | async"
-            matTooltip="Editar Dashboard" matTooltipPosition="left">
+            matTooltip="Modo Edición" matTooltipPosition="left">
             <mat-icon>
-                {{ (editMode$ | async) ? 'check_circle' : 'edit' }}
+                {{ (editMode$ | async) ? 'done' : 'dashboard_customize' }}
             </mat-icon>
         </button>
 
-        <!-- Add Widget Menu -->
-        <!-- Add Widget Menu -->
-        <mat-menu #addWidgetMenu="matMenu" xPosition="before" class="widget-menu">
-            <span class="menu-header">Widgets Disponibles</span>
-
-            <!-- Section: Pacientes -->
+        <!-- Menus remain the same logic, styles handled by global glass-menu -->
+        <mat-menu #addWidgetMenu="matMenu" xPosition="before" class="glass-menu">
+            <div class="px-4 py-2 border-b border-gray-100/50">
+                <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">DISPONIBLES</span>
+            </div>
             <button mat-menu-item [matMenuTriggerFor]="patientsMenu">
                 <mat-icon class="text-blue-500">groups</mat-icon> Pacientes
             </button>
-            <mat-menu #patientsMenu="matMenu">
-                <span class="menu-header">KPIs Individuales</span>
+            <mat-menu #patientsMenu="matMenu" class="glass-menu">
                 <button mat-menu-item (click)="addWidget('single-kpi', 'total')">Total Pacientes</button>
                 <button mat-menu-item (click)="addWidget('single-kpi', 'active')">Pacientes Activos</button>
                 <button mat-menu-item (click)="addWidget('single-kpi', 'risk')">Alto Riesgo</button>
-                <button mat-menu-item (click)="addWidget('single-kpi', 'controlled')">Controlados</button>
-                <mat-divider></mat-divider>
-                <button mat-menu-item (click)="addWidget('kpi-group')">Grupo Completo (4x)</button>
-                <mat-divider></mat-divider>
-                <button mat-menu-item (click)="addWidget('patients-table')">Lista de Pacientes</button>
+                <button mat-menu-item (click)="addWidget('kpi-group')">Resumen General</button>
             </mat-menu>
-
-            <!-- Section: Alertas y Clinica -->
             <button mat-menu-item [matMenuTriggerFor]="clinicalMenu">
                 <mat-icon class="text-red-500">medical_services</mat-icon> Clínica
             </button>
-            <mat-menu #clinicalMenu="matMenu">
+            <mat-menu #clinicalMenu="matMenu" class="glass-menu">
                 <button mat-menu-item (click)="addWidget('alerts-panel')">Panel de Alertas</button>
                 <button mat-menu-item (click)="addWidget('medication')">Medicación</button>
             </mat-menu>
-
-            <!-- Section: Gráficas -->
-            <button mat-menu-item [matMenuTriggerFor]="chartsMenu">
-                <mat-icon class="text-teal-500">show_chart</mat-icon> Análisis
+            <button mat-menu-item (click)="resetLayout()" class="text-red-500 border-t border-gray-100/50 mt-1">
+                <mat-icon class="text-red-500">restart_alt</mat-icon> Restaurar Diseño
             </button>
-            <mat-menu #chartsMenu="matMenu">
-                <button mat-menu-item (click)="addWidget('trend-chart')">Tendencia General</button>
-                <button mat-menu-item (click)="addWidget('activity-list')">Actividad Reciente</button>
-            </mat-menu>
-
-            <!-- Section: Utilidades -->
-            <button mat-menu-item [matMenuTriggerFor]="utilsMenu">
-                <mat-icon class="text-amber-500">category</mat-icon> Utilidades
-            </button>
-            <mat-menu #utilsMenu="matMenu">
-                <button mat-menu-item (click)="addWidget('quick-actions')">Acciones Rápidas</button>
-                <button mat-menu-item (click)="showFeatureComingSoon('Clima y Aire')">Clima y Aire</button>
-                <button mat-menu-item (click)="showFeatureComingSoon('Calendario')">Calendario</button>
-                <mat-divider></mat-divider>
-                <button mat-menu-item (click)="triggerDemoAlert()">
-                    <mat-icon class="text-purple-500">notifications_active</mat-icon> Simular Alerta
-                </button>
-                <button mat-menu-item (click)="resetLayout()" class="text-red-500">
-                    <mat-icon color="warn">restart_alt</mat-icon> Restaurar Diseño
-                </button>
-            </mat-menu>
         </mat-menu>
 
     </div>
 </div>
+
+<!-- Emergency protocol is opened as a dialog in the effect() in dashboard-home.component.ts -->

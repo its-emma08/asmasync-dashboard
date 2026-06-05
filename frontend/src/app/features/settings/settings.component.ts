@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged, catchError, take } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
+import { throwError, Subject, of } from 'rxjs';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { StorageService } from '../../core/services/storage.service';
@@ -16,30 +16,39 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
+import { PatientService } from '../../core/services/patient.service';
 import { EditProfileModalComponent } from './modals/edit-profile-modal.component';
 import { ChangePasswordModalComponent } from './modals/change-password-modal.component';
 import { TwoFactorModalComponent } from './modals/two-factor-modal.component';
+import { User, UserSettings, AuditLog, UserSession, IoTDevice } from '../../core/models/settings.types';
+import { ChangeDetectorRef } from '@angular/core';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-settings',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
     CommonModule, FormsModule, MatSlideToggleModule,
     MatButtonModule, MatIconModule, MatDividerModule, MatSelectModule,
     MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressBarModule, MatProgressSpinnerModule,
-    MatDialogModule, MatTableModule
+    MatDialogModule, MatTableModule, MatTooltipModule
   ],
   template: `
     <div class="settings-layout">
-
-      <!-- ======= SIDEBAR (Frosted Glass) ======= -->
-      <nav class="settings-sidebar">
-        <div class="sidebar-header mt-4">
-          <div class="sidebar-logo shadow-md">
-            <mat-icon>lungs</mat-icon>
+      <!-- ======= SIDEBAR (Apple Glass) ======= -->
+      <nav class="settings-sidebar glass-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo-container">
+            <div class="sidebar-logo shadow-apple">
+              <mat-icon>respiratory_rate</mat-icon>
+            </div>
           </div>
-          <h2 class="dark:text-white">Configuración</h2>
+          <h2 class="dark:text-white">Ajustes</h2>
         </div>
 
         <div class="sidebar-nav">
@@ -47,321 +56,336 @@ import { TwoFactorModalComponent } from './modals/two-factor-modal.component';
             (click)="setTab(i)"
             class="nav-item"
             [class.active]="activeTab === i">
-            <mat-icon>{{ tab.icon }}</mat-icon>
+            <div class="nav-icon-wrapper shadow-sm" [style.background-color]="getTabColor(i)">
+              <mat-icon>{{ tab.icon }}</mat-icon>
+            </div>
             <span>{{ tab.label }}</span>
           </button>
-        </div>
-
-        <div class="sidebar-footer">
-          <p class="version-text">AsmaSync v2.4.0</p>
         </div>
       </nav>
 
       <!-- ======= CONTENT PANEL ======= -->
       <main class="settings-content page-scroll-container">
-
         <!-- ===== CUENTA ===== -->
         <section *ngIf="activeTab === 0" class="settings-section animate-in">
           <div class="section-header">
             <h3 class="dark:text-white">Cuenta</h3>
-            <p>Administra tu perfil y datos de acceso</p>
+            <p>Administra tu perfil profesional y credenciales de acceso</p>
           </div>
 
           <!-- Profile Card -->
-          <div class="glass-card profile-card">
-            <div class="profile-avatar">{{ userInitials }}</div>
-            <div class="profile-info" *ngIf="currentUser">
-              <h4>{{ currentUser.full_name || 'Usuario' }}</h4>
-              <p>{{ currentUser.email }}</p>
-              <span class="role-badge">{{ currentUser.role === 'admin' ? 'Administrador' : 'Médico' }}</span>
+          <div class="glass-card-premium profile-card-apple mb-8">
+            <div class="profile-avatar shadow-lg">{{ userInitials }}</div>
+            <div class="profile-info-apple" *ngIf="currentUser">
+              <h4 class="text-xl font-bold">{{ currentUser.full_name || 'Usuario' }}</h4>
+              <p class="text-sm opacity-60">{{ currentUser.email }}</p>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                <span class="apple-badge primary">{{ currentUser.role === 'admin' ? 'Administrador' : 'Médico' }}</span>
+                <span class="apple-badge secondary">Especialista</span>
+                <span class="apple-badge" *ngIf="currentUser.doctor_code"
+                  style="background:rgba(0,122,255,0.12);color:#007AFF;font-family:monospace;letter-spacing:0.05em;cursor:pointer;"
+                  title="Código para que tus pacientes te vinculen"
+                  (click)="copyDoctorCode()">
+                  <mat-icon style="font-size:13px;height:13px;width:13px;margin-right:3px;vertical-align:middle;">badge</mat-icon>
+                  {{ currentUser.doctor_code }}
+                </span>
+              </div>
             </div>
-            <div class="profile-info" *ngIf="!currentUser">
-              <mat-spinner diameter="20"></mat-spinner>
+            <div class="profile-actions-apple">
+              <button mat-flat-button color="primary" class="apple-btn-pill" (click)="openEditProfile()">
+                <mat-icon>edit</mat-icon> Editar Perfil
+              </button>
             </div>
-            <button mat-stroked-button class="edit-profile-btn" (click)="openEditProfile()">Editar Perfil</button>
           </div>
 
-          <div class="glass-card">
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-blue"><mat-icon>lock</mat-icon></div>
-                <div>
-                  <p class="setting-title">Contraseña</p>
-                  <p class="setting-desc">Última actualización hace 30 días</p>
+          <!-- iOS-Style Security Group -->
+          <div class="apple-group-label">Seguridad y Datos</div>
+          <div class="glass-card-premium p-0 overflow-hidden mb-8">
+            <div class="apple-list-row" (click)="openChangePassword()">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-blue-500"><mat-icon>lock</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Contraseña</p>
                 </div>
               </div>
-              <button mat-stroked-button class="action-btn" (click)="openChangePassword()">Cambiar</button>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400">Hace 30 días</span>
+                <mat-icon class="apple-chevron">chevron_right</mat-icon>
+              </div>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-green"><mat-icon>security</mat-icon></div>
-                <div>
-                  <p class="setting-title">Verificación en 2 Pasos (2FA)</p>
-                  <p class="setting-desc">Protección adicional para tu cuenta</p>
+            
+            <div class="apple-list-divider"></div>
+            
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-green-500"><mat-icon>security</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Verificación en 2 pasos</p>
                 </div>
               </div>
               <mat-slide-toggle [(ngModel)]="settings.twoFactor" color="primary" (ngModelChange)="toggle2FA()"></mat-slide-toggle>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-orange"><mat-icon>download</mat-icon></div>
-                <div>
-                  <p class="setting-title">Exportar Datos</p>
-                  <p class="setting-desc">Descarga una copia de toda tu información</p>
+
+            <div class="apple-list-divider"></div>
+            
+            <div class="apple-list-row" (click)="exportData()">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-orange-500"><mat-icon>download</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Exportar Datos (.json)</p>
                 </div>
               </div>
-              <button mat-stroked-button class="action-btn" (click)="exportData()">Exportar</button>
+              <mat-icon class="apple-chevron">file_download</mat-icon>
             </div>
           </div>
         </section>
 
         <!-- ===== NOTIFICACIONES ===== -->
         <section *ngIf="activeTab === 1" class="settings-section animate-in">
-          <div class="section-header mt-4">
+          <div class="section-header">
             <h3 class="dark:text-white">Notificaciones</h3>
-            <p>Controla cuándo y cómo recibes alertas</p>
+            <p>Elige cómo quieres recibir las actualizaciones críticas</p>
           </div>
 
-          <div class="glass-card">
-            <h5 class="card-subtitle">Canales de Notificación</h5>
-            <div class="notification-channels">
-              <div class="channel-item">
-                <div class="channel-icon"><mat-icon>notifications</mat-icon></div>
-                <div class="channel-info">
-                  <p class="setting-title">Push</p>
-                  <p class="setting-desc">Notificaciones del navegador</p>
+          <div class="glass-card-premium p-0 mb-6">
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-blue"><mat-icon>notifications</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Notificaciones Push</p>
+                  <p class="apple-row-desc">Alertas instantáneas en el navegador</p>
                 </div>
-                <mat-slide-toggle [(ngModel)]="settings.pushNotifications" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
               </div>
-              <div class="channel-item">
-                <div class="channel-icon"><mat-icon>email</mat-icon></div>
-                <div class="channel-info">
-                  <p class="setting-title">Email</p>
-                  <p class="setting-desc">Resumen de alertas al correo</p>
+              <mat-slide-toggle [(ngModel)]="settings.pushNotifications" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
+            </div>
+            <div class="apple-list-divider"></div>
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-indigo"><mat-icon>email</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Alertas por Correo</p>
+                  <p class="apple-row-desc">Resúmenes diarios y semanales</p>
                 </div>
-                <mat-slide-toggle [(ngModel)]="settings.emailAlerts" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
               </div>
-              <div class="channel-item">
-                <div class="channel-icon"><mat-icon>sms</mat-icon></div>
-                <div class="channel-info">
-                  <p class="setting-title">SMS</p>
-                  <p class="setting-desc">Alertas críticas vía mensaje de texto</p>
+              <mat-slide-toggle [(ngModel)]="settings.emailAlerts" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
+            </div>
+            <div class="apple-list-divider"></div>
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-teal"><mat-icon>sms</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Mensajes SMS</p>
+                  <p class="apple-row-desc">Solo para situaciones de emergencia</p>
                 </div>
-                <mat-slide-toggle [(ngModel)]="settings.smsAlerts" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
               </div>
+              <mat-slide-toggle [(ngModel)]="settings.smsAlerts" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
             </div>
           </div>
 
-          <div class="glass-card">
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-amber"><mat-icon>volume_up</mat-icon></div>
-                <div>
-                  <p class="setting-title">Sonido de Alerta</p>
-                  <p class="setting-desc">Reproducir un sonido al recibir alertas críticas</p>
+          <div class="glass-card-premium p-0">
+             <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-amber"><mat-icon>volume_up</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Sonido de alta prioridad</p>
+                  <p class="apple-row-desc">Activar audio para niveles críticos</p>
                 </div>
               </div>
-              <mat-slide-toggle [(ngModel)]="settings.alertSound" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
+              <mat-slide-toggle [(ngModel)]="settings.alertSound" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-red"><mat-icon>priority_high</mat-icon></div>
-                <div>
-                  <p class="setting-title">Solo Alertas Críticas</p>
-                  <p class="setting-desc">Filtrar alertas de baja prioridad</p>
+            <div class="apple-list-divider"></div>
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-red"><mat-icon>priority_high</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Solo Críticas</p>
+                  <p class="apple-row-desc">Ignorar niveles verde y amarillo</p>
                 </div>
               </div>
-              <mat-slide-toggle [(ngModel)]="settings.criticalOnly" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
-            </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-indigo"><mat-icon>timer</mat-icon></div>
-                <div>
-                  <p class="setting-title">Frecuencia de Resumen</p>
-                  <p class="setting-desc">Con qué frecuencia enviar reportes por email</p>
-                </div>
-              </div>
-              <mat-select [(value)]="settings.alertFrequency" class="select-compact" (selectionChange)="save()">
-                <mat-option value="realtime">Tiempo real</mat-option>
-                <mat-option value="hourly">Cada hora</mat-option>
-                <mat-option value="daily">Diario</mat-option>
-                <mat-option value="weekly">Semanal</mat-option>
-              </mat-select>
+              <mat-slide-toggle [(ngModel)]="settings.criticalOnly" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
             </div>
           </div>
         </section>
 
         <!-- ===== DISPOSITIVOS IoT ===== -->
         <section *ngIf="activeTab === 2" class="settings-section animate-in">
-          <div class="section-header mt-4">
-            <h3 class="dark:text-white">Dispositivos IoT</h3>
-            <p>Monitorea el estado de los dispositivos médicos conectados</p>
+          <div class="section-header">
+            <h3 class="dark:text-white">Dispositivos Médicos</h3>
+            <p>Estado de la red de monitoreo IoT</p>
           </div>
 
-          <div class="devices-grid">
-            <div *ngFor="let device of iotDevices" class="device-card glass-card">
-              <div class="device-header">
-                <div class="device-icon" [class]="device.statusClass">
+          <!-- Loading state -->
+          <div *ngIf="isDevicesLoading" class="flex items-center justify-center p-12">
+            <mat-spinner diameter="32"></mat-spinner>
+          </div>
+
+          <div class="devices-grid-apple" *ngIf="!isDevicesLoading">
+            <div *ngFor="let device of iotDevices" class="glass-card-premium device-card-apple">
+              <div class="device-header-apple">
+                <div class="device-icon-apple" [class]="device.statusClass">
                   <mat-icon>{{ device.icon }}</mat-icon>
                 </div>
-                <div class="device-status-dot" [class]="device.dotClass"></div>
-              </div>
-              <h4 class="device-name">{{ device.name }}</h4>
-              <p class="device-model">{{ device.model }}</p>
-              <div class="device-meta">
-                <div class="device-meta-item">
-                  <mat-icon>battery_std</mat-icon>
-                  <span>{{ device.battery }}%</span>
-                  <mat-progress-bar [value]="device.battery" [color]="device.battery > 20 ? 'primary' : 'warn'"
-                    class="battery-bar"></mat-progress-bar>
+                <div class="status-indicator">
+                   <div class="status-dot-apple" [class]="device.dotClass"></div>
+                   <span>{{ device.status }}</span>
                 </div>
-                <div class="device-meta-item">
-                  <mat-icon>sync</mat-icon>
+              </div>
+              <h4>{{ device.name }}</h4>
+              <p class="device-model-apple">{{ device.model }}</p>
+
+              <div class="device-metrics-apple">
+                <div class="metric-item">
+                  <mat-icon>battery_charging_full</mat-icon>
+                  <span>{{ device.battery }}%</span>
+                </div>
+                <div class="metric-item">
+                  <mat-icon>history</mat-icon>
                   <span>{{ device.lastSync }}</span>
                 </div>
               </div>
-              <div class="device-patient" *ngIf="device.patient">
+
+              <div class="patient-tag-apple" *ngIf="device.patient">
                 <mat-icon>person</mat-icon>
                 <span>{{ device.patient }}</span>
               </div>
             </div>
 
-            <!-- Add Device Card -->
-            <div class="device-card glass-card add-device" (click)="save()">
-              <mat-icon>add_circle_outline</mat-icon>
-              <span>Vincular Dispositivo</span>
+            <!-- Empty state when no devices -->
+            <div *ngIf="iotDevices.length === 0" class="glass-card-premium iot-empty-state">
+              <div class="iot-empty-icon">
+                <mat-icon>sensors_off</mat-icon>
+              </div>
+              <h4>Sin dispositivos vinculados</h4>
+              <p>Los sensores se sincronizan automáticamente cuando un paciente conecta su dispositivo desde la app móvil.</p>
+              <div *ngIf="connectedPatientsCount > 0" class="iot-patient-count">
+                <mat-icon>groups</mat-icon>
+                <span>{{ connectedPatientsCount }} paciente(s) con datos activos</span>
+              </div>
             </div>
+
+            <!-- Add Device -->
+            <button class="glass-card-premium add-device-apple" routerLink="/onboarding/iot-connection">
+              <div class="add-icon-apple">
+                <mat-icon>add</mat-icon>
+              </div>
+              <span>Vincular nuevo hardware</span>
+            </button>
           </div>
         </section>
 
         <!-- ===== SEGURIDAD ===== -->
         <section *ngIf="activeTab === 3" class="settings-section animate-in">
-          <div class="section-header mt-4">
-            <h3 class="dark:text-white">Seguridad</h3>
-            <p>Protege la información de tus pacientes</p>
+           <div class="section-header">
+            <h3 class="dark:text-white">Privacidad y Seguridad</h3>
+            <p>Control de acceso y cifrado de datos (NOM-004)</p>
           </div>
 
-          <div class="glass-card">
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-red"><mat-icon>visibility_off</mat-icon></div>
-                <div>
-                  <p class="setting-title">Modo Privacidad</p>
-                  <p class="setting-desc">Ocultar nombres de pacientes en el dashboard</p>
+          <div class="glass-card-premium p-0 mb-6">
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-slate"><mat-icon>visibility_off</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Ocultar datos sensibles</p>
+                  <p class="apple-row-desc">Pseudonimización automática en el dashboard</p>
                 </div>
               </div>
-              <mat-slide-toggle [(ngModel)]="settings.privacyMode" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
+              <mat-slide-toggle [(ngModel)]="settings.privacyMode" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-amber"><mat-icon>lock_clock</mat-icon></div>
-                <div>
-                  <p class="setting-title">Bloqueo Automático</p>
-                  <p class="setting-desc">Bloquear la pantalla por inactividad</p>
+            <div class="apple-list-divider"></div>
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-blue"><mat-icon>lock_clock</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Cerrar sesión inactiva</p>
+                  <p class="apple-row-desc">Bloqueo tras periodo de inactividad</p>
                 </div>
               </div>
-              <mat-select [(value)]="settings.autoLock" class="select-compact" (selectionChange)="save()">
+              <mat-select [(value)]="settings.autoLock" class="apple-select" (selectionChange)="markDirty()">
                 <mat-option [value]="5">5 minutos</mat-option>
                 <mat-option [value]="15">15 minutos</mat-option>
-                <mat-option [value]="30">30 minutos</mat-option>
                 <mat-option [value]="0">Nunca</mat-option>
               </mat-select>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-slate"><mat-icon>timer_off</mat-icon></div>
-                <div>
-                  <p class="setting-title">Duración de Sesión</p>
-                  <p class="setting-desc">Cerrar sesión automáticamente después de</p>
-                </div>
-              </div>
-              <mat-select [(value)]="settings.sessionTimeout" class="select-compact" (selectionChange)="save()">
-                <mat-option [value]="1">1 hora</mat-option>
-                <mat-option [value]="4">4 horas</mat-option>
-                <mat-option [value]="8">8 horas</mat-option>
-                <mat-option [value]="12">12 horas</mat-option>
-              </mat-select>
-            </div>
           </div>
 
-          <!-- Active Sessions -->
-          <div class="glass-card">
-            <h5 class="card-subtitle">Sesiones Activas</h5>
-            <div class="sessions-list">
-              <div *ngFor="let session of activeSessions" class="session-item">
-                <div class="session-icon">
-                  <mat-icon>{{ session.icon }}</mat-icon>
+          <div class="apple-group-label">Dispositivos y Sesiones Activas</div>
+          <div class="glass-card-premium p-0 overflow-hidden">
+            <div *ngFor="let session of activeSessions" class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-slate"><mat-icon>{{ session.icon }}</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">
+                    {{ session.device }}
+                    <span *ngIf="session.current" class="apple-badge primary" style="margin-left: 8px;">Actual</span>
+                  </p>
+                  <p class="apple-row-desc">{{ session.location }} • Activo: {{ session.lastActive }}</p>
                 </div>
-                <div class="session-info">
-                  <p class="setting-title">{{ session.device }}</p>
-                  <p class="setting-desc">{{ session.location }} • {{ session.lastActive }}</p>
-                </div>
-                <span *ngIf="session.current" class="current-badge">Actual</span>
-                <button *ngIf="!session.current" mat-icon-button class="session-close">
-                  <mat-icon>close</mat-icon>
-                </button>
               </div>
+              <button *ngIf="!session.current" mat-icon-button color="warn" (click)="revokeSession(session)" matTooltip="Revocar sesión">
+                <mat-icon>delete</mat-icon>
+              </button>
             </div>
           </div>
         </section>
 
         <!-- ===== APARIENCIA ===== -->
         <section *ngIf="activeTab === 4" class="settings-section animate-in">
-          <div class="section-header mt-4">
-            <h3 class="dark:text-white">Apariencia</h3>
-            <p>Personaliza el aspecto visual de la aplicación</p>
+          <div class="section-header">
+            <h3 class="dark:text-white">Estilo Visual</h3>
+            <p>Personaliza la atmósfera de tu estación de trabajo</p>
           </div>
 
-
-
-          <div class="glass-card">
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-teal"><mat-icon>view_compact</mat-icon></div>
-                <div>
-                  <p class="setting-title">Modo Compacto</p>
-                  <p class="setting-desc">Reducir espacio entre elementos</p>
+          <div class="glass-card-premium p-0">
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-blue"><mat-icon>brightness_4</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Tema de la aplicación</p>
+                  <p class="apple-row-desc">Apariencia visual de la interfaz</p>
                 </div>
               </div>
-              <mat-slide-toggle [(ngModel)]="settings.compactMode" color="primary" (ngModelChange)="save()"></mat-slide-toggle>
+              <div class="flex gap-4">
+                <button *ngFor="let t of themes" 
+                        class="apple-theme-card-btn" 
+                        [class.active]="settings.theme === t.id"
+                        (click)="changeTheme(t.id)">
+                  <div class="theme-preview-box shadow-sm" [style.background]="t.bg">
+                    <div class="preview-sidebar" [style.background]="t.sidebar"></div>
+                    <div class="preview-content">
+                      <div class="preview-bar" [style.background]="t.bar"></div>
+                      <div class="preview-card" [style.background]="t.card"></div>
+                    </div>
+                  </div>
+                  <span class="theme-label">{{ t.label }}</span>
+                </button>
+              </div>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-violet"><mat-icon>text_fields</mat-icon></div>
-                <div>
-                  <p class="setting-title">Tamaño de Fuente</p>
-                  <p class="setting-desc">Ajustar el tamaño del texto</p>
+            <div class="apple-list-divider"></div>
+             <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-teal"><mat-icon>view_compact</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Diseño de alta densidad</p>
+                  <p class="apple-row-desc">Optimiza el espacio para pantallas grandes</p>
                 </div>
               </div>
-              <mat-select [(value)]="settings.fontSize" class="select-compact" (selectionChange)="save()">
-                <mat-option value="small">Pequeño</mat-option>
-                <mat-option value="medium">Mediano</mat-option>
-                <mat-option value="large">Grande</mat-option>
-              </mat-select>
+              <mat-slide-toggle [(ngModel)]="settings.compactMode" color="primary" (ngModelChange)="markDirty()"></mat-slide-toggle>
             </div>
-            <div class="divider"></div>
-            <div class="setting-row">
-              <div class="setting-left">
-                <div class="setting-icon bg-pink"><mat-icon>palette</mat-icon></div>
-                <div>
-                  <p class="setting-title">Color de Acento</p>
-                  <p class="setting-desc">Color principal de la interfaz</p>
+            <div class="apple-list-divider"></div>
+            <div class="apple-list-row">
+              <div class="apple-row-left">
+                <div class="apple-icon-box bg-indigo"><mat-icon>palette</mat-icon></div>
+                <div class="apple-row-text">
+                  <p class="apple-row-title">Color de énfasis</p>
+                  <p class="apple-row-desc">Personalizar tonos del sistema</p>
                 </div>
               </div>
-              <div class="color-swatches">
+              <div class="apple-color-picker">
                 <button *ngFor="let c of accentColors"
-                  (click)="settings.accentColor = c; save()"
-                  class="color-swatch"
+                  (click)="settings.accentColor = c; markDirty()"
+                  class="apple-color-dot"
                   [style.background-color]="c"
-                  [class.selected]="settings.accentColor === c">
-                  <mat-icon *ngIf="settings.accentColor === c">check</mat-icon>
+                  [class.active]="settings.accentColor === c">
                 </button>
               </div>
             </div>
@@ -424,696 +448,581 @@ import { TwoFactorModalComponent } from './modals/two-factor-modal.component';
           </div>
         </section>
 
-        <!-- ===== SAVING BAR ===== -->
-        <div class="save-bar" *ngIf="activeTab < 5">
-          <button mat-raised-button color="primary" (click)="save()" class="save-btn">
-            <mat-icon>save</mat-icon> Guardar Cambios
-          </button>
-        </div>
-
         <!-- ===== AUDITORÍA ===== -->
         <section *ngIf="activeTab === 6" class="settings-section animate-in">
-          <div class="section-header mt-4 flex justify-between items-center">
+           <div class="section-header flex justify-between items-end">
             <div>
-              <h3 class="dark:text-white">Registro de Actividad</h3>
-              <p>Historial de seguridad y auditoría (NOM-004)</p>
+              <h3 class="dark:text-white">Bitácora Médica</h3>
+              <p>Historial inalterable de actividad (Auditoría HIPAA/NOM)</p>
             </div>
-            <button mat-stroked-button (click)="loadAuditLogs()" class="!rounded-lg">
-              <mat-icon class="mr-1">refresh</mat-icon> Actualizar
+            <button mat-stroked-button (click)="loadAuditLogs()" class="apple-btn-secondary">
+              <mat-icon>refresh</mat-icon> Sincronizar
             </button>
           </div>
 
-          <div class="mb-4 mt-2">
-             <mat-form-field appearance="outline" class="w-full sm:w-1/2 md:w-1/3">
-                <mat-label>Filtrar Bitácora</mat-label>
-                <input matInput (input)="onAuditSearch($event)" placeholder="Ej. LOGIN, Chrome o IP...">
-                <mat-icon matSuffix class="text-slate-400">search</mat-icon>
-             </mat-form-field>
-          </div>
+          <div class="glass-card-premium mt-6 overflow-hidden">
+             <div class="p-4 border-b border-white/20 bg-white/10">
+                <div class="apple-search-box">
+                  <mat-icon>search</mat-icon>
+                  <input type="text" placeholder="Filtrar eventos..." (input)="onAuditSearch($event)">
+                </div>
+             </div>
+             
+             <div class="audit-table-container">
+               <table mat-table [dataSource]="filteredAuditLogs" class="apple-table">
+                  <ng-container matColumnDef="fecha">
+                    <th mat-header-cell *matHeaderCellDef> FECHA </th>
+                    <td mat-cell *matCellDef="let log"> 
+                      <div class="font-semibold">{{ log.created_at | date:'dd MMM, yyyy' }}</div>
+                      <div class="text-[10px] opacity-60">{{ log.created_at | date:'HH:mm' }}</div>
+                    </td>
+                  </ng-container>
 
-          <div class="glass-card overflow-hidden">
-            <div *ngIf="isLogsLoading" class="p-6">
-              <div *ngFor="let i of [1,2,3,4,5]" class="flex items-center gap-4 mb-4">
-                <div class="skeleton h-10 w-24"></div>
-                <div class="skeleton h-10 w-32"></div>
-                <div class="skeleton h-10 w-24"></div>
-                <div class="skeleton h-10 flex-1"></div>
-              </div>
-            </div>
-            <table mat-table [dataSource]="filteredAuditLogs" *ngIf="!isLogsLoading && filteredAuditLogs.length > 0" class="w-full bg-transparent">
-              <ng-container matColumnDef="fecha">
-                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> Fecha y Hora </th>
-                <td mat-cell *matCellDef="let log" class="!text-sm dark:text-slate-300"> 
-                  <div class="font-medium text-slate-800 dark:text-white">{{ log.created_at | date:'dd/MM/yyyy' }}</div>
-                  <div class="text-xs text-slate-500">{{ log.created_at | date:'HH:mm:ss' }}</div>
-                </td>
-              </ng-container>
+                  <ng-container matColumnDef="evento">
+                    <th mat-header-cell *matHeaderCellDef> ACCIÓN </th>
+                    <td mat-cell *matCellDef="let log"> 
+                      <span class="apple-status-pill" [class]="log.action.toLowerCase()">
+                        {{ log.action }}
+                      </span>
+                    </td>
+                  </ng-container>
 
-              <ng-container matColumnDef="evento">
-                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> Evento </th>
-                <td mat-cell *matCellDef="let log" class="!text-sm"> 
-                   <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full" 
-                            [ngClass]="{
-                              'bg-green-500': log.action === 'LOGIN' || log.action === 'CREATE' || log.action === 'UPDATE_PROFILE',
-                              'bg-amber-500': log.action === 'DISABLE_2FA',
-                              'bg-red-500': log.action === 'FAILED_LOGIN' || log.action === 'DELETE',
-                              'bg-blue-500': log.action === 'READ' || log.action === 'UPDATE'
-                            }"></span>
-                      <span class="font-semibold text-slate-700 dark:text-slate-200">{{ log.action }} <span class="text-slate-400 font-normal">({{ log.entity }})</span></span>
-                   </div>
-                </td>
-              </ng-container>
+                   <ng-container matColumnDef="ip">
+                    <th mat-header-cell *matHeaderCellDef> ORIGEN </th>
+                    <td mat-cell *matCellDef="let log" class="font-mono text-[11px]"> {{ log.ip_address }} </td>
+                  </ng-container>
 
-              <ng-container matColumnDef="ip">
-                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> IP </th>
-                <td mat-cell *matCellDef="let log" class="!text-sm font-mono text-slate-500"> {{ log.ip_address || 'N/A' }} </td>
-              </ng-container>
+                  <ng-container matColumnDef="detalles">
+                    <th mat-header-cell *matHeaderCellDef> DETALLES </th>
+                    <td mat-cell *matCellDef="let log" class="text-[11px] opacity-70"> {{ log.user_agent }} </td>
+                  </ng-container>
 
-              <ng-container matColumnDef="detalles">
-                <th mat-header-cell *matHeaderCellDef class="!text-slate-500 !font-bold uppercase tracking-wider !text-xs"> Detalles </th>
-                <td mat-cell *matCellDef="let log" class="!text-xs text-slate-500 truncate max-w-[200px]" [title]="log.user_agent"> 
-                  <span *ngIf="log.changes">Cambios registrados</span>
-                  <span *ngIf="!log.changes">{{ log.user_agent }}</span>
-                </td>
-              </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="['fecha', 'evento', 'ip', 'detalles']"></tr>
+                  <tr mat-row *matRowDef="let row; columns: ['fecha', 'evento', 'ip', 'detalles'];"></tr>
+               </table>
+               
+               <div *ngIf="isLogsLoading" class="p-12 flex flex-col items-center">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p class="mt-4 text-sm opacity-50">Validando registros...</p>
+               </div>
 
-              <tr mat-header-row *matHeaderRowDef="['fecha', 'evento', 'ip', 'detalles']" class="bg-slate-50/50 dark:bg-slate-800/50"></tr>
-              <tr mat-row *matRowDef="let row; columns: ['fecha', 'evento', 'ip', 'detalles'];" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800"></tr>
-            </table>
-
-            <div *ngIf="!isLogsLoading && auditLogs.length === 0" class="p-12 text-center text-slate-500">
-              <mat-icon class="text-4xl text-slate-300 mb-2">history</mat-icon>
-              <p>No hay registros de auditoría disponibles.</p>
-            </div>
+               <div *ngIf="!isLogsLoading && filteredAuditLogs.length === 0" class="p-10 text-center text-sm opacity-70">
+                  {{ auditUnavailable ? 'La bitácora de auditoría no está disponible en la API actual.' : 'Sin eventos para mostrar.' }}
+               </div>
+             </div>
           </div>
         </section>
 
+        <!-- ===== FOOTER SAVE (Floating) ===== -->
+        <div class="save-bar-apple" *ngIf="isDirty">
+          <div class="save-bar-inner glass-card-premium">
+            <p>Cuentas con cambios sin guardar</p>
+            <button mat-flat-button color="primary" class="apple-btn-pill" (click)="save()" [disabled]="isLoading">
+              <mat-icon *ngIf="!isLoading">save</mat-icon>
+              <mat-spinner *ngIf="isLoading" diameter="18" class="mr-2"></mat-spinner>
+              Guardar Configuración
+            </button>
+          </div>
+        </div>
       </main>
     </div>
   `,
   styles: [`
     /* ============================================
-       macOS-Style Settings Layout
+       Clinical Clean: Apple System Design
        ============================================ */
     .settings-layout {
       display: flex;
-      height: calc(100vh - 64px);
-      @apply bg-slate-50 dark:bg-slate-900;
+      height: 100%;
+      min-height: 0;
+      background: #F2F2F7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
     }
 
-    /* ===== Frosted Glass Sidebar ===== */
-    .settings-sidebar {
-      width: 280px;
+    .dark .settings-layout {
+      background: #000000;
+    }
+
+    /* ===== Minimal Sidebar ===== */
+    .glass-sidebar {
+      width: 260px;
       flex-shrink: 0;
+      background: rgba(246, 246, 246, 0.8) !important;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      padding: 20px 0;
-      @apply bg-white/70 dark:bg-slate-900/70 border-r border-slate-200 dark:border-slate-800;
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      padding: 24px 0;
+    }
+
+    .dark .glass-sidebar {
+      background: rgba(28, 28, 30, 0.8) !important;
+      border-right: 1px solid rgba(255,255,255,0.1);
     }
 
     .sidebar-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 20px 20px;
+      padding: 0 20px 24px;
     }
-    .sidebar-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #06b6d4, #3b82f6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-    }
-    .sidebar-logo mat-icon { font-size: 20px; width: 20px; height: 20px; }
+
     .sidebar-header h2 {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 700;
-      color: #0f172a;
       margin: 0;
+      color: #000;
     }
+    .dark .sidebar-header h2 { color: #fff; }
 
     .sidebar-nav {
       flex: 1;
+      padding: 0 10px;
       display: flex;
       flex-direction: column;
       gap: 2px;
-      padding: 0 8px;
     }
 
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-radius: 12px;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
       border: none;
       background: transparent;
-      @apply text-slate-500 dark:text-slate-400;
-      font-size: 14px;
-      font-weight: 500;
+      color: #3a3a3c;
+      font-size: 13.5px;
+      font-weight: 400;
       cursor: pointer;
-      transition: all 0.2s ease;
       text-align: left;
-      width: 100%;
+      transition: background 0.15s ease;
     }
-    .nav-item:hover { @apply bg-slate-100/50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200; }
+
+    .dark .nav-item { color: #d1d1d6; }
+
+    .nav-item:hover { background: rgba(0,0,0,0.05); }
+    .dark .nav-item:hover { background: rgba(255,255,255,0.05); }
+
     .nav-item.active {
-      @apply bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold;
-    }
-    .nav-item mat-icon { font-size: 20px; width: 20px; height: 20px; }
-
-    .sidebar-footer {
-      padding: 16px 20px 24px;
-      @apply border-t border-slate-200 dark:border-slate-800;
-    }
-    .version-text {
-      font-size: 11px;
-      color: #94a3b8;
-      margin: 0;
+      background: #007AFF;
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
     }
 
+    .nav-icon-wrapper {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    }
+    
+    .nav-item.active .nav-icon-wrapper { background: transparent !important; }
+
+    /* ===== Main Content Area ===== */
     .settings-content {
       flex: 1;
-      padding: 24px 40px;
+      padding: 40px 60px;
+      overflow-y: auto;
     }
 
     .settings-section {
-      max-width: 64rem; /* 5xl width, wider than 720px */
-      width: 100%;
+      max-width: 720px;
       margin: 0 auto;
     }
 
     .section-header {
-      margin-bottom: 24px;
+      margin-bottom: 30px;
     }
+
     .section-header h3 {
       font-size: 28px;
       font-weight: 700;
-      margin: 0 0 4px;
-      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+      color: #000;
     }
+    .dark .section-header h3 { color: #fff; }
+
     .section-header p {
-      font-size: 15px;
-      @apply text-slate-500 dark:text-slate-400;
+      font-size: 13px;
+      color: #8e8e93;
       margin: 0;
     }
 
-    /* ===== Glass Card ===== */
-    .glass-card {
-      @apply bg-white/80 dark:bg-slate-800/80 border border-white/90 dark:border-slate-700/50;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: 20px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .card-subtitle {
+    /* ===== Apple List Grouping ===== */
+    .apple-group-label {
       font-size: 12px;
-      font-weight: 700;
-      color: #94a3b8;
+      color: #8e8e93;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      padding: 16px 20px 8px;
-      margin: 0;
+      margin: 24px 0 8px 14px;
+      letter-spacing: 0.05em;
     }
 
-    /* ===== Setting Row ===== */
-    .setting-row {
+    .glass-card-premium {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      margin-bottom: 20px;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .dark .glass-card-premium {
+      background: #1c1c1e;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .apple-list-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 20px;
-      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      background: white;
     }
-    .setting-left {
+
+    .dark .apple-list-row { background: #1c1c1e; }
+
+    .apple-list-row:hover { background: rgba(0,0,0,0.02); }
+    .dark .apple-list-row:hover { background: rgba(255,255,255,0.02); }
+
+    .apple-row-left {
       display: flex;
       align-items: center;
-      gap: 12px;
-      flex: 1;
+      gap: 14px;
     }
-    .setting-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+
+    .apple-icon-box {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
+      color: white;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
     }
-    .setting-icon mat-icon { font-size: 18px; width: 18px; height: 18px; color: white; }
-    .setting-icon.bg-blue { background: #3b82f6; }
-    .setting-icon.bg-green { background: #22c55e; }
-    .setting-icon.bg-red { background: #ef4444; }
-    .setting-icon.bg-orange { background: #f97316; }
-    .setting-icon.bg-amber { background: #f59e0b; }
-    .setting-icon.bg-indigo { background: #6366f1; }
-    .setting-icon.bg-violet { background: #8b5cf6; }
-    .setting-icon.bg-pink { background: #ec4899; }
-    .setting-icon.bg-teal { background: #14b8a6; }
-    .setting-icon.bg-slate { background: #64748b; }
 
-    .setting-title {
+    .apple-row-title {
       font-size: 15px;
-      font-weight: 600;
-      @apply text-slate-900 dark:text-slate-100;
-      margin: 0;
+      color: #000;
+      font-weight: 400;
     }
-    .setting-desc {
-      font-size: 13px;
-      @apply text-slate-500 dark:text-slate-400;
-      margin: 2px 0 0;
+    .dark .apple-row-title { color: #fff; }
+
+    .apple-row-desc {
+      font-size: 12px;
+      color: #8e8e93;
     }
 
-    .divider {
-      height: 1px;
-      @apply bg-slate-100 dark:bg-slate-700;
-      margin: 0 20px;
+    .apple-list-divider {
+      height: 0.5px;
+      background: rgba(0,0,0,0.1);
+      margin-left: 60px;
     }
-
-    .action-btn {
-      font-size: 13px !important;
-      border-radius: 8px !important;
-    }
-
-    .select-compact { width: 140px; }
+    .dark .apple-list-divider { background: rgba(255,255,255,0.1); }
 
     /* ===== Profile Card ===== */
-    .profile-card {
+    .profile-card-apple {
       display: flex;
       align-items: center;
-      gap: 16px;
       padding: 20px;
+      gap: 16px;
     }
+
     .profile-avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #8e8e93;
       color: white;
-      font-size: 20px;
-      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-    }
-    .profile-info {
-      flex: 1;
-    }
-    .profile-info h4 {
-      font-size: 18px;
-      font-weight: 700;
-      @apply text-slate-900 dark:text-white;
-      margin: 0;
-    }
-    .profile-info p {
-      font-size: 14px;
-      @apply text-slate-500 dark:text-slate-400;
-      margin: 2px 0 8px;
-    }
-    .role-badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 20px;
-      background: rgba(59,130,246,0.1);
-      color: #2563eb;
-      font-size: 11px;
+      font-size: 24px;
       font-weight: 600;
     }
-    .edit-profile-btn {
-      font-size: 13px !important;
-      border-radius: 10px !important;
-    }
 
-    /* ===== Notification Channels ===== */
-    .notification-channels {
-      padding: 4px 0;
-    }
-    .channel-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-    }
-    .channel-item + .channel-item {
-      border-top: 1px solid rgba(0,0,0,0.03);
-    }
-    .channel-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      @apply bg-slate-100 dark:bg-slate-700/50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .channel-icon mat-icon { @apply text-blue-500 dark:text-blue-400; font-size: 22px; width: 22px; height: 22px; }
-    .channel-info { flex: 1; }
-
-    /* ===== IoT Devices Grid ===== */
-    .devices-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-    }
-    .device-card {
-      padding: 20px;
-    }
-    .device-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-    .device-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .device-icon mat-icon { font-size: 22px; width: 22px; height: 22px; color: white; }
-    .device-icon.online { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .device-icon.offline { background: linear-gradient(135deg, #94a3b8, #64748b); }
-    .device-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-
-    .device-status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-top: 4px;
-    }
-    .device-status-dot.dot-online {
-      background: #22c55e;
-      box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
-      animation: blink 2s ease-in-out infinite;
-    }
-    .device-status-dot.dot-offline {
-      background: #94a3b8;
-    }
-    .device-status-dot.dot-warning {
-      background: #f59e0b;
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .device-name {
-      font-size: 16px;
-      font-weight: 700;
-      @apply text-slate-900 dark:text-white;
-      margin: 0 0 2px;
-    }
-    .device-model {
-      font-size: 13px;
-      @apply text-slate-500 dark:text-slate-400;
-      margin: 0 0 16px;
-    }
-    .device-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .device-meta-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      @apply text-slate-600 dark:text-slate-300;
-    }
-    .device-meta-item mat-icon { font-size: 14px; width: 14px; height: 14px; color: #94a3b8; }
-    .battery-bar {
-      width: 60px;
-      height: 4px;
-      border-radius: 2px;
-    }
-    ::ng-deep .battery-bar .mdc-linear-progress__bar-inner {
-      border-radius: 2px;
-    }
-    .device-patient {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #3b82f6;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(0,0,0,0.04);
-    }
-    .device-patient mat-icon { font-size: 14px; width: 14px; height: 14px; }
-
-    .add-device {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 200px;
-      border: 2px dashed rgba(0,0,0,0.08);
-      background: transparent;
-      color: #94a3b8;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .add-device:hover {
-      border-color: #3b82f6;
-      color: #3b82f6;
-      background: rgba(59,130,246,0.03);
-    }
-    .add-device mat-icon { font-size: 32px; width: 32px; height: 32px; }
-    .add-device span { font-size: 14px; font-weight: 600; }
-
-    /* ===== Sessions List ===== */
-    .sessions-list {
-      padding: 4px 0;
-    }
-    .session-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-    }
-    .session-item + .session-item {
-      border-top: 1px solid rgba(0,0,0,0.03);
-    }
-    .session-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: #f1f5f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .session-icon mat-icon { font-size: 18px; width: 18px; height: 18px; color: #64748b; }
-    .session-info { flex: 1; }
-    .current-badge {
-      padding: 2px 10px;
-      border-radius: 20px;
-      background: rgba(34,197,94,0.1);
-      color: #16a34a;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .session-close mat-icon { font-size: 16px; color: #94a3b8; }
-
-    /* ===== Theme Selector ===== */
-    .theme-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 8px 20px 20px;
-    }
-    .theme-card {
-      position: relative;
-      cursor: pointer;
-      padding: 6px;
-      border-radius: 14px;
-      border: 2px solid transparent;
-      transition: all 0.2s ease;
-    }
-    .theme-card:hover { border-color: rgba(59,130,246,0.3); }
-    .theme-card.selected { border-color: #3b82f6; }
-    .theme-preview {
-      width: 100%;
-      height: 72px;
-      border-radius: 10px;
-      overflow: hidden;
-      display: flex;
-    }
-    .theme-preview-sidebar {
-      width: 24%;
-      height: 100%;
-    }
-    .theme-preview-content {
-      flex: 1;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .theme-preview-bar {
-      height: 6px;
-      border-radius: 3px;
-      width: 60%;
-    }
-    .theme-preview-cards {
-      display: flex;
-      gap: 4px;
-      flex: 1;
-    }
-    .theme-preview-cards div {
-      flex: 1;
-      border-radius: 4px;
-    }
-    .theme-label {
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: #475569;
-      margin: 8px 0 0;
-    }
-    .theme-check {
-      position: absolute;
-      top: -6px;
-      right: -6px;
+    .profile-info-apple h4 {
       font-size: 18px;
-      width: 18px;
-      height: 18px;
-      color: #3b82f6;
-      background: white;
-      border-radius: 50%;
+      font-weight: 600;
+      margin-bottom: 2px;
     }
 
-    /* ===== Color Swatches ===== */
-    .color-swatches {
-      display: flex;
-      gap: 8px;
-    }
-    .color-swatch {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-    .color-swatch:hover { transform: scale(1.15); }
-    .color-swatch.selected { border-color: rgba(0,0,0,0.2); transform: scale(1.15); }
-    .color-swatch mat-icon { font-size: 14px; width: 14px; height: 14px; color: white; }
-
-    /* ===== About Card ===== */
-    .about-hero {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 20px;
-    }
-    .about-logo {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #06b6d4, #3b82f6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      box-shadow: 0 4px 12px rgba(6,182,212,0.3);
-    }
-    .about-logo mat-icon { font-size: 28px; width: 28px; height: 28px; }
-    .about-hero h4 {
-      font-size: 18px;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 0;
-    }
-    .about-hero p {
-      font-size: 13px;
-      color: #64748b;
-      margin: 2px 0 4px;
-    }
-    .version-badge {
-      font-size: 11px;
-      color: #94a3b8;
-      background: #f1f5f9;
-      padding: 2px 8px;
-      border-radius: 6px;
-    }
-
-    .about-details { padding: 8px 0; }
-    .about-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 20px;
-      font-size: 14px;
-    }
-    .about-row span:first-child { color: #64748b; }
-    .about-row span:last-child, .about-row a { font-weight: 500; color: #1e293b; }
-    .about-row a { color: #3b82f6; cursor: pointer; }
-
-    .changelog { padding: 0 0 16px; }
-    .changelog-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 20px;
-      font-size: 13px;
-      color: #475569;
-    }
-    .cl-badge {
-      padding: 1px 8px;
-      border-radius: 6px;
+    .apple-badge {
       font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.05);
+      color: #8e8e93;
+      text-transform: uppercase;
       font-weight: 700;
-      flex-shrink: 0;
+      margin-top: 4px;
+      display: inline-block;
     }
-    .cl-new { background: #dcfce7; color: #16a34a; }
-    .cl-upd { background: #dbeafe; color: #2563eb; }
-    .cl-fix { background: #fef3c7; color: #d97706; }
 
-    /* ===== Save Bar ===== */
-    .save-bar {
-      margin-top: 24px;
+    /* ===== Save Footer (Floating Pill) ===== */
+    .save-bar-apple {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+
+    .save-bar-inner {
+      background: rgba(255, 255, 255, 0.8) !important;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      padding: 10px 24px;
+      border-radius: 40px;
+      border: 1px solid rgba(0,0,0,0.1);
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
-    .save-btn {
-      padding: 0 24px !important;
-      border-radius: 12px !important;
-      height: 40px !important;
+    .dark .save-bar-inner {
+      background: rgba(44, 44, 46, 0.8) !important;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* ===== Animation ===== */
-    .animate-in {
-      animation: slideIn 0.25s ease-out;
+    .save-bar-inner p {
+      font-size: 13px;
+      font-weight: 500;
+      color: #000;
+      margin: 0;
     }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(12px); }
+    .dark .save-bar-inner p { color: #fff; }
+
+    .apple-btn-pill {
+      background: #007AFF !important;
+      color: white !important;
+      border-radius: 20px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      padding: 0 16px !important;
+      height: 32px !important;
+      line-height: 32px !important;
+    }
+
+    /* ===== Animations ===== */
+    .animate-in {
+      animation: apple-fade 0.4s ease-out;
+    }
+    @keyframes apple-fade {
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* ===== IoT Empty State ===== */
+    .iot-empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 40px 24px;
+      border: 1.5px dashed rgba(0,0,0,0.12) !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .dark .iot-empty-state { border-color: rgba(255,255,255,0.1) !important; }
+
+    .iot-empty-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: #f2f2f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      mat-icon { font-size: 28px; width: 28px; height: 28px; color: #8e8e93; }
+    }
+    .dark .iot-empty-icon { background: #2c2c2e; }
+
+    .iot-empty-state h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #000;
+      margin: 0 0 6px;
+    }
+    .dark .iot-empty-state h4 { color: #fff; }
+
+    .iot-empty-state p {
+      font-size: 12px;
+      color: #8e8e93;
+      max-width: 260px;
+      line-height: 1.5;
+    }
+
+    .iot-patient-count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 12px;
+      font-weight: 600;
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
+    }
+
+    .apple-theme-card-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: #3a3a3c;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .dark .apple-theme-card-btn {
+      color: #d1d1d6;
+    }
+    
+    .theme-preview-box {
+      width: 72px;
+      height: 48px;
+      border-radius: 8px;
+      border: 2px solid rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .dark .theme-preview-box {
+      border-color: rgba(255,255,255,0.1);
+    }
+    
+    .apple-theme-card-btn.active .theme-preview-box {
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 1.5px var(--brand-primary);
+      transform: scale(1.04);
+    }
+    
+    .preview-sidebar {
+      width: 18px;
+      height: 100%;
+      border-right: 1px solid rgba(0,0,0,0.06);
+    }
+    .dark .preview-sidebar {
+      border-right-color: rgba(255,255,255,0.06);
+    }
+    
+    .preview-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 4px;
+      gap: 3px;
+    }
+    
+    .preview-bar {
+      height: 4px;
+      border-radius: 2px;
+      width: 65%;
+    }
+    
+    .preview-card {
+      flex: 1;
+      border-radius: 3px;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .dark .preview-card {
+      border-color: rgba(255,255,255,0.04);
+    }
+    
+    .theme-label {
+      font-size: 11px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    
+    .apple-theme-card-btn.active .theme-label {
+      color: var(--brand-primary);
+      font-weight: 600;
+    }
+    
+    /* ===== Accent Color Picker ===== */
+    .apple-color-picker {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .apple-color-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      outline: none;
+    }
+
+    .apple-color-dot:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .apple-color-dot.active {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 2px var(--brand-primary), 0 0 0 4px white, 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .dark .apple-color-dot {
+      border-color: #1c1c1e;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .dark .apple-color-dot.active {
+      box-shadow: 0 0 0 2px var(--brand-primary), 0 0 0 4px #1c1c1e, 0 4px 8px rgba(0,0,0,0.4);
+    }
+
+    /* ===== Colors ===== */
+    .bg-blue { background: #007AFF !important; }
+    .bg-orange { background: #FF9500 !important; }
+    .bg-green { background: #34C759 !important; }
+    .bg-red { background: #FF3B30 !important; }
+    .bg-indigo { background: #5856D6 !important; }
+    .bg-teal { background: #30B0C7 !important; }
+    .bg-amber { background: #FFCC00 !important; }
+    .bg-slate { background: #8E8E93 !important; }
   `]
 })
 export class SettingsComponent implements OnInit, OnDestroy {
+
+  getTabColor(index: number): string {
+    const colors = [
+      '#0071e3',
+      '#FF9500',
+      '#34C759',
+      '#FF3B30',
+      '#5856D6',
+      '#8E8E93',
+      '#000000'
+    ];
+    return colors[index] || '#0071e3';
+  }
+
   activeTab = 0;
-  currentUser: any = null;
+  currentUser: User | null = null;
   userInitials: string = 'U';
 
   tabs = [
@@ -1128,7 +1037,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   accentColors = ['#3b82f6', '#6366f1', '#ec4899', '#f97316', '#22c55e', '#06b6d4'];
 
-  themes = [
+  themes: Array<{
+    id: 'light' | 'dark' | 'system';
+    label: string;
+    bg: string;
+    sidebar: string;
+    bar: string;
+    card: string;
+  }> = [
     {
       id: 'light', label: 'Claro',
       bg: '#f1f5f9', sidebar: '#ffffff', bar: '#3b82f6', card: '#ffffff'
@@ -1146,46 +1062,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
   ];
 
-  iotDevices = [
-    {
-      name: 'Espirómetro SP-200',
-      model: 'SpiroLink Pro',
-      icon: 'air',
-      battery: 85,
-      lastSync: 'Hace 5 min',
-      patient: 'Juan Pérez',
-      statusClass: 'online',
-      dotClass: 'dot-online'
-    },
-    {
-      name: 'Inhalador Smart',
-      model: 'BreathTrack v2',
-      icon: 'medication',
-      battery: 42,
-      lastSync: 'Hace 1 hora',
-      patient: 'Ana García',
-      statusClass: 'warning',
-      dotClass: 'dot-warning'
-    },
-    {
-      name: 'Pulsioxímetro PX-10',
-      model: 'OxiSense Mini',
-      icon: 'monitor_heart',
-      battery: 12,
-      lastSync: 'Hace 2 días',
-      patient: null,
-      statusClass: 'offline',
-      dotClass: 'dot-offline'
-    }
-  ];
+  iotDevices: IoTDevice[] = [];
 
-  activeSessions = [
+  activeSessions: UserSession[] = [
     { device: 'Windows • Chrome', location: 'San Luis Potosí', lastActive: 'Ahora', icon: 'laptop_windows', current: true },
     { device: 'iPhone 15 • Safari', location: 'San Luis Potosí', lastActive: 'Hace 2h', icon: 'phone_iphone', current: false },
     { device: 'iPad • Safari', location: 'Monterrey', lastActive: 'Ayer', icon: 'tablet', current: false }
   ];
 
-  settings: any = {
+  settings: UserSettings = {
     twoFactor: false,
     pushNotifications: true,
     emailAlerts: false,
@@ -1203,9 +1088,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   };
 
   isLoading = false;
+  isDirty = false;
   isLogsLoading = false;
-  auditLogs: any[] = [];
-  filteredAuditLogs: any[] = [];
+  isDevicesLoading = false;
+  connectedPatientsCount = 0;
+  auditUnavailable = false;
+  auditLogs: AuditLog[] = [];
+  filteredAuditLogs: AuditLog[] = [];
   auditSearch$ = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -1213,31 +1102,77 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private storageService: StorageService,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef,
+    private patientService: PatientService,
+    private http: HttpClient,
+    private themeService: ThemeService
   ) { }
 
   ngOnInit(): void {
-    this.authService.fetchCurrentUser().subscribe({
-      next: (user) => {
-        this.currentUser = user;
-        this.updateInitials();
-        if (user && user.is_2fa_enabled !== undefined) {
-          this.settings.twoFactor = user.is_2fa_enabled;
-        }
+    this.settings.theme = this.themeService.getTheme();
+    this.authService.fetchCurrentUser().pipe(take(1)).subscribe({
+      next: (user: User) => {
+        queueMicrotask(() => {
+          this.currentUser = user;
+          this.updateInitials();
+          // Sincronizar el toggle 2FA desde el flag real del usuario
+          if (user.is_2fa_enabled !== undefined) {
+            this.settings.twoFactor = user.is_2fa_enabled;
+          }
+          this.cdr.markForCheck();
+        });
+
+        // Cargar ajustes desde el endpoint dedicado de Pablo
+        this.authService.fetchSettings().pipe(take(1)).subscribe({
+          next: (settings) => {
+            if (settings) {
+              this.settings = { ...this.settings, ...settings };
+            }
+            // Re-aplicar el estado 2FA desde Supabase (tiene prioridad sobre Pablo's API)
+            if (user.is_2fa_enabled !== undefined) {
+              this.settings.twoFactor = user.is_2fa_enabled;
+            }
+            queueMicrotask(() => {
+              this.applyThemeSettings();
+              this.cdr.markForCheck();
+            });
+          },
+          error: () => {
+             // Fallback a local storage si el endpoint falla
+             const saved = this.storageService.getItem('asmasync_settings');
+             if (saved) {
+               try { this.settings = { ...this.settings, ...JSON.parse(saved) }; } catch { }
+             }
+             // Re-aplicar el estado 2FA desde Supabase
+             if (user.is_2fa_enabled !== undefined) {
+               this.settings.twoFactor = user.is_2fa_enabled;
+             }
+             queueMicrotask(() => {
+               this.applyThemeSettings();
+               this.cdr.markForCheck();
+             });
+          }
+        });
       },
       error: () => { }
     });
 
     this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
-      this.currentUser = user;
-      this.updateInitials();
+      queueMicrotask(() => {
+        if (user) {
+          this.currentUser = user;
+          this.updateInitials();
+        }
+        this.cdr.markForCheck();
+      });
     });
 
     this.auditSearch$.pipe(
       takeUntil(this.destroy$),
       debounceTime(300),
       distinctUntilChanged()
-    ).subscribe(term => {
+    ).subscribe((term: string) => {
       if (!term) {
         this.filteredAuditLogs = [...this.auditLogs];
       } else {
@@ -1251,10 +1186,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
     });
 
-    const saved = this.storageService.getItem('asmasync_settings');
-    if (saved) {
-      try { this.settings = { ...this.settings, ...JSON.parse(saved) }; } catch { }
-    }
+    // Settings initially loaded in fetchCurrentUser above
 
     // Auto load logs if we land on tab 6 immediately (mostly for hard refreshes if we persisted the tab state later, but safe to just have it triggered on click via template getter or ngDoCheck/Set method).
     // The easiest robust way is checking the setter of activeTab. We'll use a getter/setter for activeTab or just fetch when the tab changes from the UI.
@@ -1262,39 +1194,122 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   setTab(index: number) {
     this.activeTab = index;
-    if (index === 6 && this.auditLogs.length === 0) {
+    if (index === 6) {
       this.loadAuditLogs();
+    }
+    if (index === 2) {
+      this.loadIoTStatus();
     }
   }
 
+  loadIoTStatus(): void {
+    this.isDevicesLoading = true;
+    this.cdr.markForCheck();
+
+    this.http.get<any[]>(`${environment.apiUrl}/devices`).pipe(
+      catchError(() => of([])),
+      takeUntil(this.destroy$)
+    ).subscribe(devices => {
+      this.iotDevices = (devices || []).map(d => ({
+        id: String(d.id),
+        name: [d.device_brand, d.device_model].filter(Boolean).join(' ') || d.device_type,
+        model: d.device_model || d.device_type,
+        status: d.is_active ? 'online' : 'offline',
+        battery: 0,
+        lastSync: d.created_at ? new Date(d.created_at).toLocaleDateString('es-MX') : '—',
+        icon: d.device_type?.includes('watch') ? 'watch' : d.device_type?.includes('spirometer') ? 'air' : 'sensors',
+        statusClass: d.is_active ? 'online' : 'offline',
+        dotClass: d.is_active ? 'dot-online' : 'dot-offline'
+      } as IoTDevice));
+      this.isDevicesLoading = false;
+      this.cdr.markForCheck();
+    });
+
+    this.patientService.getAllPatients().pipe(
+      catchError(() => of([])),
+      takeUntil(this.destroy$)
+    ).subscribe(patients => {
+      this.connectedPatientsCount = patients.filter(p => p.latest_pef && p.latest_pef > 0).length;
+      this.cdr.markForCheck();
+    });
+  }
+
   loadAuditLogs() {
-    this.isLogsLoading = true;
-    this.authService.getAuditLogs().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (logs) => {
-        this.auditLogs = logs;
-        this.filteredAuditLogs = [...logs];
+    // Force to next cycle to avoid NG0100: ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+        this.isLogsLoading = true;
+        this.cdr.detectChanges();
+    });
+    this.authService.getAuditLogs().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        console.error('Audit log fetch error:', err);
+        return throwError(() => err);
+      })
+    ).subscribe({
+      next: (logs: any) => {
+        const auditLogs = Array.isArray(logs) ? logs : [];
+        this.auditLogs = auditLogs;
+        this.filteredAuditLogs = [...auditLogs];
+        this.auditUnavailable = auditLogs.length === 0;
         this.isLogsLoading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: () => {
+        this.auditLogs = [];
+        this.filteredAuditLogs = [];
+        this.auditUnavailable = true;
         this.isLogsLoading = false;
         this.snackBar.open('Error al cargar la auditoría', 'OK', { duration: 3000 });
+        this.cdr.markForCheck();
       }
     });
+
+    // Fallback timer: absolutely force loading off after 5s
+    setTimeout(() => {
+      if (this.isLogsLoading) {
+        this.isLogsLoading = false;
+        if (this.auditLogs.length === 0) {
+          this.snackBar.open('Servidor de auditoría no responde (Timeout)', 'Cerrar', { duration: 3000 });
+        }
+        this.cdr.markForCheck();
+      }
+    }, 5000);
   }
 
   save(): void {
     this.isLoading = true;
 
-    // Save to encrypted storage
+    // 1. Local Save
     this.storageService.setItem('asmasync_settings', this.settings);
 
-    setTimeout(() => {
-      this.isLoading = false;
-      this.snackBar.open('Configuración guardada exitosamente', 'OK', {
-        duration: 3000,
-        panelClass: ['toast-success']
-      });
-    }, 800);
+    // 2. Backend Save (Persistence)
+    this.authService.updateSettings(this.settings).pipe(take(1)).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.isDirty = false;
+        this.applyThemeSettings();
+        this.cdr.markForCheck();
+        this.snackBar.open('Configuración sincronizada en la nube', 'OK', {
+          duration: 3000,
+          panelClass: ['toast-success']
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        this.snackBar.open('Guardado local aplicado. La API no permitió sincronizar en este momento.', 'OK', { duration: 5000 });
+        console.error('Settings Sync Error:', err);
+      }
+    });
+  }
+
+  copyDoctorCode(): void {
+    const code = this.currentUser?.doctor_code;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      this.snackBar.open('Código copiado al portapapeles', '', { duration: 2000 });
+    });
   }
 
   updateInitials(): void {
@@ -1354,6 +1369,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         if (!result) {
           // El usuario canceló o le dio a la equis
           this.settings.twoFactor = false;
+          this.cdr.markForCheck();
         } else {
           // Se activó correctamente
           this.save();
@@ -1374,6 +1390,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         if (!result) {
           // Rollback si canceló desactivación
           this.settings.twoFactor = true;
+          this.cdr.markForCheck();
         } else {
           // Se desactivó correctamente
           this.save();
@@ -1382,17 +1399,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  changeTheme(themeId: 'light' | 'dark' | 'system'): void {
+    this.settings.theme = themeId;
+    this.markDirty();
+  }
+
+  revokeSession(session: UserSession): void {
+    this.activeSessions = this.activeSessions.filter(s => s !== session);
+    this.snackBar.open('Sesión revocada correctamente', 'OK', { duration: 3000 });
+    this.cdr.markForCheck();
+  }
+
   exportData(): void {
     this.isLoading = true;
 
-    // Create comprehensive mock payload representing data export
     const exportPayload = {
       timestamp: new Date().toISOString(),
       user: this.currentUser,
       settings: this.settings,
       devices: this.iotDevices,
-      patientsCount: 28, // Mock metric
-      historyRecordsSize: "4.2 MB" // Mock metric
+      patientsWithActiveData: this.connectedPatientsCount
     };
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
@@ -1415,6 +1441,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
   onAuditSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.auditSearch$.next(input.value);
+  }
+
+  markDirty(): void {
+    this.isDirty = true;
+    this.applyThemeSettings();
+    this.cdr.markForCheck();
+  }
+
+  applyThemeSettings(): void {
+    if (this.settings) {
+      this.themeService.applyThemeSettings(
+        this.settings.theme,
+        this.settings.accentColor,
+        this.settings.compactMode
+      );
+    }
   }
 
   ngOnDestroy(): void {

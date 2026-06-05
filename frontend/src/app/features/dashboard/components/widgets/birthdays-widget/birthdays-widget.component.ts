@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,27 +11,28 @@ import { Observable } from 'rxjs'; // Fix: Ensure Observable is imported
 @Component({
     selector: 'app-birthdays-widget',
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
     templateUrl: './birthdays-widget.component.html',
     styleUrls: ['./birthdays-widget.component.scss']
 })
-export class BirthdaysWidgetComponent implements OnInit {
+export class BirthdaysWidgetComponent {
     upcomingBirthdays$: Observable<any[]>; // Explicit type
 
     constructor(
         private patientService: PatientService,
         private toast: ToastService
     ) {
-        this.upcomingBirthdays$ = this.patientService.getPatients().pipe(
-            map((response: any) => { // Type as any if strict type unavailable, or ResponseType
-                const patients = response.data || [];
+        this.upcomingBirthdays$ = this.patientService.getAllPatients().pipe(
+            map((patients: any[]) => {
+                const patientsList = patients || [];
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
                 const nextWeek = new Date(today);
                 nextWeek.setDate(today.getDate() + 7);
 
-                return patients.filter((p: any) => {
+                return patientsList.filter((p: any) => {
                     if (!p.date_of_birth) return false;
 
                     const dob = new Date(p.date_of_birth);
@@ -46,8 +47,6 @@ export class BirthdaysWidgetComponent implements OnInit {
                     return (birthdayThisYear >= today && birthdayThisYear <= nextWeek) ||
                         (birthdayNextYear >= today && birthdayNextYear <= nextWeek);
                 }).sort((a: any, b: any) => {
-                    // Sort logic: complex due to year wrap, but simple approximation:
-                    // Just sort by coming date
                     const getNextDate = (d: string) => {
                         const dob = new Date(d);
                         const dateThisYear = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
@@ -59,33 +58,46 @@ export class BirthdaysWidgetComponent implements OnInit {
         );
     }
 
-    ngOnInit() { }
-
     getDay(date: string): number {
-        // Fix: Use UTC or ensure locale consistency. 
-        // Simple View: just date part.
-        // Actually, if date string is YYYY-MM-DD, parsing it as local might shift it depending on timezone.
-        // Safest: split string for day display if ISO. 
-        // But for calculation we used Date object.
-        return new Date(date).getDate() + 1; // Often off by one if UTC midnight parsed as local previous day.
-        // Better:
-        // const d = new Date(date);
-        // return d.getUTCDate(); // Check backend format
+        if (!date) return 1;
+        const parts = date.split('T')[0].split('-');
+        if (parts.length === 3) {
+            return parseInt(parts[2], 10);
+        }
+        return new Date(date).getUTCDate(); 
     }
 
     getMonthName(date: string): string {
-        return new Date(date).toLocaleString('es-ES', { month: 'short' }).replace('.', '');
+        if (!date) return '';
+        const parts = date.split('T')[0].split('-');
+        if (parts.length === 3) {
+            const monthIndex = parseInt(parts[1], 10) - 1;
+            const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+            return months[monthIndex] || '';
+        }
+        return '';
     }
 
     getAge(date: string): number {
-        const dob = new Date(date);
-        const diffMs = Date.now() - dob.getTime();
-        const ageDt = new Date(diffMs);
-        return Math.abs(ageDt.getUTCFullYear() - 1970);
+        if (!date) return 0;
+        const parts = date.split('T')[0].split('-');
+        if (parts.length === 3) {
+            const birthYear = parseInt(parts[0], 10);
+            const birthMonth = parseInt(parts[1], 10) - 1;
+            const birthDay = parseInt(parts[2], 10);
+            const today = new Date();
+            let age = today.getFullYear() - birthYear;
+            const m = today.getMonth() - birthMonth;
+            if (m < 0 || (m === 0 && today.getDate() < birthDay)) {
+                age--;
+            }
+            return age;
+        }
+        return 0;
     }
 
     sendWish(patient: any): void {
-        this.toast.success(`Felicitación enviada a ${patient.first_name}!`);
-        // Here we would call an API to send email/SMS
+        const firstName = patient.full_name ? patient.full_name.split(' ')[0] : 'Paciente';
+        this.toast.success(`Felicitación enviada a ${firstName}!`);
     }
 }

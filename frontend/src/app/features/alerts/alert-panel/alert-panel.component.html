@@ -1,142 +1,139 @@
-<div class="h-full flex flex-col p-6 space-y-6">
+<div class="alerts-page" [class.has-critical]="hasCritical">
 
-    <!-- Header & Actions -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-brand-dark">Centro de Alertas</h1>
-            <p class="text-gray-500 text-sm">Monitorización de pacientes en riesgo</p>
+    <!-- === COMMAND CENTER HEADER === -->
+    <div class="alerts-header">
+        <div class="header-left">
+            <div class="header-icon" [class.critical]="hasCritical" [class.moderate]="!hasCritical">
+                <mat-icon>@if(hasCritical) { crisis_alert } @else { notifications_active }</mat-icon>
+                <span class="pulse-ring" *ngIf="hasCritical"></span>
+            </div>
+            <div>
+                <h1 class="header-title">Centro de Alertas</h1>
+                <p class="header-sub">
+                    <span class="live-dot"></span>
+                    Monitorización en tiempo real &bull; {{ filteredPatients.length }} paciente(s) activo(s)
+                </p>
+            </div>
         </div>
 
-        <div class="flex gap-3">
-            <div class="relative">
-                <input type="text" placeholder="Buscar paciente..." [(ngModel)]="activeFilter" disabled
-                    class="pl-9 pr-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/20 text-sm">
-                <mat-icon class="absolute left-3 top-2.5 text-gray-400 text-sm scale-75">search</mat-icon>
+        <div class="header-actions">
+            <!-- Search -->
+            <div class="search-wrap">
+                <mat-icon class="search-ico">search</mat-icon>
+                <input type="text" placeholder="Buscar paciente..." [(ngModel)]="searchTerm"
+                    (ngModelChange)="applySearch()" class="search-input">
             </div>
-            <button
-                class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors">
-                <mat-icon class="scale-75 inline-block mr-1 align-middle">filter_list</mat-icon> Filtros
+
+            <!-- Sound toggle -->
+            <button class="icon-btn" (click)="soundEnabled = !soundEnabled"
+                [matTooltip]="soundEnabled ? 'Silenciar alertas' : 'Activar alertas'">
+                <mat-icon>{{ soundEnabled ? 'volume_up' : 'volume_off' }}</mat-icon>
+            </button>
+
+            <!-- Refresh -->
+            <button class="icon-btn" (click)="loadPatients()" [matTooltip]="'Actualizar'">
+                <mat-icon>refresh</mat-icon>
             </button>
         </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="flex gap-2 bg-gray-100/50 p-1 rounded-2xl w-fit">
-        <button (click)="filter('all')"
-            [class]="activeFilter === 'all' ? 'bg-white text-brand-dark shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-            <mat-icon class="scale-75">{{ filterIcons.all }}</mat-icon>
-            Todas ({{allPatients.length}})
+    <!-- === SEVERITY TABS === -->
+    <div class="severity-tabs">
+        <button class="sev-tab" [class.active]="activeFilter === 'all'" (click)="filter('all')">
+            <mat-icon>list</mat-icon>
+            <span>Todas</span>
+            <span class="tab-count neutral">{{ allPatients.length }}</span>
         </button>
-        <button (click)="filter('critical')"
-            [class]="activeFilter === 'critical' ? 'bg-white text-brand-coral shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-            <mat-icon class="scale-75 text-brand-coral">{{ filterIcons.critical }}</mat-icon>
-            Críticas
+        <button class="sev-tab" [class.active]="activeFilter === 'critical'" (click)="filter('critical')">
+            <mat-icon>local_fire_department</mat-icon>
+            <span>Críticas</span>
+            <span class="tab-count critical">{{ criticalCount }}</span>
         </button>
-        <button (click)="filter('moderate')"
-            [class]="activeFilter === 'moderate' ? 'bg-white text-yellow-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-            class="px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-            <mat-icon class="scale-75 text-yellow-600">{{ filterIcons.moderate }}</mat-icon>
-            Moderadas
+        <button class="sev-tab" [class.active]="activeFilter === 'moderate'" (click)="filter('moderate')">
+            <mat-icon>warning_amber</mat-icon>
+            <span>Moderadas</span>
+            <span class="tab-count moderate">{{ moderateCount }}</span>
         </button>
     </div>
 
-    <!-- Patient Grid -->
-    <div class="flex-1 overflow-y-auto">
-        <div *ngIf="loading" class="flex justify-center items-center h-64">
-            <mat-spinner diameter="40"></mat-spinner>
-        </div>
+    <!-- === LOADING === -->
+    <div *ngIf="loading" class="loading-state">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Cargando datos en tiempo real...</p>
+    </div>
 
-        <div *ngIf="!loading && filteredPatients.length === 0"
-            class="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
-            <mat-icon class="text-6xl mb-4">check_circle_outline</mat-icon>
-            <p class="text-lg font-medium">No hay alertas en esta categoría</p>
-        </div>
+    <!-- === EMPTY STATE === -->
+    <div *ngIf="!loading && filteredPatients.length === 0" class="empty-state">
+        <mat-icon>check_circle</mat-icon>
+        <h3>Sin alertas activas</h3>
+        <p>Todos los pacientes están en parámetros normales.</p>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
-            <div *ngFor="let p of filteredPatients"
-                class="glass-card bg-white p-5 rounded-3xl border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative group">
+    <!-- === ALERT CARDS GRID === -->
+    <div class="alerts-grid" *ngIf="!loading">
+        <div class="alert-card" *ngFor="let p of filteredPatients; trackBy: trackById"
+            [class.critical]="p.riskLevel === 'high'" [class.moderate]="p.riskLevel === 'moderate'"
+            (click)="navigateToPatient(p.id)">
 
-                <!-- Status Badge -->
-                <div class="absolute top-5 right-5 z-10">
-                    <span
-                        [class]="getRiskClass(p.riskLevel) + ' px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5'">
-                        <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
-                        {{ getRiskLabel(p.riskLevel) }}
-                    </span>
+            <!-- Severity glow strip -->
+            <div class="severity-strip" [class.critical]="p.riskLevel === 'high'"
+                [class.moderate]="p.riskLevel === 'moderate'"></div>
+
+            <!-- Card header -->
+            <div class="card-header">
+                <div class="patient-avatar">
+                    <img [src]="p.profilePicture" alt="" (error)="onImgError($event)">
+                    <div class="avatar-fallback"><mat-icon>person</mat-icon></div>
                 </div>
+                <div class="patient-info">
+                    <h3 class="patient-name">{{ p.full_name }}</h3>
+                    <p class="patient-meta">{{ p.date_of_birth | age }} años &bull; ID {{ p.id }}</p>
+                </div>
+                <div class="severity-badge" [class.critical]="p.riskLevel === 'high'"
+                    [class.moderate]="p.riskLevel === 'moderate'">
+                    <mat-icon>{{ p.riskLevel === 'high' ? 'local_fire_department' : 'warning_amber' }}</mat-icon>
+                    <span>{{ getRiskLabel(p.riskLevel) }}</span>
+                </div>
+            </div>
 
-                <!-- Patient Header -->
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="relative">
-                        <img [src]="p.profilePicture" class="w-14 h-14 rounded-2xl object-cover bg-gray-100"
-                            (error)="$event.target.style.display='none'">
-                        <mat-icon class="text-gray-300 text-4xl" style="position:absolute">account_circle</mat-icon>
-                        <div class="absolute -bottom-1 -right-1 bg-white p-0.5 rounded-full">
-                            <mat-icon
-                                class="text-brand-cyan text-xs scale-75 bg-cyan-50 rounded-full w-4 h-4 flex items-center justify-center">male</mat-icon>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-brand-dark text-base leading-tight">{{ p.full_name }}</h3>
-                        <p class="text-xs text-gray-400 font-medium">ID: {{ p.id }} • {{ p.date_of_birth | age }} Años
-                        </p>
-                    </div>
+            <!-- Vitals row -->
+            <div class="vitals-row">
+                <div class="vital-cell" [class.danger]="p.latest_pef < 200">
+                    <span class="vital-label">PEF</span>
+                    <span class="vital-value">{{ p.latest_pef || '—' }}</span>
+                    <span class="vital-unit">L/min</span>
                 </div>
+                <div class="vital-cell">
+                    <span class="vital-label">SpO₂</span>
+                    <span class="vital-value" [class.danger]="p.currentSpO2 < 92">{{ p.currentSpO2 || '—' }}</span>
+                    <span class="vital-unit">%</span>
+                </div>
+                <div class="vital-cell">
+                    <span class="vital-label">F. Resp</span>
+                    <span class="vital-value" [class.danger]="p.respiratoryRate > 25">{{ p.respiratoryRate || '—'
+                        }}</span>
+                    <span class="vital-unit">rpm</span>
+                </div>
+                <div class="vital-cell">
+                    <span class="vital-label">Última act.</span>
+                    <span class="vital-value-time">{{ p.lastUpdate | safeDate:'shortTime' }}</span>
+                </div>
+            </div>
 
-                <!-- Vitals Grid -->
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">PEF Actual</p>
-                        <div class="flex items-end gap-1">
-                            <span class="text-xl font-bold text-brand-dark">{{ p.latest_pef }}</span>
-                            <span class="text-[10px] text-gray-400 mb-1">L/min</span>
-                        </div>
-                        <p class="text-[10px] text-red-500 font-bold mt-1">▼ 35% vs Mejor</p>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">SpO2</p>
-                        <div class="flex items-end gap-1">
-                            <span class="text-xl font-bold text-brand-dark">{{ p.currentSpO2 }}</span>
-                            <span class="text-[10px] text-gray-400 mb-1">%</span>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-1">Normal</p>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">F. Resp</p>
-                        <div class="flex items-end gap-1">
-                            <span class="text-xl font-bold text-brand-dark">{{ p.respiratoryRate }}</span>
-                            <span class="text-[10px] text-gray-400 mb-1">rpm</span>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Última Act.</p>
-                        <p class="text-xs font-bold text-brand-dark mt-1">{{ p.lastUpdate | safeDate:'shortTime' }}</p>
-                        <p class="text-[10px] text-gray-400">{{ p.lastUpdate | safeDate }}</p>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="grid grid-cols-2 gap-2">
-                    <button [routerLink]="['/dashboard/patients', p.id]"
-                        class="bg-cyan-50 text-brand-cyan hover:bg-cyan-100 text-xs font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                        Ver Expediente
-                    </button>
-                    <button (click)="markAsResolved(p)"
-                        class="bg-green-50 text-green-600 hover:bg-green-100 text-xs font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                        <mat-icon class="scale-75">check_circle</mat-icon> Atendido
-                    </button>
-                </div>
-                <!-- Call Action -->
-                <div class="mt-4 grid grid-cols-1 border-t border-gray-100 pt-3">
-                    <a [href]="p.phone ? 'tel:' + p.phone : null"
-                        class="w-full border border-brand-coral/20 text-brand-coral hover:bg-brand-coral/10 text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline">
-                        <mat-icon class="scale-75">call</mat-icon> Llamar al Paciente
-                    </a>
-                </div>
+            <!-- Action row -->
+            <div class="card-actions" (click)="$event.stopPropagation()">
+                <button class="action-btn view" [routerLink]="['/dashboard/patients', p.id]">
+                    <mat-icon>folder_open</mat-icon> Expediente
+                </button>
+                <button class="action-btn resolve" (click)="markAsResolved(p)">
+                    <mat-icon>check_circle</mat-icon> Atendido
+                </button>
+                <a class="action-btn call" [href]="p.phone ? 'tel:' + p.phone : null">
+                    <mat-icon>call</mat-icon> Llamar
+                </a>
             </div>
 
         </div>
     </div>
+
 </div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -9,10 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { Subject } from 'rxjs';
+import { takeUntil, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-change-password-modal',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -27,11 +30,11 @@ import { ToastService } from '../../../core/services/toast.service';
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h2 class="text-xl font-bold text-slate-800 m-0">Cambiar Contraseña</h2>
-          <p class="text-xs text-slate-500 mt-1" *ngIf="step === 1">Tu nueva contraseña debe cumplir con los requisitos de seguridad.</p>
-          <p class="text-xs text-slate-500 mt-1" *ngIf="step === 2">Verifica tu identidad ingresando el código OTP.</p>
+          <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">Cambiar Contraseña</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" *ngIf="step === 1">Tu nueva contraseña debe cumplir con los requisitos de seguridad.</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" *ngIf="step === 2">Ingresa el código OTP enviado a tu correo.</p>
         </div>
-        <button mat-icon-button (click)="dialogRef.close()" class="text-slate-400 hover:text-slate-600">
+        <button mat-icon-button (click)="dialogRef.close()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -62,22 +65,22 @@ import { ToastService } from '../../../core/services/toast.service';
           </mat-form-field>
 
           <!-- Password Rules Visuzalization -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-2">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Requisitos de Contraseña</p>
+          <div class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-white/5 mb-2">
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Requisitos de Contraseña</p>
             <div class="space-y-1.5">
-              <div class="flex items-center gap-2 text-xs" [ngClass]="hasLength ? 'text-primary' : 'text-slate-400'">
+              <div class="flex items-center gap-2 text-xs" [ngClass]="hasLength ? 'text-primary' : 'text-slate-400 dark:text-slate-500'">
                 <mat-icon class="scale-75 w-4 h-4">{{ hasLength ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                 <span>Mínimo 8 caracteres</span>
               </div>
-              <div class="flex items-center gap-2 text-xs" [ngClass]="hasUpper ? 'text-primary' : 'text-slate-400'">
+              <div class="flex items-center gap-2 text-xs" [ngClass]="hasUpper ? 'text-primary' : 'text-slate-400 dark:text-slate-500'">
                 <mat-icon class="scale-75 w-4 h-4">{{ hasUpper ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                 <span>Al menos 1 mayúscula</span>
               </div>
-              <div class="flex items-center gap-2 text-xs" [ngClass]="hasNumber ? 'text-primary' : 'text-slate-400'">
+              <div class="flex items-center gap-2 text-xs" [ngClass]="hasNumber ? 'text-primary' : 'text-slate-400 dark:text-slate-500'">
                 <mat-icon class="scale-75 w-4 h-4">{{ hasNumber ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                 <span>Al menos 1 número</span>
               </div>
-              <div class="flex items-center gap-2 text-xs" [ngClass]="hasSpecial ? 'text-primary' : 'text-slate-400'">
+              <div class="flex items-center gap-2 text-xs" [ngClass]="hasSpecial ? 'text-primary' : 'text-slate-400 dark:text-slate-500'">
                 <mat-icon class="scale-75 w-4 h-4">{{ hasSpecial ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                 <span>Al menos 1 símbolo especial (!&#64;#$%)</span>
               </div>
@@ -109,9 +112,9 @@ import { ToastService } from '../../../core/services/toast.service';
 
         <!-- STEP 2: OTP Confirmation -->
         <div class="flex flex-col gap-4" *ngIf="step === 2">
-          <div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm flex gap-3 border border-blue-100">
+          <div class="bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-200 p-4 rounded-xl text-sm flex gap-3 border border-blue-100 dark:border-blue-900/30">
             <mat-icon class="text-blue-500 flex-shrink-0">mark_email_read</mat-icon>
-            <p class="m-0">Hemos generado un código de verificación por tu seguridad. En el entorno de prueba, utiliza <strong>123456</strong>.</p>
+            <p class="m-0">Hemos enviado un OTP de 6 dígitos a <strong>{{ maskEmail(userEmail) }}</strong>.</p>
           </div>
 
           <mat-form-field appearance="outline" class="w-full mt-2 text-center text-2xl tracking-[0.5em] font-mono">
@@ -119,7 +122,7 @@ import { ToastService } from '../../../core/services/toast.service';
             <input matInput formControlName="otp_code" maxlength="6" class="text-center font-bold">
             <mat-error *ngIf="passwordForm.get('otp_code')?.hasError('required')">Requerido</mat-error>
             <mat-error *ngIf="passwordForm.get('otp_code')?.hasError('pattern')">Solo 6 números</mat-error>
-            <mat-error *ngIf="passwordForm.hasError('invalidOtp')">El código es incorrecto</mat-error>
+            <mat-error *ngIf="passwordForm.get('otp_code')?.hasError('invalidOtp')">El código es incorrecto</mat-error>
           </mat-form-field>
         </div>
 
@@ -152,7 +155,8 @@ import { ToastService } from '../../../core/services/toast.service';
     }
   `]
 })
-export class ChangePasswordModalComponent {
+export class ChangePasswordModalComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
   passwordForm: FormGroup;
   step = 1;
   isGeneratingCode = false;
@@ -168,23 +172,26 @@ export class ChangePasswordModalComponent {
   hasNumber = false;
   hasSpecial = false;
   passwordStrength = 0;
+  userEmail = '';
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<ChangePasswordModalComponent>,
     private authService: AuthService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cd: ChangeDetectorRef
   ) {
     this.passwordForm = this.fb.group({
       current_password: ['', Validators.required],
       new_password: ['', [Validators.required, Validators.minLength(8)]],
       confirm_password: ['', Validators.required],
-      otp_code: ['123456', [Validators.pattern('^[0-9]{6}$')]] // Pre-fill mock for convenience 
+      otp_code: ['']
     }, { validators: this.passwordMatchValidator });
 
     // Track password changes to update UI strength
-    this.passwordForm.get('new_password')?.valueChanges.subscribe(val => {
+    this.passwordForm.get('new_password')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
       this.evaluatePassword(val || '');
+      this.cd.markForCheck();
     });
   }
 
@@ -212,38 +219,83 @@ export class ChangePasswordModalComponent {
   submitStep() {
     if (this.passwordForm.valid && this.step === 1) {
       this.isGeneratingCode = true;
-      // Simulate sending OTP request
-      setTimeout(() => {
-        this.isGeneratingCode = false;
-        this.step = 2; // Move to OTP confirmation UI
-        this.toastService.showInfo('Código OTP enviado al correo');
-      }, 800);
+      this.cd.markForCheck();
+      this.authService.fetchCurrentUser().pipe(take(1)).subscribe({
+        next: (user) => {
+          this.userEmail = user.email;
+          this.authService.signInWithOtp(this.userEmail).pipe(take(1)).subscribe({
+            next: () => {
+              this.isGeneratingCode = false;
+              this.step = 2;
+              this.passwordForm.get('otp_code')?.setValidators([Validators.required, Validators.pattern('^[0-9]{6}$')]);
+              this.passwordForm.get('otp_code')?.updateValueAndValidity();
+              this.cd.markForCheck();
+              this.toastService.showInfo('Código OTP enviado al correo');
+            },
+            error: () => {
+              this.isGeneratingCode = false;
+              this.cd.markForCheck();
+              this.toastService.showError('No se pudo enviar el OTP. Intenta de nuevo.');
+            }
+          });
+        },
+        error: () => {
+          this.isGeneratingCode = false;
+          this.cd.markForCheck();
+          this.toastService.showError('No se pudo recuperar tu usuario actual.');
+        }
+      });
     }
   }
 
   saveFinal() {
     if (this.passwordForm.valid && this.step === 2) {
-      const otpControl = this.passwordForm.get('otp_code');
-      if (otpControl?.value !== '123456') {
-        otpControl?.setErrors({ invalidOtp: true });
-        return;
-      }
-
       this.isSaving = true;
       const data = this.passwordForm.value;
+      const otpCode = data.otp_code;
 
-      this.authService.changePassword(data.current_password, data.new_password).subscribe({
-        next: () => {
-          this.isSaving = false;
-          this.toastService.showSuccess('Contraseña actualizada con éxito');
-          this.dialogRef.close(true);
+      this.authService.verifyOtp(this.userEmail, otpCode, 'email', false).pipe(take(1)).subscribe({
+        next: (otpRes) => {
+          if (otpRes?.error) {
+            this.isSaving = false;
+            this.passwordForm.get('otp_code')?.setErrors({ invalidOtp: true });
+            this.toastService.showError('El código OTP es inválido o expiró.');
+            this.cd.markForCheck();
+            return;
+          }
+
+          this.authService.changePassword(data.current_password, data.new_password).pipe(take(1)).subscribe({
+            next: () => {
+              this.isSaving = false;
+              this.toastService.showSuccess('Contraseña actualizada con éxito');
+              this.dialogRef.close(true);
+            },
+            error: (err: any) => {
+              this.isSaving = false;
+              this.toastService.showError(err.error?.detail || 'Error al cambiar la contraseña');
+              console.error('Error changing password', err);
+              this.cd.markForCheck();
+            }
+          });
         },
-        error: (err: any) => {
+        error: () => {
           this.isSaving = false;
-          this.toastService.showError(err.error?.detail || 'Error al cambiar la contraseña');
-          console.error('Error changing password', err);
+          this.passwordForm.get('otp_code')?.setErrors({ invalidOtp: true });
+          this.toastService.showError('No se pudo verificar el OTP.');
+          this.cd.markForCheck();
         }
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  maskEmail(email: string): string {
+    if (!email || !email.includes('@')) return '';
+    const [name, domain] = email.split('@');
+    return `${name.slice(0, 3)}***@${domain}`;
   }
 }

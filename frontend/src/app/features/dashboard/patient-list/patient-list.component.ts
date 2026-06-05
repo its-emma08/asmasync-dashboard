@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { AgePipe } from '../../../shared/pipes/age-pipe';
 import { SafeDatePipe } from '../../../shared/pipes/safe-date.pipe';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -25,7 +25,7 @@ import { PatientService } from '../../../core/services/patient.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { SearchService } from '../../../core/services/search.service';
 import { Patient } from '../../../core/models/patient.model';
-import { SkeletonTableComponent } from '../../../shared/components/skeleton-table/skeleton-table';
+import * as riskHelper from '../../../core/utils/risk.helper';
 
 @Component({
     selector: 'app-patient-list',
@@ -47,15 +47,13 @@ import { SkeletonTableComponent } from '../../../shared/components/skeleton-tabl
         MatTooltipModule,
         MatMenuModule,
         AgePipe,
-        AgePipe,
-        SafeDatePipe,
-        SkeletonTableComponent // Added
+        SafeDatePipe
     ],
     templateUrl: './patient-list.component.html',
     styleUrls: ['./patient-list.component.scss']
 })
 export class PatientListComponent implements OnInit, OnDestroy {
-    displayedColumns: string[] = ['fullName', 'age', 'riskLevel', 'currentPEF', 'adherence', 'lastUpdate', 'actions'];
+    displayedColumns: string[] = ['fullName', 'age', 'riskLevel', 'currentPEF', 'currentSpO2', 'heartRate', 'lastUpdate', 'actions'];
     data: Patient[] = [];
 
     resultsLength = 0;
@@ -69,9 +67,9 @@ export class PatientListComponent implements OnInit, OnDestroy {
     // Risk levels for filter dropdown
     riskLevels = [
         { value: 'all', label: 'Todos los niveles' },
-        { value: 'red', label: 'Crítico' },
-        { value: 'yellow', label: 'Moderado' },
-        { value: 'green', label: 'Bajo' }
+        { value: 'high', label: 'Crítico' },
+        { value: 'moderate', label: 'Moderado' },
+        { value: 'low', label: 'Bajo' }
     ];
 
     // Private properties
@@ -85,7 +83,8 @@ export class PatientListComponent implements OnInit, OnDestroy {
         private wsService: WebSocketService,
         private searchService: SearchService, // Injected
         private cd: ChangeDetectorRef,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private route: ActivatedRoute
     ) { }
 
 
@@ -93,6 +92,13 @@ export class PatientListComponent implements OnInit, OnDestroy {
         // Initialize table logic immediately, do not wait for ViewChild
         this.setupTable();
         this.setupRealtimeUpdates();
+
+        // Read query params for initial filters (e.g. Alto Riesgo KPI click)
+        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+            if (params['filter'] === 'risk' || params['filter'] === 'high') {
+                this.riskFilterControl.setValue('high');
+            }
+        });
 
         // Connect Global Search
         this.searchService.search$.pipe(takeUntil(this.destroy$)).subscribe(term => {
@@ -154,11 +160,15 @@ export class PatientListComponent implements OnInit, OnDestroy {
                         catchError(() => of(null)),
                         map(res => {
                             if (!res) return null;
-                            // Frontend-side archive filtering (Mock)
-                            const filteredData = res.data.filter(p =>
+                            // Frontend-side archive filtering
+                            let filtered = res.data.filter(p =>
                                 this.showArchived ? this.archivedPatients.has(p.id) : !this.archivedPatients.has(p.id)
                             );
-                            return { ...res, data: filteredData, total: filteredData.length }; // Adjust total mock
+                            // Client-side sort (backend doesn't support sort params)
+                            if (this._sort?.active && this._sort.direction) {
+                                filtered = this.applySortToData(filtered, this._sort.active, this._sort.direction);
+                            }
+                            return { ...res, data: filtered, total: filtered.length };
                         })
                     );
                 }),
@@ -235,15 +245,40 @@ export class PatientListComponent implements OnInit, OnDestroy {
     }
 
     getRiskLabel(level: string): string {
-        switch (level) {
-            case 'red': return 'Crítico';
-            case 'yellow': return 'Moderado';
-            case 'green': return 'Bajo';
-            default: return level;
-        }
+        return riskHelper.getRiskLabel(level);
+    }
+
+    getInitials(name: string): string {
+        if (!name) return '??';
+        const parts = name.split(' ').filter(n => n.length > 0);
+        if (parts.length === 0) return '??';
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+    }
+
+    getAdherenceClass(adherence: number): string {
+        if (adherence >= 80) return 'good';
+        if (adherence >= 50) return 'fair';
+        return 'poor';
     }
 
     trackByPatientId(index: number, patient: Patient): string | number {
         return patient.id;
+    }
+
+    private applySortToData(data: Patient[], active: string, direction: string): Patient[] {
+        return [...data].sort((a, b) => {
+            let valA: any;
+            let valB: any;
+            switch (active) {
+                case 'fullName':   valA = a.full_name || ''; valB = b.full_name || ''; break;
+                case 'age':        valA = a.date_of_birth || ''; valB = b.date_of_birth || ''; break;
+                case 'riskLevel':  valA = riskHelper.getRiskPriority(a.riskLevel); valB = riskHelper.getRiskPriority(b.riskLevel); break;
+                case 'adherence':  valA = a.adherence ?? -1; valB = b.adherence ?? -1; break;
+                default: return 0;
+            }
+            const cmp = valA < valB ? -1 : valA > valB ? 1 : 0;
+            return direction === 'asc' ? cmp : -cmp;
+        });
     }
 }

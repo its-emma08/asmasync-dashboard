@@ -1,88 +1,574 @@
-/* Basic styling, mostly handled by tailwind in template */
-
-.alert-item {
-    transition: background-color 0.2s;
+/* === ALERTS PAGE === */
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-/* Override padding for cleaner list look */
-:host ::ng-deep .mat-mdc-list-item-icon-container {
-    align-self: flex-start;
-    margin-top: 16px;
+.alerts-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 24px;
+    gap: 20px;
+    background: #f8fafc;
+    transition: background 0.4s ease;
+
+    &.has-critical {
+        background: linear-gradient(135deg, #fff5f5 0%, #fff8f5 50%, #f8fafc 100%);
+    }
 }
 
-/* ─── Dark Mode Overrides ─── */
+/* === HEADER === */
+.alerts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-icon {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+        color: white;
+    }
+
+    &.critical {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+        animation: icon-throb 2s ease-in-out infinite;
+    }
+
+    &.moderate {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+    }
+}
+
+.pulse-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 20px;
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes icon-throb {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+    }
+
+    50% {
+        box-shadow: 0 4px 32px rgba(239, 68, 68, 0.7);
+    }
+}
+
+.header-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.header-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin: 3px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1
+    }
+
+    50% {
+        opacity: 0.3
+    }
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .search-ico {
+        position: absolute;
+        left: 12px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: #94a3b8;
+    }
+}
+
+.search-input {
+    padding: 9px 16px 9px 38px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+    background: white;
+    outline: none;
+    width: 220px;
+    transition: border 0.2s, box-shadow 0.2s;
+
+    &:focus {
+        border-color: #06b6d4;
+        box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+    }
+
+    &::placeholder {
+        color: #94a3b8;
+    }
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.2s;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        background: #f1f5f9;
+        border-color: #06b6d4;
+        color: #06b6d4;
+    }
+}
+
+/* === SEVERITY TABS === */
+.severity-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.sev-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 14px;
+    border: 1.5px solid transparent;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
+
+    &.active {
+        background: white;
+        border-color: #e2e8f0;
+        color: #0f172a;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+}
+
+.tab-count {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+
+    &.neutral {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    &.critical {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+    }
+
+    &.moderate {
+        background: rgba(245, 158, 11, 0.12);
+        color: #d97706;
+    }
+}
+
+/* === LOADING / EMPTY === */
+.loading-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #94a3b8;
+}
+
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #94a3b8;
+
+    mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        opacity: 0.4;
+    }
+
+    h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+/* === GRID === */
+.alerts-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    align-content: start;
+    padding-bottom: 16px;
+}
+
+/* === CARD === */
+.alert-card {
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1.5px solid #f1f5f9;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    &.critical {
+        border-color: rgba(239, 68, 68, 0.25);
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.12), inset 0 0 0 1.5px rgba(239, 68, 68, 0.2);
+        animation: card-critical-pulse 3s ease-in-out infinite;
+    }
+
+    &.moderate {
+        border-color: rgba(245, 158, 11, 0.25);
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.1);
+    }
+}
+
+@keyframes card-critical-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.12), inset 0 0 0 1.5px rgba(239, 68, 68, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 4px 32px rgba(239, 68, 68, 0.28), inset 0 0 0 1.5px rgba(239, 68, 68, 0.4);
+    }
+}
+
+.severity-strip {
+    height: 4px;
+    width: 100%;
+
+    &.critical {
+        background: linear-gradient(90deg, #ef4444, #f97316);
+    }
+
+    &.moderate {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 10px;
+}
+
+.patient-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-fallback {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            color: #94a3b8;
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
+        }
+    }
+}
+
+.patient-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-meta {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 2px 0 0;
+}
+
+.severity-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
+    }
+
+    &.critical {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    &.moderate {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+}
+
+/* === VITALS === */
+.vitals-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 0 16px 12px;
+}
+
+.vital-cell {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: background 0.2s;
+
+    &.danger {
+        background: rgba(239, 68, 68, 0.06);
+    }
+}
+
+.vital-label {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+}
+
+.vital-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+
+    &.danger {
+        color: #dc2626;
+    }
+}
+
+.vital-value-time {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.vital-unit {
+    font-size: 9px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+/* === ACTIONS === */
+.card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    padding: 0 16px 16px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    &.view {
+        background: rgba(0, 122, 255, 0.08);
+        color: #007AFF;
+        &:hover { background: rgba(0, 122, 255, 0.15); }
+    }
+
+    &.resolve {
+        background: rgba(52, 199, 89, 0.08);
+        color: #34C759;
+        &:hover { background: rgba(52, 199, 89, 0.15); }
+    }
+
+    &.call {
+        background: rgba(255, 59, 48, 0.08);
+        color: #FF3B30;
+        &:hover { background: rgba(255, 59, 48, 0.15); }
+    }
+}
+
+/* === DARK MODE === */
 :host-context(body.dark) {
-
-    /* Entire panel background */
-    :host>div,
-    &>div {
-        background-color: var(--color-background-main, #0d1117);
-        color: var(--text-primary, #f8fafc);
-    }
-
-    /* Filter tab group (bg-gray-100/50) */
-    ::ng-deep div[class*="bg-gray-100"] {
-        background-color: rgba(30, 41, 59, 0.7) !important;
-    }
-
-    /* Active tab in filter group */
-    ::ng-deep div[class*="bg-gray-100"] button.bg-white,
-    ::ng-deep div[class*="bg-gray-100"] button[class*="bg-white"] {
-        background-color: #334155 !important;
-        color: #f1f5f9 !important;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
-    }
-
-    /* Inactive tab text */
-    ::ng-deep div[class*="bg-gray-100"] button.text-gray-500 {
-        color: #94a3b8 !important;
-    }
-
-    /* Search input */
-    input[class*="bg-white"],
-    ::ng-deep input[class*="bg-white"] {
-        background-color: #1e293b !important;
-        border-color: #334155 !important;
-        color: #f1f5f9 !important;
-    }
-
-    /* Filters button */
-    button[class*="bg-white"] {
-        background-color: #1e293b !important;
-        border-color: #334155 !important;
-        color: #cbd5e1 !important;
-    }
-
-    /* Patient card vitals mini-boxes */
-    ::ng-deep div[class*="bg-gray-50"] {
-        background-color: rgba(15, 23, 42, 0.6) !important;
-        color: #cbd5e1 !important;
-    }
-
-    /* Section titles */
-    ::ng-deep .text-brand-dark {
-        color: #f1f5f9 !important;
-    }
-
-    /* Empty state */
-    ::ng-deep .text-gray-400 {
-        color: #64748b !important;
-    }
-
-    /* Alert patient card */
-    ::ng-deep .glass-card {
-        background: rgba(30, 41, 59, 0.85) !important;
-        border-color: #334155 !important;
-    }
-
-    /* Action buttons inside cards */
-    ::ng-deep .bg-cyan-50 {
-        background-color: rgba(0, 181, 173, 0.12) !important;
-        color: #2dd4bf !important;
-    }
-
-    ::ng-deep .bg-green-50 {
-        background-color: rgba(34, 197, 94, 0.1) !important;
-        color: #4ade80 !important;
-    }
-}
+    .alerts-page { background: var(--bg-body); &.has-critical { background: linear-gradient(135deg, #1a0f0f 0%, #1a1209 50%, #0d1117 100%); } }
+    .sev-tab { background: var(--bg-card); color: var(--text-secondary); border-color: var(--border-color); &.active { color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.3); } }
+    .tab-count.neutral { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+    .search-input { background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); &:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(0,122,255,0.15); } }
+    .icon-btn { background: var(--bg-card); border-color: var(--border-color); color: var(--text-secondary); &:hover { background: var(--bg-hover); border-color: var(--brand-primary); color: var(--brand-primary); } }
+    .alert-card { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
+    .vital-cell { background: rgba(255,255,255,0.04); }
+    .vital-value { color: var(--text-primary); }
+    .vital-value-time { color: var(--text-primary); }
+    .patient-name { color: var(--text-primary); }
+    .header-title { color: var(--text-primary); }
+    .header-sub { color: var(--text-secondary); }
+    .patient-avatar { background: #2C2C2E; }
+}

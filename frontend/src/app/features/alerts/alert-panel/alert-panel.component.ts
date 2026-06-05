@@ -1,41 +1,28 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatListModule } from '@angular/material/list';
-import { MatButtonModule } from '@angular/material/button';
+import { Subject, takeUntil, take } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { FormsModule } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { AgePipe } from '../../../shared/pipes/age-pipe';
 import { SafeDatePipe } from '../../../shared/pipes/safe-date.pipe';
-
 import { PatientService } from '../../../core/services/patient.service';
-import { WebSocketService } from '../../../core/services/websocket.service';
 import { Patient } from '../../../core/models/patient.model';
+import * as riskHelper from '../../../core/utils/risk.helper';
 
 @Component({
     selector: 'app-alert-panel',
     standalone: true,
     imports: [
-        CommonModule,
-        RouterModule,
-        MatToolbarModule,
-        MatChipsModule,
-        MatListModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatProgressSpinnerModule,
-        MatSnackBarModule,
-        FormsModule,
-        AgePipe,
-        SafeDatePipe
+        CommonModule, RouterModule, FormsModule,
+        MatIconModule, MatButtonModule, MatProgressSpinnerModule,
+        MatSnackBarModule, MatTooltipModule,
+        AgePipe, SafeDatePipe
     ],
     templateUrl: './alert-panel.component.html',
     styleUrls: ['./alert-panel.component.scss']
@@ -43,29 +30,19 @@ import { Patient } from '../../../core/models/patient.model';
 export class AlertPanelComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
-    // Static configuration for filters to prevent NG0100
-    filterIcons = {
-        all: 'list',
-        critical: 'warning',
-        moderate: 'error_outline'
-    };
-
     allPatients: Patient[] = [];
     filteredPatients: Patient[] = [];
     loading = true;
     activeFilter: 'all' | 'critical' | 'moderate' = 'all';
+    searchTerm = '';
+    soundEnabled = true;
 
     constructor(
         private patientService: PatientService,
-        private wsService: WebSocketService,
         private router: Router,
         private snackBar: MatSnackBar,
         private cd: ChangeDetectorRef
-    ) {
-        // Initialize with empty/default to be safe
-        this.allPatients = [];
-        this.filteredPatients = [];
-    }
+    ) { }
 
     ngOnInit(): void {
         this.loadPatients();
@@ -77,14 +54,19 @@ export class AlertPanelComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (patients) => {
-                    // Start with all high risk patients
-                    this.allPatients = patients.filter(p => p.riskLevel === 'red' || p.riskLevel === 'yellow');
-                    this.filter(this.activeFilter);
+                    // Only risk patients, sorted: critical first
+                    this.allPatients = patients
+                        .filter(p => p.riskLevel === 'high' || p.riskLevel === 'moderate')
+                        .sort((a, b) => {
+                            if (a.riskLevel === 'high' && b.riskLevel !== 'high') return -1;
+                            if (b.riskLevel === 'high' && a.riskLevel !== 'high') return 1;
+                            return 0;
+                        });
+                    this.applySearch();
                     this.loading = false;
                     this.cd.markForCheck();
                 },
-                error: (err) => {
-                    console.error(err);
+                error: () => {
                     this.loading = false;
                     this.cd.markForCheck();
                 }
@@ -93,13 +75,30 @@ export class AlertPanelComponent implements OnInit, OnDestroy {
 
     filter(type: 'all' | 'critical' | 'moderate'): void {
         this.activeFilter = type;
-        if (type === 'all') {
-            this.filteredPatients = this.allPatients;
-        } else if (type === 'critical') {
-            this.filteredPatients = this.allPatients.filter(p => p.riskLevel === 'red');
-        } else if (type === 'moderate') {
-            this.filteredPatients = this.allPatients.filter(p => p.riskLevel === 'yellow');
-        }
+        this.applySearch();
+    }
+
+    applySearch(): void {
+        let base = this.allPatients;
+        if (this.activeFilter === 'critical') base = base.filter(p => p.riskLevel === 'high');
+        if (this.activeFilter === 'moderate') base = base.filter(p => p.riskLevel === 'moderate');
+
+        const term = this.searchTerm.toLowerCase().trim();
+        this.filteredPatients = term
+            ? base.filter(p => p.full_name?.toLowerCase().includes(term))
+            : base;
+    }
+
+    get hasCritical(): boolean {
+        return this.allPatients.some(p => p.riskLevel === 'high');
+    }
+
+    get criticalCount(): number {
+        return this.allPatients.filter(p => p.riskLevel === 'high').length;
+    }
+
+    get moderateCount(): number {
+        return this.allPatients.filter(p => p.riskLevel === 'moderate').length;
     }
 
     navigateToPatient(patientId: string | number): void {
@@ -107,32 +106,25 @@ export class AlertPanelComponent implements OnInit, OnDestroy {
     }
 
     markAsResolved(patient: Patient): void {
-        this.patientService.resolveAlert(patient.id).subscribe(success => {
+        this.patientService.resolveAlert(patient.id).pipe(take(1)).subscribe(success => {
             if (success) {
                 this.snackBar.open('Alerta marcada como atendida', 'OK', { duration: 3000 });
-                // Remove from local list visually
                 this.allPatients = this.allPatients.filter(p => p.id !== patient.id);
-                this.filter(this.activeFilter);
-            } else {
-                this.snackBar.open('Error al actualizar estado', 'Error', { duration: 3000 });
+                this.applySearch();
             }
         });
     }
 
     getRiskLabel(level: string): string {
-        switch (level) {
-            case 'red': return 'Crítico';
-            case 'yellow': return 'Moderado';
-            default: return level;
-        }
+        return riskHelper.getRiskLabel(level);
     }
 
-    getRiskClass(level: string): string {
-        switch (level) {
-            case 'red': return 'bg-red-50 text-brand-coral border-red-100';
-            case 'yellow': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
-            default: return 'bg-gray-50 text-gray-500';
-        }
+    onImgError(event: Event): void {
+        (event.target as HTMLElement).style.display = 'none';
+    }
+
+    trackById(_: number, p: Patient): any {
+        return p.id;
     }
 
     ngOnDestroy(): void {

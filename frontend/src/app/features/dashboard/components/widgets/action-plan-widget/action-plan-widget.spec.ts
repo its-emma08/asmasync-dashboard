@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ActionPlanWidget } from './action-plan-widget';
+import { ActionPlanWidgetComponent } from './action-plan-widget';
 
-describe('ActionPlanWidget', () => {
-  let component: ActionPlanWidget;
-  let fixture: ComponentFixture<ActionPlanWidget>;
+describe('ActionPlanWidgetComponent', () => {
+  let component: ActionPlanWidgetComponent;
+  let fixture: ComponentFixture<ActionPlanWidgetComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ActionPlanWidget]
+      imports: [ActionPlanWidgetComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ActionPlanWidget);
+    fixture = TestBed.createComponent(ActionPlanWidgetComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

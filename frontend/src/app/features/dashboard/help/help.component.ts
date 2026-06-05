@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -13,6 +14,7 @@ import { RouterModule } from '@angular/router';
         MatIconModule,
         MatButtonModule,
         MatExpansionModule,
+        MatSnackBarModule,
         RouterModule
     ],
     template: `
@@ -120,7 +122,7 @@ import { RouterModule } from '@angular/router';
                     <h3>¿No encuentras lo que buscas?</h3>
                     <p>Contacta con nuestro equipo de soporte</p>
                 </div>
-                <button mat-raised-button color="primary">
+                <button mat-raised-button color="primary" (click)="contactSupport()">
                     <mat-icon>send</mat-icon> Enviar Mensaje
                 </button>
             </div>
@@ -274,4 +276,11 @@ import { RouterModule } from '@angular/router';
         }
     `]
 })
-export class HelpComponent { }
+export class HelpComponent { 
+    constructor(private snackBar: MatSnackBar) {}
+
+    contactSupport() {
+        this.snackBar.open('Abriendo cliente de correo soporte@asmasync.com...', 'OK', { duration: 3000 });
+        window.location.href = 'mailto:soporte@asmasync.com?subject=Soporte AsmaSync';
+    }
+}

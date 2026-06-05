@@ -1,83 +1,87 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { Appointment, CreateAppointmentDto } from '../models/appointment.model';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AppointmentService {
 
-    // Mock Data
-    private appointments: Appointment[] = [
-        {
-            id: 1,
-            patientId: 101,
-            patientName: 'Juan Pérez',
-            doctorName: 'Dr. Smith',
-            date: new Date(new Date().setHours(9, 0, 0, 0)), // Today 9 AM
-            durationMinutes: 30,
-            type: 'checkup',
-            status: 'confirmed',
-            notes: 'Revisión semestral',
-            location: 'Consultorio 3'
-        },
-        {
-            id: 2,
-            patientId: 102,
-            patientName: 'Maria Rodriguez',
-            doctorName: 'Dr. Smith',
-            date: new Date(new Date().setHours(10, 30, 0, 0)), // Today 10:30 AM
-            durationMinutes: 45,
-            type: 'follow_up',
-            status: 'scheduled',
-            notes: 'Seguimiento post-crisis',
-            location: 'Consultorio 3'
-        },
-        {
-            id: 3,
-            patientId: 103,
-            patientName: 'Carlos López',
-            doctorName: 'Dra. Jones',
-            date: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
-            durationMinutes: 30,
-            type: 'test',
-            status: 'scheduled',
-            notes: 'Espirometría',
-            location: 'Laboratorio'
-        }
-    ];
+    private readonly apiUrl = `${environment.apiUrl}/appointments`;
 
-    constructor() { }
+    constructor(private http: HttpClient) { }
 
-    getAppointments(startDate: Date, endDate: Date): Observable<Appointment[]> {
-        // Filter by range
-        const filtered = this.appointments.filter(a =>
-            a.date >= startDate && a.date <= endDate
+    getAppointments(startDate: Date, endDate: Date, patientId?: number): Observable<Appointment[]> {
+        if (environment.mockMode) return of([]);
+
+        let params = new HttpParams()
+            .set('start_date', startDate.toISOString())
+            .set('end_date', endDate.toISOString());
+        if (patientId) params = params.set('patient_id', patientId.toString());
+
+        return this.http.get<{ data: any[]; total: number }>(this.apiUrl, { params }).pipe(
+            map(res => (res.data || []).map(app => this.mapApiToModel(app))),
+            catchError(() => of([]))
         );
-        return of(filtered).pipe(delay(500)); // Simulate latency
+    }
+
+    /** Citas propias del paciente autenticado — GET /api/appointments/my */
+    getMyAppointments(): Observable<Appointment[]> {
+        if (environment.mockMode) return of([]);
+        return this.http.get<any[]>(`${this.apiUrl}/my`).pipe(
+            map(res => (res || []).map(app => this.mapApiToModel(app))),
+            catchError(() => of([]))
+        );
     }
 
     getAppointmentsByPatient(patientId: number): Observable<Appointment[]> {
-        const filtered = this.appointments.filter(a => a.patientId === patientId);
-        return of(filtered).pipe(delay(300));
+        if (environment.mockMode) return of([]);
+        const startDate = new Date(); startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(startDate); endDate.setFullYear(endDate.getFullYear() + 1);
+        return this.getAppointments(startDate, endDate, patientId);
     }
 
     createAppointment(dto: CreateAppointmentDto): Observable<Appointment> {
-        const newAppt: Appointment = {
-            id: this.appointments.length + 1,
-            ...dto,
-            patientName: 'Nuevo Paciente', // Mock
-            status: 'scheduled'
-        };
-        this.appointments.push(newAppt);
-        return of(newAppt).pipe(delay(500));
+        if (environment.mockMode) return of({} as Appointment);
+        return this.http.post<any>(this.apiUrl, dto).pipe(
+            map(app => this.mapApiToModel(app)),
+            catchError((err: HttpErrorResponse) => throwError(() => err))
+        );
     }
 
-    updateStatus(id: number, status: any): Observable<void> {
-        const appt = this.appointments.find(a => a.id === id);
-        if (appt) {
-            appt.status = status;
-        }
-        return of(void 0).pipe(delay(300));
+    updateAppointment(id: number | string, dto: Partial<CreateAppointmentDto>): Observable<Appointment> {
+        if (environment.mockMode) return of({} as Appointment);
+        return this.http.patch<any>(`${this.apiUrl}/${id}`, dto).pipe(
+            map(app => this.mapApiToModel(app)),
+            catchError((err: HttpErrorResponse) => throwError(() => err))
+        );
+    }
+
+    deleteAppointment(id: number | string): Observable<void> {
+        if (environment.mockMode) return of(void 0);
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(catchError(() => of(void 0)));
+    }
+
+    private mapApiToModel(app: any): Appointment {
+        return {
+            id: app.id,
+            patientId: app.patient_id ?? app.patientId,
+            patientName: app.patient_name ?? app.patientName ?? '',
+            doctorName: app.doctor_name ?? app.doctorName,
+            date: new Date(app.date),
+            durationMinutes: app.duration_minutes ?? app.durationMinutes ?? 30,
+            type: app.type ?? 'checkup',
+            status: app.status ?? 'scheduled',
+            notes: app.notes,
+            location: app.location,
+        };
+    }
+
+    updateStatus(id: number, status: string): Observable<void> {
+        if (environment.mockMode) return of(void 0);
+        return this.http.patch<Appointment>(`${this.apiUrl}/${id}`, { status }).pipe(
+            map(() => void 0), catchError(() => of(void 0))
+        );
     }
 }

@@ -25,7 +25,11 @@
         <div class="p-6 flex-1 overflow-y-auto space-y-6">
             <!-- Patient Mini Summary -->
             <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <img [src]="patient?.profilePicture" class="w-12 h-12 rounded-full object-cover">
+                <div *ngIf="!patient?.profilePicture" 
+                    class="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-sm">
+                    {{ getInitials(patient?.full_name || '') }}
+                </div>
+                <img *ngIf="patient?.profilePicture" [src]="patient?.profilePicture" class="w-12 h-12 rounded-full object-cover" (error)="patient!.profilePicture = undefined">
                 <div>
                     <p class="font-bold text-slate-700 leading-tight">{{ patient?.full_name }}</p>
                     <p class="text-xs text-brand-cyan font-bold">{{ patient?.id }}</p>
@@ -275,11 +279,17 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-20">
-                        <div class="bg-[#dccdb9] p-2 rounded-t-lg border-b border-[#b38e5d]">
-                            <p class="text-[10px] uppercase font-bold text-[#5c4021] text-center">Firma del Médico</p>
+                        <div class="p-2 border-b border-[#b38e5d] flex flex-col items-center">
+                            <div class="h-12 w-full flex items-end justify-center pb-1">
+                                <span class="text-xs font-serif italic text-slate-700" *ngIf="doctorName">Dr. {{ doctorName }}</span>
+                            </div>
+                            <p class="text-[9px] uppercase font-bold text-[#5c4021] text-center w-full bg-[#dccdb9] rounded-t-lg p-1">Firma del Médico</p>
                         </div>
-                        <div class="bg-[#dccdb9] p-2 rounded-t-lg border-b border-[#b38e5d]">
-                            <p class="text-[10px] uppercase font-bold text-[#5c4021] text-center">Matrícula / Cédula</p>
+                        <div class="p-2 border-b border-[#b38e5d] flex flex-col items-center">
+                            <div class="h-12 w-full flex items-end justify-center pb-1">
+                                <span class="text-xs font-mono text-slate-600" *ngIf="doctorCode">{{ doctorCode }}</span>
+                            </div>
+                            <p class="text-[9px] uppercase font-bold text-[#5c4021] text-center w-full bg-[#dccdb9] rounded-t-lg p-1">Matrícula / Cédula</p>
                         </div>
                     </div>
                 </footer>

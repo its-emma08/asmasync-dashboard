@@ -1,89 +1,170 @@
-<div class="schedule-container p-6 h-full flex flex-col">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+<div class="cal-root">
+
+  <!-- TOOLBAR -->
+  <div class="cal-toolbar">
+    <div class="toolbar-left">
+      <div class="cal-logo">
+        <mat-icon>calendar_month</mat-icon>
+      </div>
+      <div>
+        <h1 class="cal-title text-slate-800 dark:text-white">Agenda Médica</h1>
+        <p class="cal-sub text-slate-400">Gestión de citas y seguimientos</p>
+      </div>
+    </div>
+
+    <div class="toolbar-center">
+      <button class="nav-btn" (click)="navigate(-1)"><mat-icon>chevron_left</mat-icon></button>
+      <button class="today-btn glass-btn" (click)="goToday()">Hoy</button>
+      <div class="period-label">{{ periodLabel }}</div>
+      <button class="nav-btn" (click)="navigate(1)"><mat-icon>chevron_right</mat-icon></button>
+    </div>
+
+    <div class="toolbar-right">
+      <div class="view-switcher glass-container">
+        <button *ngFor="let v of views" class="view-btn" [class.active]="currentView === v.key" (click)="setView(v.key)">
+          <mat-icon>{{ v.icon }}</mat-icon> {{ v.label }}
+        </button>
+      </div>
+      <button class="new-appt-btn shadow-apple" (click)="openNewAppointmentDialog()">
+        <mat-icon>add</mat-icon> Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <!-- YEAR VIEW -->
+  <div class="year-grid animate-in" *ngIf="currentView === 'year'">
+    <div class="mini-month glass-card" *ngFor="let mm of yearMonths">
+      <div class="mini-month-header">{{ getMonthName(mm.month) }} {{ mm.year }}</div>
+      <div class="mini-month-days">
+        <span class="mini-dow" *ngFor="let d of ['L','M','M','J','V','S','D']">{{ d }}</span>
+        <span *ngFor="let d of mm.days"
+              class="mini-day"
+              [class.today]="d.isToday"
+              [class.has-appt]="d.hasAppt"
+              [title]="d.date | date:'d MMM'"
+              (click)="onDayClick(d.date)">
+          {{ d.date.getDate() }}
+          <span class="appt-dot" *ngIf="d.hasAppt"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONTH VIEW -->
+  <div class="month-grid animate-in" *ngIf="currentView === 'month'">
+    <div class="month-dow-header">
+      <span *ngFor="let d of ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']">{{ d }}</span>
+    </div>
+    <div class="month-cells">
+      <div class="month-cell glass-card-nav"
+           *ngFor="let day of monthDays"
+           [class.other-month]="!day.isCurrentMonth"
+           [class.today]="day.isToday"
+           (click)="onDayClick(day.date)">
+        <span class="cell-num">{{ day.date.getDate() }}</span>
+        <div class="cell-appts">
+          <div *ngFor="let a of day.appointments.slice(0,3)"
+               class="cell-appt-pill shadow-sm"
+               [class]="'type-' + a.type"
+               (mouseenter)="showPreview(a, $event)"
+               (mouseleave)="hidePreview()"
+               (click)="$event.stopPropagation(); openAppointmentDetail(a)">
+            {{ a.patientName | slice:0:16 }}
+          </div>
+          <div *ngIf="day.appointments.length > 3" class="more-badge">+{{ day.appointments.length - 3 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEK VIEW -->
+  <div class="week-grid animate-in" *ngIf="currentView === 'week'">
+    <div class="week-header-row">
+      <div class="time-gutter"></div>
+      <div class="week-day-header"
+           *ngFor="let d of weekDays"
+           [class.today]="isTodayNow(d)"
+           [class.weekend]="isWeekendDay(d)">
+        <span class="wdh-dow">{{ d | date:'EEE':'':'es-ES' | uppercase }}</span>
+        <span class="wdh-date" [class.today-circle]="isTodayNow(d)">{{ d | date:'d' }}</span>
+      </div>
+    </div>
+    <div class="week-body">
+      <div class="time-col">
+        <div class="time-slot" *ngFor="let h of hours">{{ h }}</div>
+      </div>
+      <div class="week-column"
+           *ngFor="let d of weekDays"
+           [class.today]="isTodayNow(d)"
+           [class.weekend]="isWeekendDay(d)"
+           (click)="onDayClick(d)">
+        <div class="hour-cell" *ngFor="let h of hours"></div>
+        <div *ngFor="let a of getAppointmentsForDay(d)"
+             class="appt-block shadow-apple"
+             [class]="'appt-' + a.type"
+             [style.top.px]="getApptTop(a)"
+             [style.height.px]="getApptHeight(a)"
+             (mouseenter)="showPreview(a, $event)"
+             (mouseleave)="hidePreview()"
+             (click)="$event.stopPropagation(); openAppointmentDetail(a)">
+          <div class="appt-time">{{ a.date | date:'HH:mm' }}</div>
+          <div class="appt-name">{{ a.patientName }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY VIEW -->
+  <div class="day-view animate-in" *ngIf="currentView === 'day'">
+    <div class="day-header">
+      <span class="day-dow text-brand-blue">{{ currentDate | date:'EEEE':'':'es-ES' | titlecase }}</span>
+      <span class="day-date" [class.today-circle]="isTodayNow(currentDate)">{{ currentDate | date:'d' }}</span>
+      <span class="day-month text-slate-500">{{ currentDate | date:'MMMM y':'':'es-ES' }}</span>
+    </div>
+    <div class="day-body">
+      <div class="time-col">
+        <div class="time-slot" *ngFor="let h of hours">{{ h }}</div>
+      </div>
+      <div class="day-column" (click)="onDayClick(currentDate)">
+        <div class="hour-cell" *ngFor="let h of hours"></div>
+        <div *ngFor="let a of getAppointmentsForDay(currentDate)"
+             class="appt-block shadow-apple"
+             [class]="'appt-' + a.type"
+             [style.top.px]="getApptTop(a)"
+             [style.height.px]="getApptHeight(a)"
+             (mouseenter)="showPreview(a, $event)"
+             (mouseleave)="hidePreview()"
+             (click)="$event.stopPropagation(); openAppointmentDetail(a)">
+          <div class="appt-time">{{ a.date | date:'HH:mm' }} — {{ a.durationMinutes }} min</div>
+          <div class="appt-name font-bold">{{ a.patientName }}</div>
+          <div class="appt-notes text-[10px] opacity-70">{{ a.notes }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOVER PREVIEW CARD -->
+  <div class="appt-preview glass-card-premium shadow-2xl" *ngIf="previewAppt"
+       [style.top.px]="previewY"
+       [style.left.px]="previewX"
+       (mouseenter)="clearPreviewTimeout()"
+       (mouseleave)="hidePreview()">
+    <div class="preview-type-bar" [class]="'type-bar-' + previewAppt.type"></div>
+    <div class="preview-body">
+      <div class="preview-header">
+        <mat-icon class="preview-ico shadow-sm" [class]="'ico-' + previewAppt.type">{{ getTypeIcon(previewAppt.type) }}</mat-icon>
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Agenda Médica</h1>
-            <p class="text-gray-500">Gestión de citas y seguimientos</p>
+          <div class="preview-name text-slate-800 dark:text-white">{{ previewAppt.patientName }}</div>
+          <div class="preview-type uppercase text-[9px] font-bold tracking-wider opacity-60">{{ getTypeLabel(previewAppt.type) }}</div>
         </div>
-
-        <div class="flex items-center gap-4 bg-white rounded-lg shadow-sm p-1 border border-gray-100">
-            <button mat-icon-button (click)="changeWeek(-1)">
-                <mat-icon>chevron_left</mat-icon>
-            </button>
-            <span class="font-bold text-gray-700 w-48 text-center capitalize">
-                {{ weekDays[0] | date:'MMMM y' }}
-            </span>
-            <button mat-icon-button (click)="changeWeek(1)">
-                <mat-icon>chevron_right</mat-icon>
-            </button>
-        </div>
-
-        <div class="flex gap-2">
-            <button mat-stroked-button [color]="view === 'week' ? 'primary' : ''"
-                (click)="view = 'week'">Semana</button>
-            <button mat-stroked-button [color]="view === 'day' ? 'primary' : ''" (click)="view = 'day'">Día</button>
-            <button mat-flat-button color="primary">
-                <mat-icon>add</mat-icon> Nueva Cita
-            </button>
-        </div>
+      </div>
+      <div class="preview-meta">
+        <div class="pmeta-row"><mat-icon class="scale-75">schedule</mat-icon> {{ previewAppt.date | date:'HH:mm' }} · {{ previewAppt.durationMinutes }} min</div>
+        <div class="pmeta-row" *ngIf="previewAppt.notes"><mat-icon class="scale-75">notes</mat-icon> {{ previewAppt.notes | slice:0:60 }}</div>
+      </div>
+      <button class="preview-cta apple-btn-mini" (click)="openAppointmentDetail(previewAppt)">Ver detalles <mat-icon>arrow_forward</mat-icon></button>
     </div>
+    <div class="preview-arrow"></div>
+  </div>
 
-    <!-- Week Grid -->
-    <div class="flex-1 overflow-auto bg-white rounded-xl shadow-sm border border-gray-200 relative pb-4"
-        *ngIf="view === 'week'">
-
-        <div *ngIf="loading" class="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80 z-10">
-            <mat-spinner diameter="50"></mat-spinner>
-        </div>
-
-        <div class="grid grid-cols-7 min-w-[1000px] h-full divide-x divide-gray-100">
-            <!-- Day Column -->
-            <div *ngFor="let day of weekDays" class="flex flex-col h-full bg-white">
-                <!-- Day Header -->
-                <div class="p-3 text-center border-b border-gray-100 sticky top-0 bg-white z-[5]"
-                    [ngClass]="{'bg-blue-50': isToday(day)}">
-                    <div class="text-xs uppercase text-gray-400 font-bold mb-1">{{ day | date:'EEE' }}</div>
-                    <div class="text-2xl font-bold" [ngClass]="{'text-primary': isToday(day)}">{{ day | date:'d' }}
-                    </div>
-                </div>
-
-                <!-- Appointments List -->
-                <div class="flex-1 p-2 flex flex-col gap-2 overflow-y-auto">
-                    <div *ngFor="let appt of getAppointmentsForDay(day)"
-                        class="p-3 rounded-lg border border-l-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white"
-                        [ngClass]="{
-                             'border-l-blue-500': appt.type === 'checkup',
-                             'border-l-red-500': appt.type === 'emergency',
-                             'border-l-green-500': appt.type === 'follow_up'
-                         }">
-                        <div class="text-[10px] font-bold text-gray-400 mb-1 flex justify-between">
-                            <span>{{ appt.date | date:'HH:mm' }}</span>
-                            <span>{{ appt.durationMinutes }}m</span>
-                        </div>
-                        <div class="font-bold text-sm text-gray-800 leading-tight mb-1">{{ appt.patientName }}</div>
-                        <div class="text-xs text-gray-500 truncate">{{ appt.notes }}</div>
-                        <div class="mt-2 text-[10px] px-2 py-0.5 rounded-full w-fit bg-gray-100"
-                            [ngClass]="getTypeColor(appt.type)">
-                            {{ appt.type }}
-                        </div>
-                    </div>
-
-                    <!-- Empty State Placeholder -->
-                    <button
-                        class="w-full py-4 rounded-lg border-2 border-dashed border-gray-100 text-gray-300 hover:border-blue-200 hover:text-blue-400 hover:bg-blue-50 transition-colors flex justify-center items-center opacity-0 hover:opacity-100 group">
-                        <mat-icon class="scale-75">add</mat-icon>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Day View Placeholder (User requested Day/Week, keeping implementation simple for now) -->
-    <div *ngIf="view === 'day'"
-        class="flex-1 flex justify-center items-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
-        <div class="text-center text-gray-400">
-            <mat-icon class="text-6xl mb-4">calendar_view_day</mat-icon>
-            <p>Vista diaria detallada en construcción</p>
-        </div>
-    </div>
 </div>

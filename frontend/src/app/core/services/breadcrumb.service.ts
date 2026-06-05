@@ -37,15 +37,11 @@ export class BreadcrumbService {
                 url += `/${routeURL}`;
             }
 
-            // 1. Get breadcrumb label from data
-            // 2. Fallback to path name, capitalized
-            let label = child.snapshot.data['breadcrumb'];
+            // Use routeConfig.data (not snapshot.data) to avoid inheriting parent breadcrumbs
+            let label = child.snapshot.routeConfig?.data?.['breadcrumb'];
             if (!label && routeURL) {
-                // Dynamic ID fallback?
-                // If it looks like an ID, maybe ignore or use "Detalle"?
-                // For now, simple fallback
                 label = routeURL.charAt(0).toUpperCase() + routeURL.slice(1);
-                if (label.match(/\d/)) label = 'Detalle'; // Generic for IDs
+                if (label.match(/\d/)) label = 'Detalle';
             }
 
             if (label) {

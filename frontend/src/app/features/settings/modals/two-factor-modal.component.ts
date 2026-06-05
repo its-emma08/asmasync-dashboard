@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { OtpInputComponent } from '../../../shared/components/otp-input/otp-input.component';
 
 @Component({
   selector: 'app-two-factor-modal',
@@ -19,132 +20,377 @@ import { ToastService } from '../../../core/services/toast.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatInputModule
+    MatInputModule,
+    OtpInputComponent
   ],
   template: `
-    <div class="glass-modal">
-      <div class="modal-header">
-        <div class="header-icon bg-green" [class.bg-red]="mode() === 'disable'">
-          <mat-icon *ngIf="mode() === 'setup'">security</mat-icon>
-          <mat-icon *ngIf="mode() === 'disable'">gpp_bad</mat-icon>
+    <div class="glass-modal-elite">
+      <div class="modal-header-premium">
+        <div class="header-icon-box" [class.bg-red-gradient]="mode() === 'disable'">
+          <mat-icon *ngIf="mode() === 'setup'">verified_user</mat-icon>
+          <mat-icon *ngIf="mode() === 'disable'">cancel</mat-icon>
         </div>
-        <div>
-          <h2>{{ mode() === 'setup' ? 'Configurar 2FA' : 'Desactivar 2FA' }}</h2>
-          <p>{{ mode() === 'setup' ? 'Potencia tu seguridad validando tu correo electrónico' : 'Apagar doble factor de autenticación requiere confirmación.' }}</p>
+        <div class="header-text">
+          <h2 class="title">{{ mode() === 'setup' ? 'Seguridad Avanzada' : 'Desactivar 2FA' }}</h2>
+          <p class="subtitle">{{ mode() === 'setup' ? 'Valida tu identidad con un PIN de 6 dígitos' : 'Confirma tu contraseña para remover el doble factor' }}</p>
         </div>
-        <button mat-icon-button class="close-btn" (click)="close()">
+        <button mat-icon-button class="apple-close-btn" (click)="close()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
-      <div class="modal-body p-6">
+      <div class="modal-content-premium">
         <ng-container *ngIf="isLoading()">
-          <div class="flex justify-center p-8 text-center text-slate-500 flex-col items-center">
-            <mat-spinner diameter="40"></mat-spinner>
-            <p class="mt-4">Procesando...</p>
+          <div class="loader-container">
+            <mat-spinner diameter="32"></mat-spinner>
+            <p>Sincronizando con Supabase...</p>
           </div>
         </ng-container>
 
         <!-- SETUP MODE -->
-        <ng-container *ngIf="mode() === 'setup'">
-          <!-- Paso 1: Notificar envío de correo -->
-          <ng-container *ngIf="!isLoading() && setupData()">
-            <div class="mb-6 text-center">
-              <p class="text-slate-600 mb-4 text-sm font-medium">Hemos enviado un código de seguridad de 2 dígitos a tu correo electrónico para verificar tu identidad.</p>
-              <div class="inline-flex p-5 bg-brand-cyan/10 rounded-full shadow-sm mb-2">
-                <mat-icon class="text-brand-cyan scale-[2]">mark_email_read</mat-icon>
-              </div>
-            </div>
+        <ng-container *ngIf="mode() === 'setup' && !isLoading()">
+          <div class="otp-setup-container animate-in">
+             <div class="brand-badge mb-6">
+                <mat-icon>mail</mat-icon>
+                <span>Código enviado a {{ maskedEmail() }}</span>
+             </div>
 
-            <!-- Paso 2: Verificar -->
-            <div class="text-center pt-4 border-t border-slate-100">
-              <p class="text-slate-600 mb-4 text-sm font-medium">Ingresa el código que recibiste en el correo.</p>
-              <mat-form-field appearance="outline" class="w-full max-w-[150px]" color="primary">
-                <input matInput [(ngModel)]="verificationCode" placeholder="00" maxlength="2" class="text-center text-3xl tracking-widest font-mono font-bold" (keyup.enter)="verifyCode()">
-              </mat-form-field>
-            </div>
-          </ng-container>
+             <div class="otp-grid-container mb-8">
+               <app-otp-input (codeChange)="onOtpChange($event)" (codeComplete)="verifyCode($event)"></app-otp-input>
+             </div>
+
+             <div class="info-alert-glass">
+                <mat-icon>info</mat-icon>
+                <p>Al activar el segundo factor, se te solicitará este PIN cada vez que inicies sesión.</p>
+             </div>
+          </div>
         </ng-container>
 
         <!-- DISABLE MODE -->
         <ng-container *ngIf="mode() === 'disable' && !isLoading()">
-          <div class="mb-2 text-center">
-             <p class="text-slate-600 mb-4 text-sm font-medium">Para desactivar la autenticación de dos factores, ingresa tu contraseña actual.</p>
-             <mat-form-field appearance="outline" class="w-full" color="primary">
-               <input matInput type="password" [(ngModel)]="password" placeholder="Contraseña actual" (keyup.enter)="disable2FA()">
-             </mat-form-field>
+          <div class="disable-container animate-in">
+             <p class="instr text-center mb-6">Para confirmar la desactivación, ingresa tu contraseña de acceso.</p>
+             <div class="clinical-input-wrapper">
+               <mat-icon class="input-icon">lock</mat-icon>
+               <input type="password" [(ngModel)]="password" placeholder="Ingresa tu contraseña" class="clinical-input-field" (keyup.enter)="disable2FA()">
+             </div>
           </div>
         </ng-container>
       </div>
 
-      <div class="modal-footer">
-        <button mat-button (click)="close()">Cancelar</button>
-        <button *ngIf="mode() === 'setup'" mat-flat-button color="primary" 
-                class="px-6 rounded-xl"
-                [disabled]="isLoading() || verificationCode.length !== 2 || isVerifying()"
+      <div class="modal-footer-premium">
+        <button class="cancel-btn-elite" (click)="close()">Cancelar</button>
+        <button *ngIf="mode() === 'setup'" 
+                class="confirm-btn-elite" 
+                [disabled]="!isOtpComplete() || isVerifying()"
                 (click)="verifyCode()">
-          <mat-spinner diameter="20" *ngIf="isVerifying()" class="inline mr-2"></mat-spinner>
-          {{ isVerifying() ? 'Verificando...' : 'Activar 2FA' }}
+          <mat-spinner diameter="18" *ngIf="isVerifying()" class="inline mr-2"></mat-spinner>
+          Confirmar y Activar
         </button>
-        <button *ngIf="mode() === 'disable'" mat-flat-button color="warn" 
-                class="px-6 rounded-xl"
-                [disabled]="isLoading() || !password || isVerifying()"
+        <button *ngIf="mode() === 'disable'" 
+                class="danger-btn-elite" 
+                [disabled]="!password || isVerifying()"
                 (click)="disable2FA()">
-          <mat-spinner diameter="20" *ngIf="isVerifying()" class="inline mr-2"></mat-spinner>
-          {{ isVerifying() ? 'Desactivando...' : 'Desactivar 2FA' }}
+          <mat-spinner diameter="18" *ngIf="isVerifying()" class="inline mr-2"></mat-spinner>
+          Desactivar Seguridad
         </button>
       </div>
     </div>
   `,
   styles: [`
-    .glass-modal {
-      @apply bg-white dark:bg-slate-900 border-0;
-      color: inherit;
+    /* ELITE 2.0 Glass Modal Styles */
+    :host { display: block; border-radius: 28px; overflow: hidden; }
+
+    .glass-modal-elite {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(40px) saturate(210%);
+      -webkit-backdrop-filter: blur(40px) saturate(210%);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      position: relative;
+      overflow: hidden;
+      font-family: 'Outfit', sans-serif;
     }
-    .modal-header {
+
+    /* Mesh Gradient for "100/10" effect */
+    .glass-modal-elite::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(at 0% 0%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(52, 199, 89, 0.05) 0px, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .modal-header-premium {
+      padding: 40px 32px 24px;
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 24px;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      gap: 24px;
+      z-index: 1;
       position: relative;
     }
-    .header-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
+
+    .header-icon-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #007AFF, #00C7BE);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
+      box-shadow: 0 10px 25px rgba(0, 122, 255, 0.3);
+      flex-shrink: 0;
+      mat-icon { font-size: 30px; width: 30px; height: 30px; }
     }
-    .header-icon.bg-green { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
-    .header-icon.bg-red { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
-    .header-icon mat-icon { font-size: 24px; width: 24px; height: 24px; }
-    .modal-header h2 { margin: 0; font-size: 20px; font-weight: 700; @apply text-slate-900 dark:text-white; }
-    .modal-header p { margin: 2px 0 0; font-size: 13px; @apply text-slate-500 dark:text-slate-400; }
-    .close-btn { position: absolute; right: 16px; top: 16px; @apply text-slate-400; }
-    .modal-footer {
+
+    .bg-red-gradient {
+      background: linear-gradient(135deg, #FF3B30, #FF9500);
+      box-shadow: 0 10px 25px rgba(255, 59, 48, 0.3);
+    }
+
+    .header-text .title { 
+      font-size: 26px; 
+      font-weight: 800; 
+      color: #1d1d1f; 
+      margin: 0; 
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .header-text .subtitle { font-size: 15px; color: #6e6e73; margin: 8px 0 0; line-height: 1.4; }
+
+    .modal-content-premium { padding: 0 32px 32px; z-index: 1; position: relative; }
+
+    .loader-container { padding: 60px 0; text-align: center; color: #6e6e73; }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 122, 255, 0.08);
+      padding: 10px 20px;
+      border-radius: 100px;
+      color: #0071e3;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 32px;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    /* OTP Grid */
+    .otp-digit-boxes { display: flex; gap: 14px; justify-content: center; }
+    .otp-box-elite {
+      width: 56px;
+      height: 72px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.6);
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      color: #1d1d1f;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      &:focus {
+        border-color: #007AFF;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+        transform: translateY(-4px) scale(1.05);
+        outline: none;
+      }
+    }
+
+    .info-alert-glass {
+      background: rgba(0,0,0,0.04);
+      padding: 18px;
+      border-radius: 20px;
+      display: flex;
+      gap: 14px;
+      margin-top: 32px;
+      p { font-size: 13px; color: #48484a; margin: 0; line-height: 1.5; }
+      mat-icon { color: #86868b; font-size: 20px; width: 20px; height: 20px; }
+    }
+
+    .clinical-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: rgba(0,0,0,0.06);
+      border-radius: 18px;
+      padding: 0 20px;
+      transition: all 0.2s;
+      &:focus-within { background: rgba(0,0,0,0.08); box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
+    }
+    .input-icon { color: #86868b; margin-right: 14px; }
+    .clinical-input-field {
+      flex: 1;
+      height: 60px;
+      background: transparent;
+      border: none;
+      font-size: 17px;
+      font-weight: 500;
+      color: #1d1d1f;
+      outline: none;
+    }
+
+    .modal-footer-premium {
+      padding: 32px;
+      background: rgba(0,0,0,0.02);
       display: flex;
       justify-content: flex-end;
-      gap: 12px;
-      padding: 16px 24px;
-      background: rgba(0,0,0,0.02);
+      gap: 16px;
+      z-index: 1;
+      position: relative;
       border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .cancel-btn-elite {
+      background: transparent;
+      border: none;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #86868b;
+      cursor: pointer;
+      border-radius: 14px;
+      transition: all 0.2s;
+      &:hover { background: rgba(0,0,0,0.05); color: #1d1d1f; }
+    }
+
+    .confirm-btn-elite {
+      background: linear-gradient(135deg, #007AFF, #0071e3);
+      padding: 12px 32px;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(0, 113, 227, 0.35);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+      &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0, 113, 227, 0.45); }
+      &:active:not(:disabled) { transform: translateY(0); }
+    }
+
+    .danger-btn-elite {
+      background: linear-gradient(135deg, #FF3B30, #FF453A);
+      padding: 12px 32px;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(255, 59, 48, 0.35);
+      cursor: pointer;
+      transition: all 0.2s;
+      &:disabled { opacity: 0.5; }
+      &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(255, 59, 48, 0.45); }
+    }
+
+    .apple-close-btn { 
+      position: absolute; 
+      right: 24px; 
+      top: 24px; 
+      color: #86868b; 
+      background: rgba(0,0,0,0.05);
+      border-radius: 50%;
+      height: 32px;
+      width: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      &:hover { background: rgba(0,0,0,0.1); color: #1d1d1f; }
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    .animate-in { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes slideUpFade {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    :host-context(body.dark) {
+      .glass-modal-elite {
+        background: rgba(28, 28, 30, 0.8) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      .header-text .title {
+        color: #ffffff;
+      }
+      .header-text .subtitle {
+        color: #8e8e93;
+      }
+      .otp-box-elite {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        &:focus {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: var(--brand-primary);
+        }
+      }
+      .info-alert-glass {
+        background: rgba(255, 255, 255, 0.05);
+        p {
+          color: #d1d1d6;
+        }
+      }
+      .clinical-input-wrapper {
+        background: rgba(255, 255, 255, 0.08);
+        &:focus-within {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+      .clinical-input-field {
+        color: #ffffff;
+      }
+      .modal-footer-premium {
+        border-top-color: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .cancel-btn-elite {
+        color: #8e8e93;
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: #ffffff;
+        }
+      }
+      .apple-close-btn {
+        background: rgba(255, 255, 255, 0.08);
+        color: #8e8e93;
+        &:hover {
+          background: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+        }
+      }
+      .loader-container {
+        color: #8e8e93;
+      }
     }
   `]
 })
 export class TwoFactorModalComponent implements OnInit {
   mode = signal<'setup' | 'disable'>('setup');
-  setupData = signal<{ secret: string, qr_code: string } | null>(null);
   isLoading = signal(true);
   isVerifying = signal(false);
-  verificationCode = '';
+  otpCode = signal<string>('');
   password = '';
+  userEmail = '';
+
+  isOtpComplete = () => this.otpCode().length === 6;
+
+  maskedEmail = () => {
+    if (!this.userEmail) return '...';
+    const [name, domain] = this.userEmail.split('@');
+    return `${name.substring(0, 3)}***@${domain}`;
+  };
 
   constructor(
     private dialogRef: MatDialogRef<TwoFactorModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: { mode: 'setup' | 'disable' },
     private authService: AuthService,
     private toastService: ToastService
   ) { }
@@ -152,54 +398,92 @@ export class TwoFactorModalComponent implements OnInit {
   ngOnInit(): void {
     if (this.data?.mode === 'disable') {
       this.mode.set('disable');
-      this.isLoading.set(false);
-      return;
     }
 
-    this.authService.setup2FA().subscribe({
-      next: (res) => {
-        this.setupData.set(res);
-        this.isLoading.set(false);
+    // Obtener email del usuario actual para Supabase
+    this.authService.fetchCurrentUser().subscribe({
+      next: (user) => {
+        this.userEmail = user.email;
+        if (this.mode() === 'setup') {
+          this.triggerSupabaseOtp();
+        } else {
+          this.isLoading.set(false);
+        }
       },
-      error: (err) => {
-        this.toastService.showError('Error al generar las credenciales TOTP');
+      error: () => {
+        this.toastService.showError('Error al recuperar sesión de usuario');
         this.close();
       }
     });
   }
 
-  verifyCode() {
-    if (this.verificationCode.length !== 2) return;
+  triggerSupabaseOtp() {
+    this.isLoading.set(true);
+    this.authService.signInWithOtp(this.userEmail).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        setTimeout(() => {
+           const first = document.getElementById('otp-digit-0');
+           if (first) first.focus();
+        }, 100);
+      },
+      error: () => {
+        this.toastService.showError('No se pudo generar el código de seguridad de Supabase.');
+        this.close();
+      }
+    });
+  }
+
+  onOtpChange(code: string) {
+    this.otpCode.set(code);
+  }
+
+  verifyCode(code?: string) {
+    const finalCode = code || this.otpCode();
+    if (finalCode.length < 6 || this.isVerifying()) return;
     this.isVerifying.set(true);
 
-    const secret = this.setupData()?.secret;
-    if (!secret) return;
-
-    this.authService.verify2FASetup(this.verificationCode, secret).subscribe({
+    this.authService.verifyOtp(this.userEmail, finalCode, 'email', false).subscribe({
       next: (res) => {
-        this.toastService.showSuccess('Autenticador activado con éxito.');
-        this.dialogRef.close(true);
+        if (res.error) {
+           this.isVerifying.set(false);
+           this.toastService.showError('Código inválido o expirado.');
+           return;
+        }
+
+        // Activado en Supabase. Persistimos el flag en metadata
+        this.authService.enable2FA().subscribe({
+          next: () => {
+             this.isVerifying.set(false);
+             this.toastService.showSuccess('¡Verificación en 2 pasos activada!');
+             this.dialogRef.close(true);
+          },
+          error: () => {
+             this.isVerifying.set(false);
+             this.toastService.showError('Error al guardar estado de seguridad.');
+             this.dialogRef.close(true);
+          }
+        });
       },
       error: (err) => {
         this.isVerifying.set(false);
-        this.toastService.showError('Código incorrecto. Intenta de nuevo.');
+        this.toastService.showError(err.message || 'Error de validación OTP.');
       }
     });
   }
 
   disable2FA() {
-    if (!this.password) return;
+    if (!this.password || this.isVerifying()) return;
     this.isVerifying.set(true);
 
     this.authService.disable2FA(this.password).subscribe({
-      next: (res) => {
+      next: () => {
         this.toastService.showSuccess('2FA desactivado correctamente.');
         this.dialogRef.close(true);
       },
       error: (err) => {
         this.isVerifying.set(false);
-        const msg = err.error?.detail || 'Contraseña incorrecta.';
-        this.toastService.showError(msg);
+        this.toastService.showError(err.error?.detail || 'Contraseña incorrecta.');
       }
     });
   }

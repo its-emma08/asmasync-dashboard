@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -11,6 +11,9 @@ export class WebSocketService {
     private messagesSubject = new Subject<any>();
     public messages$ = this.messagesSubject.asObservable();
     private reconnectInterval = 5000;
+    private reconnectAttempts = 0;
+    private readonly maxReconnectAttempts = 3;
+    private isDisabled = false;
 
     constructor(private authService: AuthService) { }
 
@@ -24,6 +27,10 @@ export class WebSocketService {
             return;
         }
 
+        if (this.isDisabled) {
+            return;
+        }
+
         if (this.isMockMode) {
             console.debug('WebSocket disabled (Dynamic Mock Mode Active)');
             return;
@@ -34,12 +41,17 @@ export class WebSocketService {
             return;
         }
 
-        const wsUrl = `${environment.wsUrl}?token=${token}`;
+        const userId = this.authService.currentUserValue?.id;
+        if (!userId) {
+            return;
+        }
+
+        const wsUrl = `${environment.wsUrl}/${userId}?token=${token}`;
 
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
-            // console.log('WebSocket conectado');
+            this.reconnectAttempts = 0;
         };
 
         this.socket.onmessage = (event) => {
@@ -51,19 +63,22 @@ export class WebSocketService {
             }
         };
 
-        this.socket.onerror = (error) => {
-            console.warn('WebSocket connection failed. Switching to Mock Mode.');
-            this.isMockMode = true; // Stop future attempts
+        this.socket.onerror = (_error) => {
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                return;
+            }
+            console.debug('WebSocket connection failed. Retry incoming...');
         };
 
         this.socket.onclose = (event) => {
-            if (this.isMockMode) {
-                // console.log('WebSocket closed. Mock Mode active, not reconnecting.');
-                return;
-            }
 
             // console.log('WebSocket desconectado. Intentando reconectar...', event);
             if (!event.wasClean) {
+                this.reconnectAttempts += 1;
+                if (this.reconnectAttempts > this.maxReconnectAttempts) {
+                    this.isDisabled = true;
+                    return;
+                }
                 setTimeout(() => this.connect(), this.reconnectInterval);
             }
         };

@@ -1,8 +1,8 @@
-import { Component, OnInit, Optional, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, Inject } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { take } from 'rxjs/operators';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,9 +16,10 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { InterventionService } from '../../../core/services/intervention.service';
 import { PatientService } from '../../../core/services/patient.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { InterventionSuccessDialogComponent } from '../intervention-success-dialog/intervention-success-dialog.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { Patient } from '../../../core/models/patient.model';
+import { Observable, Subject, takeUntil } from 'rxjs';
 
 import { ComponentCanDeactivate } from '../../../core/guards/pending-changes.guard';
 
@@ -42,7 +43,9 @@ import { ComponentCanDeactivate } from '../../../core/guards/pending-changes.gua
     templateUrl: './intervention-form.component.html',
     styleUrls: ['./intervention-form.component.scss']
 })
-export class InterventionFormComponent implements OnInit, ComponentCanDeactivate {
+export class InterventionFormComponent implements OnInit, OnDestroy, ComponentCanDeactivate {
+    private destroy$ = new Subject<void>();
+
     interventionForm: FormGroup;
     patients: Patient[] = [];
     loading = false;
@@ -60,7 +63,6 @@ export class InterventionFormComponent implements OnInit, ComponentCanDeactivate
         private fb: FormBuilder,
         private interventionService: InterventionService,
         private patientService: PatientService,
-        private authService: AuthService,
         private router: Router,
         private route: ActivatedRoute,
         private snackBar: MatSnackBar,
@@ -86,7 +88,7 @@ export class InterventionFormComponent implements OnInit, ComponentCanDeactivate
         }
 
         // Then check query params
-        this.route.queryParams.subscribe(params => {
+        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
             if (params['patientId']) {
                 this.interventionForm.patchValue({ patientId: +params['patientId'] });
             }
@@ -108,24 +110,27 @@ export class InterventionFormComponent implements OnInit, ComponentCanDeactivate
     onSubmit(): void {
         if (this.interventionForm.valid) {
             this.loading = true;
-            this.authService.getCurrentUser().pipe(take(1)).subscribe(currentUser => {
-                const interventionData = {
-                    ...this.interventionForm.value,
-                    nurseId: currentUser ? currentUser.id : 0,
-                    createdAt: new Date()
-                };
+            const v = this.interventionForm.value;
+            const payload = {
+                patient_id: v.patientId,
+                type: v.type,
+                description: v.description,
+                recommendations: v.recommendations || null,
+                next_follow_up: v.nextFollowUp
+                    ? new Date(v.nextFollowUp).toISOString().split('T')[0]
+                    : null,
+            };
 
-                this.interventionService.createIntervention(interventionData).subscribe({
-                    next: (response) => {
-                        this.loading = false;
-                        this.openSuccessDialog(response);
-                    },
-                    error: (err) => {
-                        this.loading = false;
-                        console.error(err);
-                        this.snackBar.open('Error al guardar la intervención', 'Cerrar', { duration: 3000 });
-                    }
-                });
+            this.interventionService.create(payload).subscribe({
+                next: (response) => {
+                    this.loading = false;
+                    this.openSuccessDialog(response);
+                },
+                error: (err) => {
+                    this.loading = false;
+                    console.error(err);
+                    this.snackBar.open('Error al guardar la intervención', 'Cerrar', { duration: 3000 });
+                }
             });
         }
     }
@@ -146,7 +151,7 @@ export class InterventionFormComponent implements OnInit, ComponentCanDeactivate
 
         dialogRef.afterClosed().subscribe(action => {
             if (action === 'view-patient') {
-                this.router.navigate(['/dashboard/patients', savedIntervention.patientId]);
+                this.router.navigate(['/dashboard/patients', savedIntervention.patient_id]);
             } else if (action === 'new') {
                 this.resetForm();
             } else {
@@ -175,10 +180,23 @@ export class InterventionFormComponent implements OnInit, ComponentCanDeactivate
         }
     }
 
-    canDeactivate(): boolean {
-        // If form is dirty and not submitted, confirm exit
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    canDeactivate(): boolean | Observable<boolean> {
         if (this.interventionForm.dirty && !this.loading) {
-            return confirm('Tienes cambios sin guardar en la intervención. ¿Estás seguro de que quieres salir?');
+            return this.dialog.open(ConfirmDialogComponent, {
+                width: '380px',
+                data: {
+                    title: 'Cambios sin guardar',
+                    message: 'Tienes cambios sin guardar en la intervención. ¿Estás seguro de que quieres salir?',
+                    confirmText: 'Salir sin guardar',
+                    cancelText: 'Seguir editando',
+                    isDestructive: true
+                }
+            }).afterClosed();
         }
         return true;
     }

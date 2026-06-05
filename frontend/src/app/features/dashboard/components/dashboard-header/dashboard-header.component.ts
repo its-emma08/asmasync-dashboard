@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,14 +15,15 @@ import { BreadcrumbService, Breadcrumb } from '../../../../core/services/breadcr
 import { Alert } from '../../../../core/models/alert.model';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard-header',
   standalone: true,
   imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule, MatMenuModule, MatBadgeModule, MatDividerModule, FormsModule],
   templateUrl: './dashboard-header.component.html',
-  styleUrls: ['./dashboard-header.component.scss']
+  styleUrls: ['./dashboard-header.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardHeaderComponent implements OnInit, OnDestroy {
   currentDate = new Date();
@@ -44,7 +45,8 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
     private layoutService: LayoutService,
     private notificationService: NotificationService,
     private breadcrumbService: BreadcrumbService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private cdr: ChangeDetectorRef
   ) {
     this.unreadCount$ = this.notificationService.unreadCount$;
     this.notifications$ = this.notificationService.notifications$;
@@ -53,12 +55,14 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
-      if (user) {
-        this.doctorName = user.full_name || 'Usuario';
-        this.doctorInitials = this.getInitials(user.full_name);
-        // Mock specialty or fetch from profile if available
-        this.doctorSpecialty = 'Especialista';
-      }
+      queueMicrotask(() => {
+        if (user) {
+          this.doctorName = user.full_name || 'Usuario';
+          this.doctorInitials = this.getInitials(user.full_name);
+          this.doctorSpecialty = 'Especialista';
+        }
+        this.cdr.markForCheck();
+      });
     });
   }
 
@@ -84,19 +88,27 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
   }
 
   handleNotificationClick(alert: Alert) {
+    if (!alert) return;
+
     if (!alert.is_viewed) {
       this.notificationService.markAsRead(alert.id).subscribe();
     }
-    this.router.navigate(['/dashboard/patients', alert.patient_id]);
+
+    // Professional routing based on alert context
+    // If it's a patient alert, go to patient details (default for now)
+    if (alert.patient_id) {
+      this.router.navigate(['/dashboard/patients', alert.patient_id]);
+    } else {
+      // Fallback for general alerts
+      this.router.navigate(['/dashboard/alerts']);
+    }
   }
 
   markAllRead(event: Event) {
     event.stopPropagation();
-    // Professional approach: Loop through unread and mark them
-    // Ideally backend should have a bulk endpoint
-    this.notifications$.subscribe(alerts => {
+    this.notifications$.pipe(take(1)).subscribe(alerts => {
       alerts.filter(a => !a.is_viewed).forEach(a => {
-        this.notificationService.markAsRead(a.id).subscribe();
+        this.notificationService.markAsRead(a.id).pipe(take(1)).subscribe();
       });
     });
   }

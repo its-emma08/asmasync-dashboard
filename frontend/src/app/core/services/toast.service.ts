@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { AppleToastComponent, AppleToastData } from '../../shared/components/apple-toast/apple-toast.component';
 
 @Injectable({
     providedIn: 'root'
@@ -10,31 +11,32 @@ export class ToastService {
         duration: 4000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',
-        panelClass: ['glass-toast']
+        panelClass: ['apple-glass-overlay']
     };
 
     constructor(private snackBar: MatSnackBar) { }
 
     showSuccess(message: string): void {
-        this.open(`✅ ${message}`, 'toast-success');
+        this.open(message, 'success');
     }
 
     showError(message: string): void {
-        this.open(`❌ ${message}`, 'toast-error');
+        this.open(message, 'error');
     }
 
     showInfo(message: string): void {
-        this.open(`ℹ️ ${message}`, 'toast-info');
+        this.open(message, 'info');
     }
 
     showWarning(message: string): void {
-        this.open(`⚠️ ${message}`, 'toast-warning');
+        this.open(message, 'warning');
     }
 
-    private open(message: string, typeClass: string): void {
-        this.snackBar.open(message, 'OK', {
+    private open(message: string, type: string): void {
+        const panelClass = ['glass-toast', `toast-${type}`];
+        this.snackBar.open(message, 'Entendido', {
             ...this.defaultConfig,
-            panelClass: ['glass-toast', typeClass]
+            panelClass: panelClass
         });
     }
 }

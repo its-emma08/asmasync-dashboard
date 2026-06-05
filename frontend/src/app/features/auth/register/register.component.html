@@ -1,294 +1,196 @@
-<div
-    class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-teal-700 to-cyan-800 relative overflow-hidden">
+<div class="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden"
+  style="background: linear-gradient(145deg, #f0f4ff 0%, #f5f5f7 40%, #eef6ff 100%);">
 
-    <!-- Background Abstract Shapes -->
-    <div
-        class="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-cyan-500/20 rounded-full blur-3xl animate-pulse">
-    </div>
-    <div class="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-teal-400/20 rounded-full blur-3xl"></div>
+  <!-- Apple Mesh Background -->
+  <div class="absolute top-[-5%] left-[-5%] w-[500px] h-[500px] rounded-full opacity-50"
+    style="background: radial-gradient(circle, rgba(0,122,255,0.12) 0%, transparent 70%); animation: pulse 9s ease-in-out infinite;"></div>
+  <div class="absolute bottom-[-10%] right-[-8%] w-[500px] h-[500px] rounded-full opacity-40"
+    style="background: radial-gradient(circle, rgba(90,200,250,0.14) 0%, transparent 70%); animation: pulse 11s ease-in-out infinite; animation-delay: 3s;"></div>
 
-    <div
-        class="w-full max-w-6xl bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row z-10 min-h-[700px] animate-fade-in-up">
-
-        <!-- Left Side: Branding (Desktop Only) -->
-        <div class="hidden lg:flex w-2/5 bg-slate-50 relative items-center justify-center p-12 overflow-hidden">
-            <!-- Decorative Pattern -->
-            <div class="absolute inset-0 opacity-[0.03]"
-                style="background-image:radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-
-            <div
-                class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-teal-100 to-transparent rounded-bl-full opacity-50">
-            </div>
-            <div
-                class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-100 to-transparent rounded-tr-full opacity-50">
-            </div>
-
-            <div class="text-center relative z-10 max-w-md">
-                <div
-                    class="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto mb-8 flex items-center justify-center transform rotate-3 hover:rotate-6 transition-transform duration-500">
-                    <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-16 h-16 drop-shadow-md object-contain">
-                </div>
-                <h2 class="text-3xl font-bold text-slate-800 mb-4 tracking-tight">AsmaSync Dashboard</h2>
-                <p class="text-slate-600 font-medium text-lg leading-relaxed mb-6 relative z-10">
-                    Únete a nuestra plataforma y comienza a gestionar pacientes asmáticos de manera inteligente.
-                </p>
-                <div class="flex gap-2 justify-center">
-                    <div
-                        class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100">
-                        <mat-icon class="text-green-500 scale-75">verified</mat-icon>
-                        <span class="text-xs font-bold text-slate-600">Datos Seguros</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100">
-                        <mat-icon class="text-blue-500 scale-75">cloud_sync</mat-icon>
-                        <span class="text-xs font-bold text-slate-600">Sync en Tiempo Real</span>
-                    </div>
-                </div>
-            </div>
+  <div class="w-full glass-register-card z-10 animate-fade-in-up" [class.shake-card]="triggerShake()">
+    
+    <div class="w-full p-8 md:p-10 flex flex-col items-center">
+      
+      <!-- Compact Header -->
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 bg-white border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <mat-icon class="text-blue-500 scale-[1.2]">person_add</mat-icon>
         </div>
+        <h3 class="text-2xl font-bold tracking-tight text-slate-900 mb-1">Crea tu Cuenta Médica</h3>
+        <p class="text-slate-400 text-xs font-medium">Únete a la elite de especialistas AsmaSync</p>
+      </div>
 
-        <!-- Right Side: Registration Form -->
-        <div class="w-full lg:w-3/5 p-8 md:p-12 flex flex-col justify-center relative bg-white">
+      <!-- Step Indicator -->
+      <div class="step-indicator w-full">
+        <div class="dot" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1"></div>
+        <div class="dot" [class.active]="currentStep() === 2" [class.completed]="currentStep() > 2"></div>
+        <div class="dot" [class.active]="currentStep() === 3" [class.completed]="currentStep() > 3"></div>
+      </div>
 
-            <!-- Mobile Logo -->
-            <div class="lg:hidden flex justify-center mb-8">
-                <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-                    <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-10 h-10 object-contain">
-                </div>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="w-full">
+        
+        <div class="step-container">
+          
+          <!-- STEP 1: Identidad -->
+          <div *ngIf="currentStep() === 1" class="step-slide flex flex-col gap-5">
+            <div class="section-label">1. Identidad</div>
+            
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">person</mat-icon>
+                <input type="text" formControlName="full_name" placeholder="Dr. Juan Pérez" 
+                  [class.valid-feedback]="isFieldValid('full_name')"
+                  [class.invalid-feedback]="isFieldInvalid('full_name')">
+                <mat-icon *ngIf="isFieldValid('full_name')" class="feedback-icon success">check_circle</mat-icon>
+                <mat-icon *ngIf="isFieldInvalid('full_name')" class="feedback-icon error">error</mat-icon>
+              </div>
             </div>
 
-            <div class="mb-8">
-                <h3 class="text-3xl font-bold text-slate-900 mb-2">Crea tu cuenta</h3>
-                <p class="text-slate-500">Completa el formulario para registrarte como profesional de la salud.</p>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px) font-bold text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">alternate_email</mat-icon>
+                <input type="email" formControlName="email" placeholder="ejemplo@asmasync.com"
+                  [class.valid-feedback]="isFieldValid('email')"
+                  [class.invalid-feedback]="isFieldInvalid('email')">
+                <mat-icon *ngIf="isFieldValid('email')" class="feedback-icon success">check_circle</mat-icon>
+                <mat-icon *ngIf="isFieldInvalid('email')" class="feedback-icon error">error</mat-icon>
+              </div>
             </div>
 
-            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4" appFocusInvalidInput>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">phone</mat-icon>
+                <input type="tel" formControlName="phone" placeholder="+52 55..."
+                  [class.valid-feedback]="isFieldValid('phone')"
+                  [class.invalid-feedback]="isFieldInvalid('phone')">
+                <mat-icon *ngIf="isFieldValid('phone')" class="feedback-icon success">check_circle</mat-icon>
+              </div>
+            </div>
+          </div>
 
-                <!-- Full Name -->
-                <div class="space-y-1">
-                    <label class="text-sm font-bold text-slate-700 ml-1">Nombre Completo</label>
-                    <div class="relative">
-                        <mat-icon
-                            class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">person</mat-icon>
-                        <input type="text" formControlName="full_name" name="full_name" id="full_name"
-                            autocomplete="name"
-                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
-                            placeholder="Dr. Juan Pérez">
-                    </div>
-                    <mat-error *ngIf="registerForm.get('full_name')?.invalid && registerForm.get('full_name')?.touched"
-                        class="text-xs ml-1">
-                        Por favor, ingresa tu nombre completo
-                    </mat-error>
-                </div>
+          <!-- STEP 2: Profesional -->
+          <div *ngIf="currentStep() === 2" class="step-slide flex flex-col gap-5">
+            <div class="section-label">2. Profesional</div>
+            
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Universidad</label>
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">school</mat-icon>
+                <input type="text" formControlName="university" placeholder="Ej: UNAM / Anáhuac"
+                   [class.valid-feedback]="isFieldValid('university')">
+                <mat-icon *ngIf="isFieldValid('university')" class="feedback-icon success">check_circle</mat-icon>
+              </div>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Email -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Correo Electrónico</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">email</mat-icon>
-                            <input type="email" formControlName="email" name="email" id="email" autocomplete="email"
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
-                                placeholder="nombre@ejemplo.com">
-                        </div>
-                        <mat-error *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
-                            class="text-xs ml-1">
-                            El correo electrónico no parece válido
-                        </mat-error>
-                    </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cédula Profesional</label>
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">badge</mat-icon>
+                <input type="text" formControlName="license_number" placeholder="DGP 1234567"
+                   [class.valid-feedback]="isFieldValid('license_number')"
+                   [class.invalid-feedback]="isFieldInvalid('license_number')">
+                <mat-icon *ngIf="isFieldValid('license_number')" class="feedback-icon success">check_circle</mat-icon>
+              </div>
+            </div>
 
-                    <!-- Specialty -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Especialidad</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">medical_services</mat-icon>
-                            <select formControlName="specialty" name="specialty" id="specialty" autocomplete="off"
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700">
-                                <option value="neumo">Neumología</option>
-                                <option value="pediatria">Pediatría</option>
-                                <option value="med_interna">Medicina Interna</option>
-                                <option value="alergologia">Alergología</option>
-                                <option value="otra">Otra</option>
-                            </select>
-                        </div>
-                        <mat-error
-                            *ngIf="registerForm.get('specialty')?.invalid && registerForm.get('specialty')?.touched"
-                            class="text-xs ml-1 text-red-500">
-                            Selecciona una especialidad válida
-                        </mat-error>
-                    </div>
-                </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Especialidad</label>
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">medical_services</mat-icon>
+                <select formControlName="specialty" class="w-full">
+                  <option value="neumo">Neumología</option>
+                  <option value="pediatria">Pediatría</option>
+                  <option value="med_interna">Medicina Interna</option>
+                  <option value="alergologia">Alergología</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- License Number -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Cédula Profesional (DGP)</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">badge</mat-icon>
-                            <input type="text" formControlName="license_number" name="license_number"
-                                id="license_number" autocomplete="off"
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
-                                placeholder="1234567">
-                        </div>
-                        <mat-error
-                            *ngIf="registerForm.get('license_number')?.invalid && registerForm.get('license_number')?.touched"
-                            class="text-xs ml-1 text-red-500">
-                            La cédula debe contener 7 u 8 dígitos numéricos válidos
-                        </mat-error>
-                    </div>
-
-                    <!-- University (NOM Requirement) -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Universidad de Egreso</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">school</mat-icon>
-                            <input type="text" formControlName="university" name="university" id="university"
-                                autocomplete="off"
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
-                                placeholder="UNAM, Tec de Monterrey...">
-                        </div>
-                        <mat-error
-                            *ngIf="registerForm.get('university')?.invalid && registerForm.get('university')?.touched"
-                            class="text-xs ml-1 text-red-500">
-                            La universidad es obligatoria por la NOM
-                        </mat-error>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Phone -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Teléfono</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">phone</mat-icon>
-                            <input type="tel" formControlName="phone" name="phone" id="phone" autocomplete="tel"
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
-                                placeholder="+52 444 123 4567">
-                        </div>
-                        <mat-error *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched"
-                            class="text-xs ml-1 text-red-500">
-                            Ingresa un teléfono válido
-                        </mat-error>
-                    </div>
-
-                    <!-- Institution -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Lugar de Trabajo Actual</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">business</mat-icon>
-                            <input type="text" formControlName="institution" name="workplace" id="workplace"
-                                autocomplete="organization"
-                                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-slate-400"
-                                placeholder="Hospital General">
-                        </div>
-                    </div>
-                </div>
-
-
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Password -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Contraseña</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
-                            <input [type]="hidePassword ? 'password' : 'text'" formControlName="password"
-                                name="new-password" id="new-password" autocomplete="new-password"
-                                class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-dot"
-                                placeholder="••••••••">
-                            <button type="button" (click)="hidePassword = !hidePassword"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
-                                <mat-icon class="scale-90">{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-                            </button>
-                        </div>
-                        <!-- Password Checklist -->
-                        <div class="mt-2 space-y-1 text-xs px-2 select-none">
-                            <div class="flex items-center gap-2 transition-colors duration-300"
-                                [ngClass]="passwordRules.length ? 'text-green-600 font-bold' : 'text-slate-400'">
-                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.length ?
-                                    'check_circle' : 'cancel'}}</mat-icon>
-                                <span>Mínimo 8 caracteres</span>
-                            </div>
-                            <div class="flex items-center gap-2 transition-colors duration-300"
-                                [ngClass]="passwordRules.upper ? 'text-green-600 font-bold' : 'text-slate-400'">
-                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.upper ? 'check_circle'
-                                    : 'cancel'}}</mat-icon>
-                                <span>Al menos una letra mayúscula</span>
-                            </div>
-                            <div class="flex items-center gap-2 transition-colors duration-300"
-                                [ngClass]="passwordRules.number ? 'text-green-600 font-bold' : 'text-slate-400'">
-                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.number ?
-                                    'check_circle' : 'cancel'}}</mat-icon>
-                                <span>Al menos un número</span>
-                            </div>
-                            <div class="flex items-center gap-2 transition-colors duration-300"
-                                [ngClass]="passwordRules.special ? 'text-green-600 font-bold' : 'text-slate-400'">
-                                <mat-icon class="!w-4 !h-4 text-[16px] leading-4">{{passwordRules.special ?
-                                    'check_circle' : 'cancel'}}</mat-icon>
-                                <span>Al menos un carácter especial (!@#$%^&*)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div class="space-y-1">
-                        <label class="text-sm font-bold text-slate-700 ml-1">Confirmar Contraseña</label>
-                        <div class="relative">
-                            <mat-icon
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
-                            <input [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword"
-                                name="new-password-confirm" id="new-password-confirm" autocomplete="new-password"
-                                class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium text-slate-700 placeholder-dot"
-                                placeholder="••••••••">
-                            <button type="button" (click)="hideConfirmPassword = !hideConfirmPassword"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
-                                <mat-icon class="scale-90">{{hideConfirmPassword ? 'visibility_off' :
-                                    'visibility'}}</mat-icon>
-                            </button>
-                        </div>
-                        <mat-error
-                            *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched"
-                            class="text-xs ml-1">
-                            Las contraseñas no coinciden. Intenta de nuevo.
-                        </mat-error>
-                    </div>
-                </div>
-
-                <!-- Terms & Conditions -->
-                <div class="flex items-center mt-2">
-                    <mat-checkbox formControlName="acceptTerms" color="primary" class="font-medium text-slate-600">
-                        Acepto los <a href="#" class="text-brand-cyan hover:underline">Términos y Condiciones</a>
-                    </mat-checkbox>
-                </div>
-                <mat-error *ngIf="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched"
-                    class="text-xs ml-1">
-                    Para continuar, necesitas aceptar los términos
-                </mat-error>
-
-                <!-- Submit Button -->
-                <button mat-flat-button color="primary"
-                    class="!py-4 !rounded-2xl !text-lg !font-bold shadow-md shadow-brand-cyan/20 mt-2 transition-transform hover:scale-[1.02]"
-                    [disabled]="registerForm.invalid || isLoading">
-                    <div class="flex items-center justify-center gap-2">
-                        <mat-spinner diameter="20" *ngIf="isLoading" class="mr-2 text-white"></mat-spinner>
-                        <span>{{ isLoading ? 'Registrando...' : 'Crear Cuenta' }}</span>
-                        <mat-icon *ngIf="!isLoading">arrow_forward</mat-icon>
-                    </div>
+          <!-- STEP 3: Seguridad -->
+          <div *ngIf="currentStep() === 3" class="step-slide flex flex-col gap-5">
+            <div class="section-label">3. Seguridad</div>
+            
+            <div class="flex flex-col gap-1.5">
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">lock_open</mat-icon>
+                <input [type]="hidePassword() ? 'password' : 'text'" formControlName="password" placeholder="Nueva Contraseña">
+                <button type="button" (click)="hidePassword.set(!hidePassword())" class="absolute right-10 p-1 text-slate-300">
+                  <mat-icon class="scale-90">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
                 </button>
+                <mat-icon *ngIf="isFieldValid('password')" class="feedback-icon success">check_circle</mat-icon>
+              </div>
+              <div class="password-strength-mini">
+                <div class="bar" [class.active-poor]="passwordRules.length"></div>
+                <div class="bar" [class.active-fair]="passwordRules.upper && passwordRules.number"></div>
+                <div class="bar" [class.active-good]="passwordRules.special"></div>
+              </div>
+            </div>
 
-                <!-- Footer -->
-                <div class="text-center mt-4 text-sm text-slate-500 font-medium">
-                    ¿Ya tienes cuenta? <a routerLink="/login" class="text-brand-cyan font-bold hover:underline">Inicia
-                        Sesión</a>
-                </div>
-            </form>
+            <div class="flex flex-col gap-1.5">
+              <div class="clinical-input-group">
+                <mat-icon class="input-icon">verified_user</mat-icon>
+                <input [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword" placeholder="Confirmar Contraseña">
+                <mat-icon *ngIf="!registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched" class="feedback-icon success">check_circle</mat-icon>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center gap-4 mt-2">
+              <div class="scale-[0.8]">
+                <app-captcha type="recaptcha" (resolved)="captchaResolved.set($event)"></app-captcha>
+              </div>
+              <mat-checkbox formControlName="acceptTerms" color="primary" class="text-[11px] text-slate-500 font-semibold">
+                Acepto los Términos y Condiciones
+              </mat-checkbox>
+            </div>
+          </div>
+
+          <!-- STEP 4: Verificación OTP -->
+          <div *ngIf="currentStep() === 4" class="step-slide flex flex-col gap-6 animate-fade-in">
+            <div class="section-label">4. Verificación</div>
+            <div class="text-center">
+              <p class="text-xs text-slate-500 mb-4">Ingresa el código que enviamos a tu correo para activar tu cuenta.</p>
+              <app-otp-input (codeChange)="onOtpChange($event)" (codeComplete)="verifyRegistrationOtp($event)"></app-otp-input>
+            </div>
+          </div>
+
         </div>
+
+        <!-- Navigation -->
+        <div class="flex gap-4 mt-8">
+          <button *ngIf="currentStep() > 1 && currentStep() < 4" mat-button type="button" (click)="$event.preventDefault(); prevStep()" class="btn-elite-back flex-1">
+            Atrás
+          </button>
+          
+          <button *ngIf="currentStep() < 3" mat-flat-button type="button" (click)="$event.preventDefault(); nextStep()" 
+            class="btn-elite-next flex-1" [disabled]="!isStepValid(currentStep())">
+            Siguiente
+          </button>
+          
+          <button *ngIf="currentStep() === 3" mat-flat-button type="submit" 
+            class="btn-elite-next flex-1" 
+            [disabled]="registerForm.invalid || !captchaResolved() || isLoading()">
+            {{ isLoading() ? 'Procesando...' : 'Crear Cuenta' }}
+          </button>
+
+          <button *ngIf="currentStep() === 4" mat-flat-button type="button" (click)="verifyRegistrationOtp()"
+            class="btn-elite-next flex-1" [disabled]="otpCode().length < 6 || isLoading()">
+            {{ isLoading() ? 'Verificando...' : 'Confirmar Registro' }}
+          </button>
+        </div>
+
+        <div *ngIf="errorMessage()" class="error-bubble">
+          <mat-icon>report_problem</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+
+        <div class="register-footer-compact pt-4 border-t border-slate-50">
+          ¿Ya tienes cuenta? <a routerLink="/auth/login" class="font-bold">Inicia Sesión</a>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
