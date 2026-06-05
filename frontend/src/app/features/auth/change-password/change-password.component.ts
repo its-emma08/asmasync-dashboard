@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { take } from 'rxjs/operators';
 
 @Component({
     selector: 'app-change-password',
@@ -129,7 +130,7 @@ export class ChangePasswordComponent {
         this.isLoading.set(true);
         const { currentPassword, newPassword } = this.pwdForm.value;
 
-        this.authService.changePassword(currentPassword, newPassword).subscribe({
+        this.authService.changePassword(currentPassword, newPassword).pipe(take(1)).subscribe({
             next: () => {
                 this.isLoading.set(false);
                 this.toast.showSuccess('Contraseña actualizada correctamente');

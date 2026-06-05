@@ -1,11 +1,6 @@
 <header class="flex items-center justify-between px-1 py-2 mb-6 gap-4">
 
     <!-- Desktop Sidebar Toggle -->
-    <button mat-icon-button
-        class="hidden md:flex text-slate-500 hover:text-brand-dark hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
-        (click)="toggleSidebar()" matTooltip="Colapsar menú lateral">
-        <mat-icon>menu</mat-icon>
-    </button>
 
     <!-- Left: Breadcrumbs -->
     <div class="flex-shrink-0 flex-1 md:flex-none">
@@ -20,63 +15,59 @@
     </div>
 
     <!-- Right: Actions Toolbar -->
-    <div
-        class="flex items-center gap-2 dashboard-header p-2 rounded-2xl border shadow-sm ml-auto backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-slate-200/60 dark:border-slate-700 dark:shadow-none transition-colors duration-300">
+    <div class="flex items-center gap-3 dashboard-header glass-card-premium p-2 rounded-2xl border shadow-sm ml-auto backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-slate-200/60 dark:border-slate-700 dark:shadow-none transition-colors duration-300">
 
         <!-- Search Pill -->
-        <div
-            class="hidden md:flex items-center dashboard-header rounded-full px-4 py-2 border border-slate-200/60 dark:border-slate-700 focus-within:ring-2 ring-brand-cyan/20 transition-all bg-slate-50/50 dark:bg-slate-800/50">
-            <mat-icon class="text-slate-400 scale-75">search</mat-icon>
-            <input type="text" placeholder="Buscar..." [(ngModel)]="searchTerm" (ngModelChange)="onSearch($event)"
-                class="bg-transparent border-none outline-none text-sm ml-2 text-slate-600 placeholder-slate-400 w-48 focus:w-72 transition-all">
+        <div class="search-pill apple-search-bar hidden md:flex">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" placeholder="Buscar paciente o reporte..." [(ngModel)]="searchTerm" (ngModelChange)="onSearch($event)"
+                class="search-input">
 
             <!-- Clear Button -->
             <button *ngIf="searchTerm" (click)="clearSearch()"
                 class="ml-1 text-slate-400 hover:text-red-500 transition-colors">
                 <mat-icon class="scale-75 text-[16px] w-[16px] h-[16px] leading-[16px]">close</mat-icon>
             </button>
-
-            <span class="text-xs text-slate-300 font-mono ml-2">/</span>
         </div>
 
         <!-- Date Display -->
-        <div class="hidden lg:flex items-center gap-2 text-slate-500 text-xs font-medium px-3">
+        <div class="hidden lg:flex items-center gap-2 text-slate-500 text-xs font-semibold px-3 capitalize">
             <mat-icon class="scale-75">calendar_today</mat-icon>
-            <span>{{ currentDate | date:'fullDate' }}</span>
+            <span>{{ currentDate | date:'fullDate':'':'es-ES' }}</span>
         </div>
 
         <!-- Divider -->
-        <div class="hidden lg:block w-px h-8 bg-slate-200"></div>
+        <div class="hidden lg:block w-px h-8 bg-slate-200/60"></div>
 
         <!-- Theme Toggle -->
-        <button mat-icon-button class="text-slate-500 hover:text-brand-dark transition-colors" (click)="toggleTheme()"
+        <button mat-icon-button class="nav-btn" (click)="toggleTheme()"
             [title]="isDarkMode ? 'Modo Claro' : 'Modo Oscuro'">
             <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
 
         <!-- Notifications -->
-        <button mat-icon-button class="text-slate-500 hover:text-brand-dark transition-colors relative"
+        <button mat-icon-button class="nav-btn relative"
             [matMenuTriggerFor]="notificationsMenu">
-            <mat-icon class="scale-90" [matBadge]="(unreadCount$ | async)"
-                [matBadgeHidden]="(unreadCount$ | async) === 0" matBadgeColor="warn"
-                matBadgeSize="small">notifications</mat-icon>
+            <div class="icon-badge-wrapper">
+                <mat-icon class="scale-90">notifications</mat-icon>
+                <div *ngIf="(unreadCount$ | async) as count" class="badge-dot"></div>
+            </div>
         </button>
 
         <!-- Divider -->
-        <div class="w-px h-8 bg-slate-200"></div>
+        <div class="w-px h-8 bg-slate-200/60"></div>
 
         <!-- User Profile Trigger -->
-        <button [matMenuTriggerFor]="userMenu"
-            class="flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer">
-            <div class="text-right hidden md:block">
-                <p class="text-sm font-bold text-slate-700 leading-tight">{{ doctorName }}</p>
-                <p class="text-[11px] text-slate-400">{{ doctorSpecialty }}</p>
+        <div [matMenuTriggerFor]="userMenu" class="profile-pill">
+            <div class="profile-info text-right hidden md:block">
+                <p class="name">{{ doctorName }}</p>
+                <p class="role">{{ doctorSpecialty }}</p>
             </div>
-            <div
-                class="bg-gradient-to-br from-blue-500 to-blue-600 w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md flex-shrink-0">
+            <!-- Profile Avatar (Standardized) -->
+            <div class="profile-avatar shadow-apple">
                 {{ doctorInitials }}
             </div>
-        </button>
+        </div>
 
     </div>
 

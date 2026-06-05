@@ -16,7 +16,7 @@
                     <div class="config-section">
                         <label class="section-label">Tamaño de Hoja</label>
                         <mat-button-toggle-group class="w-full paper-size-toggle" [value]="config.paperSize"
-                            (change)="config.paperSize = $event.value">
+                            (change)="updatePaperSize($event.value)">
                             <mat-button-toggle value="letter">Carta</mat-button-toggle>
                             <mat-button-toggle value="a4">A4</mat-button-toggle>
                             <mat-button-toggle value="legal">Oficio</mat-button-toggle>
@@ -119,8 +119,32 @@
                             </mat-chip-grid>
                         </mat-form-field>
 
-                        <!-- Medications (text for now for speed) -->
-                        <!-- Ideally a list builder, but sticking to prompt requirements for agility -->
+                        <!-- Medications list builder -->
+                        <div class="config-section" *ngIf="editedPatient">
+                            <label class="section-label">Medicamentos</label>
+                            <div *ngFor="let med of editedPatient.medications; let i = index" class="med-editor-row">
+                                <div class="med-fields">
+                                    <mat-form-field appearance="outline" class="dense-field med-name">
+                                        <mat-label>Medicamento</mat-label>
+                                        <input matInput [(ngModel)]="med.name" placeholder="Ej: Salbutamol">
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline" class="dense-field med-dose">
+                                        <mat-label>Dosis</mat-label>
+                                        <input matInput [(ngModel)]="med.dosage" placeholder="Ej: 100mcg">
+                                    </mat-form-field>
+                                    <button mat-icon-button color="warn" (click)="removeMedication(i)" matTooltip="Eliminar">
+                                        <mat-icon>remove_circle_outline</mat-icon>
+                                    </button>
+                                </div>
+                                <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                                    <mat-label>Frecuencia</mat-label>
+                                    <input matInput [(ngModel)]="med.frequency" placeholder="Ej: Cada 8 horas PRN">
+                                </mat-form-field>
+                            </div>
+                            <button mat-stroked-button class="w-full mt-1" (click)="addMedication()">
+                                <mat-icon>add</mat-icon> Agregar medicamento
+                            </button>
+                        </div>
                     </div>
                     <div class="config-section" *ngIf="!editedPatient">
                         <p class="text-sm text-gray-500 italic">Seleccione un paciente para editar sus datos.</p>
@@ -170,27 +194,105 @@
                         </mat-form-field>
                     </div>
 
+                    <!-- LIVE SECTION PREVIEW (Table of Contents) -->
+                    <div class="config-section">
+                        <label class="section-label">Vista Previa — Tabla de Contenido</label>
+                        <div class="toc-preview">
+                            <div *ngFor="let s of config.sections; let i = index" class="toc-row"
+                                [class.toc-enabled]="s.enabled" [class.toc-disabled]="!s.enabled">
+                                <span class="toc-num">{{ s.enabled ? (i + 1) : '—' }}</span>
+                                <span class="toc-label">{{ s.label }}</span>
+                                <mat-icon class="toc-ico">{{ s.enabled ? 'check_circle' : 'radio_button_unchecked'
+                                    }}</mat-icon>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </mat-tab>
 
         </mat-tab-group>
 
+
+        <!-- GENERATING PROGRESS BAR -->
+        <div class="generating-progress" *ngIf="isGenerating">
+            <div class="gen-steps">
+                <div class="gen-step active"><mat-icon>person</mat-icon><span>Datos</span></div>
+                <div class="gen-step active"><mat-icon>bar_chart</mat-icon><span>Gráficas</span></div>
+                <div class="gen-step active"><mat-icon>picture_as_pdf</mat-icon><span>PDF</span></div>
+            </div>
+            <div class="gen-bar-track">
+                <div class="gen-bar-fill"></div>
+            </div>
+            <p class="gen-label">Generando PDF profesional...</p>
+        </div>
+
         <!-- FOOTER ACTIONS -->
         <div class="sidebar-footer">
+            <!-- Individual patient report -->
             <button mat-raised-button color="primary" class="export-btn" (click)="downloadPDF()"
                 [disabled]="isGenerating || !selectedPatient">
                 <mat-icon>{{ isGenerating ? 'hourglass_empty' : 'download' }}</mat-icon>
-                {{ isGenerating ? 'Generando PDF...' : 'Descargar Reporte' }}
+                {{ isGenerating ? 'Generando...' : 'Descargar Reporte' }}
             </button>
+            <p class="filename-preview" *ngIf="selectedPatient">
+                📄 Reporte_{{ selectedPatient.full_name | slice:0:15 }}_...pdf
+            </p>
+
+            <!-- ─── All-Patients Weekly Export ─── -->
+            <div class="weekly-export-panel">
+                <div class="weekly-header">
+                    <mat-icon class="text-teal-600">group</mat-icon>
+                    <span>Reporte grupal por período</span>
+                </div>
+                <div class="date-range-shortcuts">
+                    <button class="period-chip" [class.active]="activePeriod==='week'" (click)="setPeriod('week')">Esta
+                        semana</button>
+                    <button class="period-chip" [class.active]="activePeriod==='month'"
+                        (click)="setPeriod('month')">Este mes</button>
+                    <button class="period-chip" [class.active]="activePeriod==='custom'"
+                        (click)="setPeriod('custom')">Personalizado</button>
+                </div>
+                <div *ngIf="activePeriod==='custom'" class="custom-dates">
+                    <mat-form-field appearance="outline" class="w-full dense-field mb-1">
+                        <mat-label>Desde</mat-label>
+                        <input matInput type="date" [(ngModel)]="weeklyFrom">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="w-full dense-field">
+                        <mat-label>Hasta</mat-label>
+                        <input matInput type="date" [(ngModel)]="weeklyTo">
+                    </mat-form-field>
+                </div>
+                <button mat-stroked-button class="weekly-btn" (click)="downloadWeeklyReport()"
+                    [disabled]="isExportingWeekly">
+                    <mat-icon>{{ isExportingWeekly ? 'hourglass_empty' : 'summarize' }}</mat-icon>
+                    {{ isExportingWeekly ? 'Generando...' : 'Exportar todos los pacientes' }}
+                </button>
+                <div *ngIf="weeklySummaryStats" class="summary-chips">
+                    <span class="chip chip-total">{{ weeklySummaryStats.total_patients }} pacientes</span>
+                    <span class="chip chip-green">{{ weeklySummaryStats.risk_distribution.low || 0 }} estables</span>
+                    <span class="chip chip-red">{{ weeklySummaryStats.risk_distribution.high || 0 }} críticos</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- ===== RIGHT: LIVE PREVIEW AREA ===== -->
     <div class="preview-area">
         <div class="preview-toolbar">
-            <span class="preview-tite">Vista Previa ({{ config.paperSize | uppercase }})</span>
-            <div class="zoom-controls">
-                <!-- Future zoom controls -->
+            <div class="toolbar-left">
+                <mat-icon class="toolbar-icon">description</mat-icon>
+                <span class="preview-title">Vista Previa</span>
+                <span class="paper-badge">{{ config.paperSize | uppercase }}</span>
+            </div>
+            <div class="toolbar-right">
+                <button mat-flat-button color="primary" class="toolbar-download-btn"
+                    (click)="downloadPDF()"
+                    [disabled]="isGenerating || !selectedPatient"
+                    [matTooltip]="!selectedPatient ? 'Selecciona un paciente' : 'Generar PDF'">
+                    <mat-icon>{{ isGenerating ? 'hourglass_empty' : 'download' }}</mat-icon>
+                    <span>{{ isGenerating ? 'Generando...' : 'Descargar PDF' }}</span>
+                </button>
             </div>
         </div>
 
@@ -226,7 +328,10 @@
                     </div>
                     <div class="header-meta">
                         <div class="meta-row"><strong>EMISIÓN:</strong> {{ today | date:'dd/MM/yyyy' }}</div>
-                        <div class="meta-row"><strong>FOLIO:</strong> 002394</div>
+                        <div class="meta-row"><strong>FOLIO:</strong> {{ config.customFolio || ('F-' + (today | date:'yyyyMMdd')) }}</div>
+                    </div>
+                    <div class="header-qr" style="margin-left: 20px; display: flex; align-items: center;">
+                        <qrcode [qrdata]="qrData" [width]="64" [errorCorrectionLevel]="'M'"></qrcode>
                     </div>
                 </header>
 
@@ -234,7 +339,24 @@
                     {{ config.title }}
                 </div>
 
-                <!-- 3. CONTENT SECTIONS -->
+                <!-- 3. PATIENT SUMMARY BANNER -->
+                <div class="patient-summary-banner" *ngIf="editedPatient">
+                    <div class="patient-avatar">
+                        {{ getPatientInitials(editedPatient.full_name) }}
+                    </div>
+                    <div class="patient-banner-info">
+                        <div class="patient-banner-name">{{ editedPatient.full_name | uppercase }}</div>
+                        <div class="patient-banner-meta">
+                            {{ computedAge }} años &nbsp;·&nbsp; {{ editedPatient.gender === 'M' || editedPatient.gender === 'male' ? 'Masculino' : editedPatient.gender === 'F' || editedPatient.gender === 'female' ? 'Femenino' : 'Sin especificar' }}
+                            &nbsp;·&nbsp; Expediente #{{ editedPatient.id }}
+                        </div>
+                    </div>
+                    <div class="patient-banner-risk" [ngClass]="'risk-' + (editedPatient.riskLevel || 'low')">
+                        {{ getRiskLabel(editedPatient.riskLevel) }}
+                    </div>
+                </div>
+
+                <!-- 4. CONTENT SECTIONS -->
                 <div class="report-body">
 
                     <ng-container *ngFor="let section of getSortedSections()">
@@ -254,7 +376,7 @@
                                 </div>
                                 <div class="field">
                                     <label>SEXO:</label>
-                                    <span>{{ editedPatient.gender === 'male' ? 'MASCULINO' : 'FEMENINO' }}</span>
+                                    <span>{{ editedPatient.gender === 'male' ? 'MASCULINO' : editedPatient.gender === 'female' ? 'FEMENINO' : 'OTRO' }}</span>
                                 </div>
                                 <div class="field">
                                     <label>EXPEDIENTE:</label>
@@ -262,7 +384,7 @@
                                 </div>
                                 <div class="field col-span-2">
                                     <label>CURP:</label>
-                                    <span>{{ computedCurp }}</span>
+                                    <span>{{ computedCurp || 'NO REGISTRADO' }}</span>
                                 </div>
                                 <div class="field col-span-2">
                                     <label>DIAGNÓSTICO:</label>
@@ -286,6 +408,7 @@
 
                         <!-- VITALS -->
                         <div *ngIf="section.id === 'vitals' && editedPatient" class="report-section vitals-section">
+                            <div class="section-title">SIGNOS VITALES Y MÉTRICAS</div>
                             <div class="vitals-grid">
                                 <div class="vital-card">
                                     <span class="value">{{ editedPatient.latest_pef }}</span>
@@ -303,11 +426,37 @@
                                     <span class="label">SpO2 (Sat)</span>
                                 </div>
                                 <div class="vital-card">
-                                    <span class="value">98</span>
+                                    <span class="value">{{ editedPatient.heart_rate || '—' }}</span>
                                     <span class="unit">lpm</span>
                                     <span class="label">Frec. Cardiaca</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- MEDICATIONS -->
+                        <div *ngIf="section.id === 'medications' && editedPatient" class="report-section">
+                            <div class="section-title">ESQUEMA DE MEDICAMENTACIÓN</div>
+                            <ng-container *ngIf="editedPatient.medications?.length; else noMeds">
+                                <table class="med-table">
+                                    <thead>
+                                        <tr>
+                                            <th>MEDICAMENTO</th>
+                                            <th>DOSIS</th>
+                                            <th>FRECUENCIA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let med of editedPatient.medications">
+                                            <td>{{ med.name }}</td>
+                                            <td>{{ med.dosage }}</td>
+                                            <td>{{ med.frequency }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </ng-container>
+                            <ng-template #noMeds>
+                                <p class="notes-content" style="color: #94a3b8; font-style: italic;">Sin medicamentos registrados. Agrégalos en el panel de Datos.</p>
+                            </ng-template>
                         </div>
 
                         <!-- CHART SECTION (FIXED) -->
@@ -318,6 +467,37 @@
                                 <canvas *ngIf="!chartImageSrc" id="reportChartCanvas"></canvas>
                                 <img *ngIf="chartImageSrc" [src]="chartImageSrc" alt="Chart Snapshot"
                                     style="width: 100%; height: 100%; object-fit: contain;">
+                            </div>
+                        </div>
+
+                        <!-- ACTION PLAN -->
+                        <div *ngIf="section.id === 'action_plan' && editedPatient" class="report-section">
+                            <div class="section-title">PLAN DE ACCIÓN — ZONAS DE CONTROL</div>
+                            <div class="action-plan-grid">
+                                <div class="ap-zone ap-green">
+                                    <div class="ap-zone-header">
+                                        <span class="ap-dot"></span>
+                                        <strong>ZONA VERDE — Buen Control</strong>
+                                        <small>PEF ≥ 80% del mejor personal</small>
+                                    </div>
+                                    <p>Continuar medicamentos de mantenimiento según esquema actual. El paciente se encuentra estable.</p>
+                                </div>
+                                <div class="ap-zone ap-yellow">
+                                    <div class="ap-zone-header">
+                                        <span class="ap-dot"></span>
+                                        <strong>ZONA AMARILLA — Control Parcial</strong>
+                                        <small>PEF 60–79% del mejor personal</small>
+                                    </div>
+                                    <p>Iniciar broncodilatador de rescate (Salbutamol 200–400 mcg). Contactar al médico si no hay mejoría en 24h.</p>
+                                </div>
+                                <div class="ap-zone ap-red">
+                                    <div class="ap-zone-header">
+                                        <span class="ap-dot"></span>
+                                        <strong>ZONA ROJA — Crisis Grave</strong>
+                                        <small>PEF &lt; 60% del mejor personal</small>
+                                    </div>
+                                    <p>Broncodilatador de rescate inmediato. Acudir a urgencias o llamar a emergencias si no responde en 15 min.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -341,8 +521,8 @@
                         <div *ngIf="section.id === 'signatures'" class="report-section signatures-section">
                             <div class="signature-box">
                                 <div class="sig-line"></div>
-                                <p>DR. JUAN PÉREZ</p>
-                                <small>NEUMÓLOGO CERTIFICADO</small>
+                                <p>{{ currentDoctorName | uppercase }}</p>
+                                <small>{{ doctorSpecialty | uppercase }}</small>
                             </div>
                             <div class="signature-box">
                                 <div class="sig-line"></div>

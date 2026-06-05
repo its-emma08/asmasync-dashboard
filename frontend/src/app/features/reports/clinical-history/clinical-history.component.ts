@@ -11,7 +11,7 @@ import { PatientService } from '../../../core/services/patient.service';
 import { Patient } from '../../../core/models/patient.model';
 
 import { AgePipe } from '../../../shared/pipes/age-pipe';
-import { SafeDatePipe } from '../../../shared/pipes/safe-date.pipe';
+import { AuthService } from '../../../core/services/auth.service';
 
 import { RouterModule } from '@angular/router';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -34,12 +34,15 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 })
 export class ClinicalHistoryComponent implements OnInit, OnDestroy {
     patient: Patient | null = null;
+    doctorName: string = '';
+    doctorCode: string = '';
     today = new Date();
     private destroy$ = new Subject<void>();
 
     constructor(
         private route: ActivatedRoute,
-        private patientService: PatientService
+        private patientService: PatientService,
+        private authService: AuthService
     ) { }
 
     ngOnInit(): void {
@@ -51,6 +54,21 @@ export class ClinicalHistoryComponent implements OnInit, OnDestroy {
                 this.patientService.getPatientById(Number(id)).pipe(takeUntil(this.destroy$)).subscribe(p => this.patient = p);
             }
         }
+
+        this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+            if (user) {
+                this.doctorName = user.full_name || 'Dr. Usuario';
+                this.doctorCode = user.doctor_code || '';
+            }
+        });
+    }
+
+    getInitials(name: string): string {
+        if (!name) return 'US';
+        const parts = name.split(' ').filter(n => n.length > 0);
+        if (parts.length === 0) return 'US';
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
     }
 
     print(): void {

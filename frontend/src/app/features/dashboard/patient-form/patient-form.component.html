@@ -3,45 +3,38 @@
 
         <!-- Header -->
         <div class="stepper-header">
-            <button mat-icon-button routerLink="/dashboard/patients" class="back-btn">
+            <button mat-icon-button (click)="goBack()" class="back-btn">
                 <mat-icon>arrow_back</mat-icon>
             </button>
-            <div>
+            <div class="flex-1">
                 <h1>{{ isEditMode ? 'Editar Paciente' : 'Nuevo Paciente' }}</h1>
                 <p>Complete los datos del paciente paso a paso</p>
+            </div>
+            <!-- Step progress pills -->
+            <div class="flex items-center gap-2">
+                <div *ngFor="let i of [0,1]"
+                    class="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                    [style.width]="selectedTabIndex === i ? '28px' : '8px'"
+                    [class.bg-blue-500]="selectedTabIndex === i"
+                    [class.bg-slate-200]="selectedTabIndex !== i"
+                    [class.dark:bg-blue-500]="selectedTabIndex === i"
+                    [class.dark:bg-slate-600]="selectedTabIndex !== i"
+                    (click)="onTabHeaderClick(i)">
+                </div>
+                <span class="text-xs font-semibold text-slate-400 ml-1">{{ selectedTabIndex + 1 }}/{{ TAB_COUNT }}</span>
             </div>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" appFocusInvalidInput>
-            <mat-tab-group animationDuration="0ms" class="clean-tabs bg-transparent border-0">
+            <mat-tab-group animationDuration="200ms" class="clean-tabs bg-transparent border-0"
+                [selectedIndex]="selectedTabIndex"
+                (selectedIndexChange)="onTabHeaderClick($event)">
 
                 <!-- TAB 1: Identidad -->
                 <mat-tab label="Datos Personales">
                     <div class="step-content">
                         <div class="step-body">
                             <div class="flex flex-col md:flex-row gap-6">
-                                <!-- Photo -->
-                                <div class="flex flex-col items-center gap-3 md:w-44 flex-shrink-0">
-                                    <div class="photo-circle">
-                                        <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto"
-                                            class="w-full h-full object-cover">
-                                        <mat-icon *ngIf="!photoPreview"
-                                            class="photo-placeholder">account_circle</mat-icon>
-                                    </div>
-                                    <input #fileInput type="file" accept="image/jpeg,image/jpg,image/png"
-                                        (change)="onPhotoSelected($event)" class="hidden">
-                                    <button mat-stroked-button color="primary" type="button" (click)="fileInput.click()"
-                                        class="upload-btn">
-                                        <mat-icon>upload</mat-icon>
-                                        {{ photoPreview ? 'Cambiar' : 'Subir Foto' }}
-                                    </button>
-                                    <button *ngIf="photoPreview" mat-stroked-button color="warn" type="button"
-                                        (click)="removePhoto()" class="upload-btn">
-                                        <mat-icon>delete</mat-icon> Eliminar
-                                    </button>
-                                    <p class="text-[10px] text-gray-400">JPG/PNG • Máx 2MB</p>
-                                </div>
-
                                 <!-- Fields Grid -->
                                 <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
@@ -96,46 +89,50 @@
                                         <mat-icon matPrefix class="text-gray-400">bloodtype</mat-icon>
                                     </mat-form-field>
 
-                                    <!-- Paired Vitals -->
-                                    <div class="col-span-1 md:col-span-2 xl:col-span-3 grid grid-cols-2 gap-6">
-                                        <mat-form-field appearance="outline" class="w-full">
-                                            <mat-label>Peso (kg)</mat-label>
-                                            <input matInput type="number" formControlName="weight" placeholder="70">
-                                            <mat-icon matPrefix class="text-gray-400">monitor_weight</mat-icon>
-                                            <mat-error *ngIf="form.get('weight')?.hasError('min')">Mínimo
-                                                1kg</mat-error>
-                                        </mat-form-field>
+                                    <mat-form-field appearance="outline" class="w-full">
+                                        <mat-label>Peso (kg) *</mat-label>
+                                        <input matInput type="number" formControlName="weight" placeholder="70">
+                                        <mat-icon matPrefix class="text-gray-400">monitor_weight</mat-icon>
+                                        <mat-error *ngIf="form.get('weight')?.hasError('min')">Mínimo
+                                            1kg</mat-error>
+                                    </mat-form-field>
 
-                                        <mat-form-field appearance="outline" class="w-full">
-                                            <mat-label>Altura (cm)</mat-label>
-                                            <input matInput type="number" formControlName="height" placeholder="175">
-                                            <mat-icon matPrefix class="text-gray-400">height</mat-icon>
-                                            <mat-error *ngIf="form.get('height')?.hasError('min')">Mínimo
-                                                30cm</mat-error>
-                                        </mat-form-field>
-                                    </div>
+                                    <mat-form-field appearance="outline" class="w-full">
+                                        <mat-label>Altura (cm) *</mat-label>
+                                        <input matInput type="number" formControlName="height" placeholder="175">
+                                        <mat-icon matPrefix class="text-gray-400">height</mat-icon>
+                                        <mat-error *ngIf="form.get('height')?.hasError('min')">Mínimo
+                                            30cm</mat-error>
+                                    </mat-form-field>
 
-                                    <!-- Paired Contact -->
-                                    <div class="col-span-1 md:col-span-2 xl:col-span-3 grid grid-cols-2 gap-6">
-                                        <mat-form-field appearance="outline" class="w-full">
-                                            <mat-label>Email</mat-label>
-                                            <input matInput formControlName="email" placeholder="juan@ejemplo.com">
-                                            <mat-icon matPrefix class="text-gray-400">email</mat-icon>
-                                            <mat-error *ngIf="form.get('email')?.hasError('email')">Email
-                                                inválido</mat-error>
-                                        </mat-form-field>
+                                    <mat-form-field appearance="outline" class="w-full md:col-span-2 xl:col-span-2">
+                                        <mat-label>Email {{ !isEditMode ? '*' : '' }}</mat-label>
+                                        <input matInput formControlName="email" placeholder="juan@ejemplo.com" autocomplete="off">
+                                        <mat-icon matPrefix class="text-gray-400">email</mat-icon>
+                                        @if (form.get('email')?.pending) {
+                                            <mat-spinner matSuffix diameter="18"></mat-spinner>
+                                        }
+                                        <mat-error>
+                                            @if (form.get('email')?.hasError('required')) { El correo es obligatorio para registrar al paciente }
+                                            @else if (form.get('email')?.hasError('email')) { Formato de correo inválido }
+                                        </mat-error>
+                                        @if (emailAlreadyRegistered && !isEditMode && prefillApplied) {
+                                            <mat-hint class="text-blue-600">✓ Datos pre-cargados — revisa y actualiza si es necesario</mat-hint>
+                                        }
+                                        @if (emailAlreadyRegistered && !isEditMode && !prefillApplied) {
+                                            <mat-hint class="text-amber-600">⚠️ Este correo ya existe — el paciente será vinculado a tu lista</mat-hint>
+                                        }
+                                    </mat-form-field>
 
-                                        <mat-form-field appearance="outline" class="w-full">
-                                            <mat-label>Teléfono</mat-label>
-                                            <input matInput formControlName="phone" placeholder="5512345678">
-                                            <mat-icon matPrefix class="text-gray-400">phone</mat-icon>
-                                            <mat-hint>10 dígitos</mat-hint>
-                                            <mat-error *ngIf="form.get('phone')?.hasError('pattern')">Debe tener 10
-                                                dígitos</mat-error>
-                                        </mat-form-field>
-                                    </div>
+                                    <mat-form-field appearance="outline" class="w-full">
+                                        <mat-label>Teléfono</mat-label>
+                                        <input matInput formControlName="phone" placeholder="5512345678">
+                                        <mat-icon matPrefix class="text-gray-400">phone</mat-icon>
+                                        <mat-hint>10 dígitos</mat-hint>
+                                        <mat-error *ngIf="form.get('phone')?.hasError('pattern')">Debe tener 10
+                                            dígitos</mat-error>
+                                    </mat-form-field>
 
-                                    <!-- Emergency Contact Full Width on Mobile, Grid on Desktop -->
                                     <mat-form-field appearance="outline" class="w-full">
                                         <mat-label>Contacto Emergencia (Nombre)</mat-label>
                                         <input matInput formControlName="emergency_contact_name"
@@ -165,7 +162,7 @@
                 </mat-tab>
 
                 <!-- TAB 2: Clínico -->
-                <mat-tab label="Perfil Clínico">
+                <mat-tab label="Perfil Clínico" [disabled]="identityGroup.invalid">
                     <div class="step-content">
                         <div class="step-body">
                             <!-- Asma Info -->
@@ -311,62 +308,40 @@
                     </div>
                 </mat-tab>
 
-                <!-- TAB 3: Dispositivos -->
-                <mat-tab label="Dispositivos">
-                    <div class="step-content">
-                        <div class="step-body">
-                            <div class="section-divider first">
-                                <mat-icon>sensors</mat-icon>
-                                <span>Dispositivos Médicos Asignados</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-4">Asigne los dispositivos IoT del paciente para
-                                monitoreo
-                                remoto.</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Spirometer Card -->
-                                <div class="device-assign-card">
-                                    <div class="device-assign-icon" style="background: rgba(0,181,173,0.08);">
-                                        <mat-icon style="color: #00B5AD;">air</mat-icon>
-                                    </div>
-                                    <h4>Espirómetro</h4>
-                                    <p>Dispositivo para medición de flujo espiratorio</p>
-                                    <mat-form-field appearance="outline" class="w-full">
-                                        <mat-label>ID del Espirómetro</mat-label>
-                                        <input matInput formControlName="spirometer_id" placeholder="Ej. SP-2024-001">
-                                        <mat-icon matPrefix class="text-gray-400">qr_code</mat-icon>
-                                    </mat-form-field>
-                                </div>
-
-                                <!-- Inhaler Card -->
-                                <div class="device-assign-card">
-                                    <div class="device-assign-icon" style="background: rgba(139,92,246,0.08);">
-                                        <mat-icon style="color: #8b5cf6;">medication</mat-icon>
-                                    </div>
-                                    <h4>Inhalador Inteligente</h4>
-                                    <p>Dispositivo de rescate con telemetría</p>
-                                    <mat-form-field appearance="outline" class="w-full">
-                                        <mat-label>ID del Inhalador</mat-label>
-                                        <input matInput formControlName="inhaler_id" placeholder="Ej. INH-2024-003">
-                                        <mat-icon matPrefix class="text-gray-400">qr_code</mat-icon>
-                                    </mat-form-field>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </mat-tab>
-
             </mat-tab-group>
 
-            <!-- Global Actions (Save Button) -->
-            <div class="mt-8 flex justify-end px-4 pb-8">
-                <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading"
-                    class="!px-8 !py-3 !rounded-2xl !text-lg !font-bold shadow-lg transition-transform hover:scale-[1.02]">
-                    <mat-spinner diameter="18" *ngIf="isLoading" class="inline-block mr-2 text-white"></mat-spinner>
-                    <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar Paciente' : 'Guardar Paciente' }}</span>
-                    <span *ngIf="isLoading">Guardando...</span>
+            <!-- Step navigation bar -->
+            <div class="step-nav-bar">
+                <!-- Back button -->
+                <button mat-stroked-button type="button" (click)="prevTab()"
+                    [disabled]="isFirstTab"
+                    class="step-nav-btn step-nav-prev">
+                    <mat-icon>arrow_back</mat-icon>
+                    Anterior
+                </button>
+
+                <!-- Validation hint (tab 1 only) -->
+                <div *ngIf="!isLastTab && !tab1Valid && selectedTabIndex === 0"
+                    class="step-nav-hint">
+                    <mat-icon class="!text-sm text-amber-500">info</mat-icon>
+                    <span>Nombre, fecha, género, peso y altura son obligatorios</span>
+                </div>
+                <div *ngIf="isLastTab || selectedTabIndex > 0" class="flex-1"></div>
+
+                <!-- Next / Save -->
+                <button *ngIf="!isLastTab" mat-flat-button type="button"
+                    (click)="nextTab()"
+                    class="step-nav-btn step-nav-next">
+                    Siguiente
+                    <mat-icon>arrow_forward</mat-icon>
+                </button>
+
+                <button *ngIf="isLastTab" mat-flat-button color="primary" type="submit"
+                    [disabled]="form.invalid || isLoading"
+                    class="step-nav-btn step-nav-save">
+                    <mat-spinner diameter="16" *ngIf="isLoading" class="inline-block mr-2"></mat-spinner>
                     <mat-icon *ngIf="!isLoading">save</mat-icon>
+                    <span>{{ isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar Paciente') }}</span>
                 </button>
             </div>
         </form>

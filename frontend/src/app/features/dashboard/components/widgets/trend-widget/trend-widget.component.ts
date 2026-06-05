@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { BaseChartDirective } from 'ng2-charts';
@@ -6,14 +6,15 @@ import { BaseChartDirective } from 'ng2-charts';
 @Component({
     selector: 'app-trend-widget',
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, MatIconModule, BaseChartDirective],
     template: `
-    <div class="h-full flex flex-col bg-white dark:bg-slate-800/80 rounded-3xl overflow-hidden">
+    <div class="h-full flex flex-col bg-transparent overflow-hidden">
 
         <!-- Header -->
         <div class="flex items-start justify-between px-5 pt-4 pb-3 flex-shrink-0 border-b border-slate-100 dark:border-slate-700/50">
             <div>
-                <h3 class="font-bold text-slate-800 dark:text-white text-sm">Tendencia General</h3>
+                <h3 class="font-bold text-slate-800 dark:text-white text-sm">Análisis de Tendencia</h3>
                 <p class="text-[10px] text-slate-400 mt-0.5 font-medium">
                     <span class="text-teal-600 dark:text-teal-400 font-bold">PEF Prom. {{ avgPef }}</span>
                     · {{ periodLabel }}

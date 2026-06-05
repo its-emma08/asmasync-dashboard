@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 # Importar Base y Modelos para autogenerate
-from app.core.database import Base
-from app.models import *  # Importa todos los modelos
+from app.config.database import Base
+from app.infrastructure.models import *  # Importa todos los modelos
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -69,10 +69,14 @@ async def run_migrations_online() -> None:
 
     """
     # Importar settings para obtener URL real
-    from app.core.config import settings
+    from app.config.settings import get_settings
+    settings = get_settings()
     
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = settings.DATABASE_URL
+    db_url = settings.database_url
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    configuration["sqlalchemy.url"] = db_url
     
     connectable = async_engine_from_config(
         configuration,

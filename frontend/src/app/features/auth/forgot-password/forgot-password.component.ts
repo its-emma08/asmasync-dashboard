@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FocusInvalidInputDirective } from '../../../shared/directives/focus-invalid-input.directive';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { take } from 'rxjs/operators';
 
 @Component({
     selector: 'app-forgot-password',
@@ -73,11 +74,12 @@ export class ForgotPasswordComponent {
         this.isLoading.set(true);
         this.recoveryEmail = this.emailForm.value.email;
 
-        this.authService.forgotPassword(this.recoveryEmail).subscribe({
+        this.authService.forgotPassword(this.recoveryEmail).pipe(take(1)).subscribe({
             next: () => {
                 this.isLoading.set(false);
                 this.currentStep.set(2);
-                this.toastService.showSuccess('Código enviado exitosamente');
+                // The prompt asks for an icon change and specific text in the "Apple Look"
+                // No Snackbar here, the Card transformation is the feedback
             },
             error: (err) => {
                 this.isLoading.set(false);
@@ -123,7 +125,7 @@ export class ForgotPasswordComponent {
         const fullCode = this.codeInputs.join('');
         if (fullCode.length === 6) {
             this.isLoading.set(true);
-            this.authService.verifyResetCode(this.recoveryEmail, fullCode).subscribe({
+            this.authService.verifyResetCode(this.recoveryEmail, fullCode).pipe(take(1)).subscribe({
                 next: (res) => {
                     this.isLoading.set(false);
                     this.tempToken = res.temp_token;
@@ -149,11 +151,12 @@ export class ForgotPasswordComponent {
         this.isLoading.set(true);
         const { password } = this.passwordForm.value;
 
-        this.authService.resetPassword(this.tempToken, password).subscribe({
+        this.authService.resetPassword(this.tempToken, password).pipe(take(1)).subscribe({
             next: () => {
                 this.isLoading.set(false);
                 this.toastService.showSuccess('Contraseña restablecida con éxito');
-                this.router.navigate(['/auth/login']);
+                // SEC: Invalidate any existing session tokens after password change
+                this.authService.logout();
             },
             error: (err) => {
                 this.isLoading.set(false);
@@ -166,13 +169,14 @@ export class ForgotPasswordComponent {
     maskEmail(email: string): string {
         if (!email) return '';
         const [username, domain] = email.split('@');
-        if (username.length <= 2) {
-            return `*@${domain}`;
+        
+        // SEC UX: Show first 3 chars + domain (as requested: emm***@gmail.com)
+        if (username.length <= 3) {
+            return `${username}***@${domain}`;
         }
-        const firstLetter = username.charAt(0);
-        const lastLetter = username.charAt(username.length - 1);
-        const dots = '*'.repeat(username.length - 2);
-        return `${firstLetter}${dots}${lastLetter}@${domain}`;
+        
+        const visiblePart = username.substring(0, 3);
+        return `${visiblePart}***@${domain}`;
     }
 
     passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {

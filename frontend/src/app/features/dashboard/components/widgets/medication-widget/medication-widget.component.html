@@ -1,5 +1,5 @@
 <div
-    class="h-full flex flex-col p-4 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+    class="h-full flex flex-col p-4 bg-transparent relative overflow-hidden group transition-all duration-300">
     <!-- Header -->
     <div class="flex justify-between items-center mb-4 flex-shrink-0 z-10 relative">
         <div class="flex items-center gap-3">
@@ -8,116 +8,67 @@
                 <mat-icon class="scale-90">medication_liquid</mat-icon>
             </div>
             <div>
-                <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm leading-none">Medicación</h3>
+                <h3 class="font-extrabold text-slate-800 dark:text-white text-sm leading-none">Medicación</h3>
                 <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-1">
-                    Adherencia diaria</p>
+                    Pacientes activos</p>
             </div>
         </div>
-
-        <!-- Circular Progress Indicator (Mini) -->
-        <div class="relative w-10 h-10 flex items-center justify-center">
-            <svg class="w-full h-full transform -rotate-90">
-                <circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="3" fill="transparent"
-                    class="text-slate-100 dark:text-slate-700" />
-                <circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="3" fill="transparent"
-                    class="text-emerald-500 dark:text-emerald-400 transition-all duration-1000 ease-out"
-                    stroke-dasharray="100" stroke-dashoffset="25" />
-            </svg>
-            <span class="absolute text-[9px] font-black text-slate-600 dark:text-slate-300">75%</span>
-        </div>
+        <span class="text-[9px] font-bold text-slate-400">{{ medications.length }} registros</span>
     </div>
 
-    <!-- Alert Banner (Conditional) -->
-    <div
-        class="bg-amber-50 border border-amber-100 rounded-xl p-2 mb-3 flex items-start gap-2 flex-shrink-0 animate-fade-in-up">
-        <mat-icon class="text-amber-500 text-sm mt-0.5 icon-xxs">warning</mat-icon>
-        <div>
-            <p class="text-[10px] font-bold text-amber-700 leading-tight">Salbutamol bajo</p>
-            <p class="text-[9px] text-amber-600">Quedan 15 dosis. <a href="#"
-                    class="underline decoration-amber-300 hover:text-amber-800">Recargar</a></p>
+    <!-- Loading -->
+    @if (isLoading) {
+        <div class="flex-1 flex flex-col gap-2">
+            <div class="h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/40 animate-pulse"></div>
+            <div class="h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/40 animate-pulse"></div>
+            <div class="h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/40 animate-pulse"></div>
         </div>
-    </div>
+    }
+
+    <!-- Empty state -->
+    @if (!isLoading && medications.length === 0) {
+        <div class="flex-1 flex flex-col items-center justify-center text-center py-4">
+            <mat-icon class="text-4xl text-slate-300 dark:text-slate-600 mb-2">medication_liquid</mat-icon>
+            <p class="text-xs font-medium text-slate-400 dark:text-slate-500">Sin datos de medicación</p>
+            <p class="text-[10px] text-slate-350 dark:text-slate-655 mt-1">Agrega medicamentos en el expediente del paciente</p>
+            <a routerLink="/dashboard/patients" class="text-[10px] text-blue-500 font-bold mt-2 hover:underline">Ver pacientes →</a>
+        </div>
+    }
 
     <!-- Medications List -->
-    <div class="flex-1 flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar min-h-0 z-10 relative">
-
-        <!-- Item 1: Taken -->
-        <div
-            class="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 hover:border-emerald-200 dark:hover:border-emerald-500 hover:bg-emerald-50/30 dark:hover:bg-emerald-900/20 transition-all cursor-pointer group/item">
-            <div
-                class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/40 text-blue-500 dark:text-blue-400 flex items-center justify-center flex-shrink-0 group-hover/item:scale-110 transition-transform">
-                <mat-icon class="scale-75">inhaler</mat-icon> <!-- Using placeholder icon -->
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex justify-between items-center mb-0.5">
-                    <span class="font-bold text-slate-700 dark:text-slate-200 text-xs truncate">Salbutamol</span>
-                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">8:00 AM</span>
+    @if (!isLoading && medications.length > 0) {
+        <div class="flex-1 flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar min-h-0 z-10 relative">
+            @for (med of medications; track med.name + med.patient) {
+                <div
+                    class="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-500/30 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-300">
+                    <div
+                        class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        [class.bg-red-50]="med.riskLevel === 'high'"
+                        [class.text-red-500]="med.riskLevel === 'high'"
+                        [class.dark:bg-red-500/10]="med.riskLevel === 'high'"
+                        [class.bg-yellow-50]="med.riskLevel === 'moderate'"
+                        [class.text-yellow-500]="med.riskLevel === 'moderate'"
+                        [class.dark:bg-yellow-500/10]="med.riskLevel === 'moderate'"
+                        [class.bg-blue-50]="med.riskLevel === 'low'"
+                        [class.text-blue-500]="med.riskLevel === 'low'"
+                        [class.dark:bg-blue-500/10]="med.riskLevel === 'low'">
+                        <mat-icon class="scale-75 text-emerald-500 dark:text-emerald-400">medication</mat-icon>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="font-bold text-slate-700 dark:text-slate-200 text-xs truncate block">{{ med.name }}</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 truncate block">{{ med.patient }}</span>
+                    </div>
+                    <div class="w-2 h-2 rounded-full flex-shrink-0"
+                        [class.bg-red-500]="med.riskLevel === 'high'"
+                        [class.bg-yellow-400]="med.riskLevel === 'moderate'"
+                        [class.bg-green-400]="med.riskLevel === 'low'"></div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span
-                        class="text-[10px] text-slate-500 dark:text-slate-400 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-600 rounded-md">2
-                        puffs</span>
-                    <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
-                        <mat-icon class="icon-xxs">check_circle</mat-icon> Tomado
-                    </span>
-                </div>
-            </div>
+            }
         </div>
-
-        <!-- Item 2: Active / Due Now -->
-        <div
-            class="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-700/80 border-l-4 border-l-indigo-500 border-y border-r border-slate-100 dark:border-slate-600 shadow-sm relative overflow-hidden group/active">
-            <!-- Pulse Effect -->
-            <div
-                class="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/20 opacity-0 group-hover/active:opacity-100 transition-opacity pointer-events-none">
-            </div>
-
-            <div
-                class="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 z-10">
-                <mat-icon class="scale-75">pill</mat-icon>
-            </div>
-            <div class="flex-1 min-w-0 z-10">
-                <div class="flex justify-between items-center mb-0.5">
-                    <span class="font-bold text-slate-800 dark:text-slate-100 text-xs truncate">Fluticasona</span>
-                    <span
-                        class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-900/50 px-1.5 py-0.5 rounded-full animate-pulse">AHORA</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span
-                        class="text-[10px] text-slate-500 dark:text-slate-400 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-600 rounded-md">1
-                        puff</span>
-                    <button
-                        class="w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white flex items-center justify-center transition-all shadow-sm">
-                        <mat-icon class="icon-small">check</mat-icon>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Item 3: Pending -->
-        <div
-            class="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700 opacity-75 hover:opacity-100 transition-opacity">
-            <div
-                class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center flex-shrink-0">
-                <mat-icon class="scale-75">bedtime</mat-icon>
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex justify-between items-center mb-0.5">
-                    <span class="font-bold text-slate-600 dark:text-slate-300 text-xs truncate">Montelukast</span>
-                    <span class="text-[10px] text-slate-400">9:00 PM</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span
-                        class="text-[10px] text-slate-500 dark:text-slate-400 px-1.5 py-0.5 bg-slate-50 dark:bg-slate-800 rounded-md">10mg</span>
-                    <span class="text-[9px] text-slate-400 italic">Pendiente</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
+    }
 
     <!-- Background Decor -->
     <div
-        class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-50 to-transparent rounded-bl-full pointer-events-none opacity-50">
+        class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-50 dark:from-emerald-950/10 to-transparent rounded-bl-full pointer-events-none opacity-50">
     </div>
 </div>

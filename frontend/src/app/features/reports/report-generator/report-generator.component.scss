@@ -18,11 +18,16 @@ $primary-color: #0E7490;
     overflow: hidden;
     background-color: var(--bg-body);
     font-family: 'Quicksand', system-ui, sans-serif;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 }
 
 /* ===== LEFT: CONFIGURATION SIDEBAR ===== */
 .config-sidebar {
     width: $sidebar-width;
+    flex-shrink: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -30,6 +35,18 @@ $primary-color: #0E7490;
     background: var(--bg-card);
     z-index: 10;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+
+    @media (max-width: 1024px) {
+        width: 320px;
+    }
+
+    @media (max-width: 768px) {
+        width: 100%;
+        height: auto;
+        max-height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
 
     // iOS Segmented Control Style Tabs
     ::ng-deep .sidebar-tabs {
@@ -218,9 +235,145 @@ $primary-color: #0E7490;
     }
 }
 
+.filename-preview {
+    text-align: center;
+    font-size: 10px;
+    color: #94a3b8;
+    margin: 6px 0 0;
+    font-family: monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* === GENERATING PROGRESS === */
+.generating-progress {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    background: linear-gradient(135deg, #ecfeff, #eff6ff);
+}
+
+.gen-steps {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 12px;
+}
+
+.gen-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    transition: color 0.3s;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &.active {
+        color: #0e7490;
+    }
+}
+
+.gen-bar-track {
+    height: 4px;
+    border-radius: 4px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.gen-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, #06b6d4, #3b82f6, #06b6d4);
+    background-size: 200% 100%;
+    animation: gen-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes gen-sweep {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+.gen-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0e7490;
+    margin: 8px 0 0;
+}
+
+/* === TOC PREVIEW === */
+.toc-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.toc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 12px;
+}
+
+.toc-enabled {
+    background: rgba(6, 182, 212, 0.06);
+    color: #0f172a;
+
+    .toc-ico {
+        color: #22c55e;
+    }
+}
+
+.toc-disabled {
+    opacity: 0.4;
+    color: #94a3b8;
+
+    .toc-ico {
+        color: #cbd5e1;
+    }
+}
+
+.toc-num {
+    width: 20px;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 800;
+    color: #06b6d4;
+}
+
+.toc-label {
+    flex: 1;
+    font-weight: 500;
+}
+
+.toc-ico {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+
 /* ===== RIGHT: LIVE PREVIEW AREA ===== */
 .preview-area {
     flex: 1;
+    min-width: 0; /* Critical: prevents flex overflow */
     display: flex;
     flex-direction: column;
     background-color: var(--bg-body);
@@ -230,14 +383,60 @@ $primary-color: #0E7490;
         height: 56px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        justify-content: space-between;
+        padding: 0 20px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        z-index: 5;
+        flex-shrink: 0;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         color: #64748b;
         font-size: 13px;
         font-weight: 500;
-        z-index: 5;
+    }
+
+    .toolbar-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: #94a3b8;
+    }
+
+    .paper-badge {
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 6px;
+        letter-spacing: 0.05em;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .toolbar-download-btn {
+        height: 34px !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0 !important;
+        padding: 0 14px !important;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        mat-icon { font-size: 16px; width: 16px; height: 16px; }
     }
 
     .preview-scroll-container {
@@ -480,6 +679,127 @@ $primary-color: #0E7490;
     }
 }
 
+/* Patient Summary Banner */
+.patient-summary-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+
+.patient-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color, #0E7490), var(--accent-color, #06B6D4));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.patient-banner-info {
+    flex: 1;
+
+    .patient-banner-name {
+        font-size: 12px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: 0.02em;
+    }
+
+    .patient-banner-meta {
+        font-size: 9px;
+        color: #64748b;
+        margin-top: 1px;
+    }
+}
+
+.patient-banner-risk {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &.risk-green { background: #dcfce7; color: #166534; }
+    &.risk-yellow { background: #fef9c3; color: #854d0e; }
+    &.risk-red { background: #fee2e2; color: #991b1b; }
+}
+
+/* Action Plan Zones */
+.action-plan-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ap-zone {
+    border-radius: 6px;
+    padding: 8px 12px;
+    border-left: 4px solid transparent;
+
+    .ap-zone-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+
+        strong {
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        small {
+            font-size: 8px;
+            opacity: 0.7;
+            margin-left: auto;
+        }
+    }
+
+    .ap-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    p {
+        font-size: 10px;
+        color: #334155;
+        margin: 0;
+        line-height: 1.5;
+    }
+}
+
+.ap-green {
+    background: #f0fdf4;
+    border-left-color: #22c55e;
+    .ap-dot { background: #22c55e; }
+    strong { color: #166534; }
+}
+
+.ap-yellow {
+    background: #fffbeb;
+    border-left-color: #f59e0b;
+    .ap-dot { background: #f59e0b; }
+    strong { color: #92400e; }
+}
+
+.ap-red {
+    background: #fef2f2;
+    border-left-color: #ef4444;
+    .ap-dot { background: #ef4444; }
+    strong { color: #991b1b; }
+}
+
 /* Medical Notes (Typewriter Style) */
 .notes-content {
     font-family: 'Courier New', Courier, monospace;
@@ -563,5 +883,148 @@ $primary-color: #0E7490;
         box-shadow: none;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+}
+
+/* ═══════════════════════════════════════
+   WEEKLY / ALL-PATIENTS EXPORT PANEL
+   ═══════════════════════════════════════ */
+.weekly-export-panel {
+    margin-top: 16px;
+    padding: 16px;
+    background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    border: 1px solid #99f6e4;
+    border-radius: 16px;
+}
+
+.weekly-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f766e;
+    margin-bottom: 10px;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.date-range-shortcuts {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.period-chip {
+    flex: 1;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid #99f6e4;
+    border-radius: 20px;
+    background: white;
+    color: #0f766e;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        background: #ccfbf1;
+    }
+
+    &.active {
+        background: #0f766e;
+        color: white;
+        border-color: #0f766e;
+    }
+}
+
+/* ─── Medication Editor (Sidebar) ─── */
+.med-editor-row {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8fafc;
+
+    .med-fields {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        margin-bottom: 4px;
+
+        .med-name { flex: 1; }
+        .med-dose { flex: 0 0 100px; }
+    }
+}
+
+/* ─── Medications Table (Report Preview) ─── */
+.med-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-top: 8px;
+
+    th {
+        background: var(--primary-color, #0E7490);
+        color: white;
+        padding: 6px 10px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 10px;
+        letter-spacing: 0.05em;
+    }
+
+    td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: top;
+    }
+
+    tr:nth-child(even) td { background: #f8fafc; }
+    tr:last-child td { border-bottom: none; }
+}
+
+.custom-dates {
+    margin-bottom: 10px;
+}
+
+.weekly-btn {
+    width: 100%;
+    border-color: #0f766e !important;
+    color: #0f766e !important;
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+}
+
+.summary-chips {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.chip {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+
+    &.chip-total {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    &.chip-green {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    &.chip-red {
+        background: #fee2e2;
+        color: #b91c1c;
     }
 }

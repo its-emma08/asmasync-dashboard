@@ -1,41 +1,48 @@
 /* ============================================
-   Sidebar — Premium Collapsible Design
+   Sidebar — Apple Glassmorphic Design
    ============================================ */
 :host {
     display: block;
     height: 100%;
 }
 
-/* Material Icon Alignment */
 mat-icon {
     display: flex !important;
     align-items: center;
     justify-content: center;
 }
 
-/* ─── Sidebar Container ─── */
+/* ─── Sidebar Container (Floating Island) ─── */
 .sidebar-wrapper {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-right: 1px solid rgba(226, 232, 240, 0.6);
-    overflow: hidden;
-    transition: width 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-2xl); /* Pronounced rounded corners for the island */
+    box-shadow: var(--shadow-apple);
+    overflow: visible;
+    transition: width 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
     padding: 0;
+    position: relative;
 }
 
 /* ─── Logo Block ─── */
 .logo-block {
     display: flex;
+    flex-direction: row; /* Horizontal for better layout */
     align-items: center;
+    justify-content: flex-start;
     gap: 12px;
-    padding: 20px 18px 16px;
+    padding: 24px 16px;
+    height: 80px;
     overflow: hidden;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
     flex-shrink: 0;
+    transition: all 350ms ease;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .logo-icon {
@@ -43,23 +50,23 @@ mat-icon {
     height: 36px;
     min-width: 36px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #00B5AD, #0EA5E9);
+    background: linear-gradient(135deg, #0071e3, #0ea5e9);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 181, 173, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
 
     mat-icon {
         color: white;
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 }
 
 .logo-img {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     filter: brightness(0) invert(1);
     display: block;
@@ -67,7 +74,7 @@ mat-icon {
 
 .logo-text {
     overflow: hidden;
-    transition: opacity 200ms ease, max-width 280ms ease;
+    transition: opacity 200ms ease, max-width 350ms ease;
     max-width: 200px;
     white-space: nowrap;
 }
@@ -80,51 +87,65 @@ mat-icon {
 
 .logo-name {
     display: block;
-    font-size: 16px;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.03em;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text-primary), var(--brand-primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
     line-height: 1.1;
 }
 
 .logo-tagline {
     display: block;
-    font-size: 10px;
-    font-weight: 500;
-    color: #94a3b8;
-    letter-spacing: 0.04em;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.12em;
     margin-top: 1px;
 }
 
-/* ─── Collapse Toggle ─── */
+/* ─── Collapse Toggle — Centered & More Visible ─── */
 .collapse-btn {
-    margin-left: auto;
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    position: absolute;
+    right: 12px; /* Move inside to avoid overlap */
+    top: 24px;
+    width: 42px; /* Bigger as requested */
+    height: 42px;
+    border-radius: 14px; /* Apple Style Pill/Square */
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     cursor: pointer;
-    transition: all 200ms ease;
-    color: #94a3b8;
+    transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    color: var(--text-primary);
     padding: 0;
+    z-index: 100;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 18px; /* Increased from 14px */
+        width: 18px;
+        height: 18px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     &:hover {
-        background: rgba(0, 181, 173, 0.08);
-        border-color: rgba(0, 181, 173, 0.3);
-        color: #00B5AD;
+        background: rgba(0, 0, 0, 0.08);
+        color: var(--brand-primary);
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    &:active {
+        transform: scale(0.95);
     }
 }
 
@@ -137,22 +158,21 @@ mat-icon {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px 10px;
+    padding: 8px 12px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 /* Section label */
 .nav-section-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #cbd5e1;
-    padding: 8px 10px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    padding: 16px 12px 8px;
     overflow: hidden;
-    transition: opacity 200ms ease, max-height 280ms ease;
+    transition: opacity 200ms ease, max-height 350ms ease;
     max-height: 40px;
     white-space: nowrap;
 
@@ -168,16 +188,15 @@ mat-icon {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
-    border-radius: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
     text-decoration: none;
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
-    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
     position: relative;
     overflow: hidden;
-    border-left: 3px solid transparent;
     white-space: nowrap;
 
     mat-icon {
@@ -185,54 +204,107 @@ mat-icon {
         width: 20px;
         height: 20px;
         flex-shrink: 0;
-        transition: transform 200ms ease;
+        transition: transform 250ms ease;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
 
     span {
         overflow: hidden;
-        transition: opacity 200ms ease, max-width 280ms ease;
-        max-width: 200px;
+        transition: opacity 250ms ease, transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-width: 180px;
         white-space: nowrap;
+        opacity: 1;
+        transform: translateX(0);
     }
 
     &:hover {
-        background: rgba(100, 116, 139, 0.06);
-        color: #0f172a;
-        border-left-color: rgba(0, 181, 173, 0.3);
+        background: rgba(0, 0, 0, 0.04);
+        color: var(--text-primary);
 
-        mat-icon {
-            transform: scale(1.08);
-        }
+        mat-icon { transform: scale(1.05); }
     }
 
     &.active {
-        background: linear-gradient(90deg, rgba(0, 181, 173, 0.12), transparent);
-        color: #00B5AD;
-        border-left-color: #00B5AD;
+        background: var(--brand-primary-light);
+        color: var(--brand-primary);
         font-weight: 600;
 
-        mat-icon {
-            color: #00B5AD;
+        mat-icon { color: var(--brand-primary); }
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--brand-primary);
         }
     }
 }
 
-/* Collapsed: hide text labels */
-.sidebar-wrapper.is-collapsed .nav-item span {
-    opacity: 0;
-    max-width: 0;
-    pointer-events: none;
+:host-context(body.dark) .nav-item {
+    &:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+    }
+
+    &.active {
+        background: var(--brand-primary-light);
+        color: var(--brand-primary);
+
+        mat-icon { color: var(--brand-primary); }
+
+        &::before { background: var(--brand-primary); }
+    }
 }
 
-.sidebar-wrapper.is-collapsed .nav-item {
-    justify-content: center;
-    padding: 10px;
-    border-left: none;
-    border-radius: 12px;
-}
+/* Collapsed state adjustments */
+.sidebar-wrapper.is-collapsed {
+    .logo-block {
+        padding: 24px 0;
+        justify-content: center;
+        gap: 0;
+    }
 
-.sidebar-wrapper.is-collapsed .nav-item.active {
-    background: rgba(0, 181, 173, 0.12);
+    .collapse-btn {
+        right: 50%;
+        transform: translateX(50%) scale(0.75);
+        top: 48px; /* Below the logo icon (icon ~22-58px) */
+        opacity: 0.55; /* Subtle but visible */
+    }
+
+    &:hover .collapse-btn {
+        opacity: 1;
+        transform: translateX(50%) scale(0.85);
+    }
+
+    .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+        margin: 0 10px;
+        gap: 0;
+
+        mat-icon {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        span {
+            opacity: 0;
+            max-width: 0;
+            transform: translateX(-10px);
+            pointer-events: none;
+            margin: 0;
+        }
+    }
+    .nav-section {
+        padding: 8px 6px;
+        align-items: center;
+    }
 }
 
 /* ─── Badge ─── */
@@ -240,100 +312,97 @@ mat-icon {
     margin-left: auto;
     min-width: 18px;
     height: 18px;
-    padding: 0 4px;
+    padding: 0 5px;
     border-radius: 9px;
-    background: #ef4444;
+    background: var(--brand-danger);
     color: white;
     font-size: 10px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 200ms ease;
     flex-shrink: 0;
 }
 
 .sidebar-wrapper.is-collapsed .nav-badge {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 4px;
+    right: 4px;
     min-width: 14px;
     height: 14px;
     font-size: 8px;
-    margin-left: 0;
-}
-
-/* ─── Divider ─── */
-.nav-divider {
-    height: 1px;
-    background: rgba(226, 232, 240, 0.6);
-    margin: 8px 10px;
-    flex-shrink: 0;
 }
 
 /* ─── Footer ─── */
 .sidebar-footer {
-    padding: 10px 10px 16px;
+    padding: 12px 12px 20px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    border-top: 1px solid rgba(226, 232, 240, 0.5);
+    gap: 4px;
+    border-top: 1px solid var(--border-light);
     flex-shrink: 0;
 }
 
-/* ─── Dark Mode ─── */
-:host-context(body.dark) .sidebar-wrapper {
-    background: rgba(15, 23, 42, 0.92);
-    border-right-color: rgba(51, 65, 85, 0.5);
+.version-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px 0;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
-:host-context(body.dark) .logo-block {
-    border-bottom-color: rgba(51, 65, 85, 0.5);
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--brand-success);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--brand-success);
 }
 
-:host-context(body.dark) .logo-name {
-    color: #f8fafc;
-}
+/* ─── Footer Toggle Button ─── */
+.footer-toggle-btn {
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-light);
+    margin-top: 4px;
+    padding-top: 14px;
 
-:host-context(body.dark) .logo-tagline {
-    color: #475569;
-}
-
-:host-context(body.dark) .collapse-btn {
-    border-color: rgba(51, 65, 85, 0.8);
-    color: #64748b;
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        color: var(--text-muted);
+        transition: transform 250ms ease;
+    }
 
     &:hover {
-        background: rgba(0, 181, 173, 0.1);
+        color: var(--brand-primary);
+        background: rgba(0, 0, 0, 0.04);
+        mat-icon { color: var(--brand-primary); }
     }
 }
 
-:host-context(body.dark) .nav-section-label {
-    color: #334155;
-}
-
-:host-context(body.dark) .nav-item {
-    color: #94a3b8;
-
-    &:hover {
-        background: rgba(255, 255, 255, 0.04);
-        color: #f1f5f9;
+/* ─── Dark Mode Overrides (Refined for Glass) ─── */
+:host-context(body.dark) {
+    .sidebar-wrapper {
+        background: rgba(30, 41, 59, 0.7);
+        border-color: rgba(255, 255, 255, 0.05);
     }
-
-    &.active {
-        background: rgba(0, 181, 173, 0.1);
-        color: #2dd4bf;
+    
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
     }
-
-    &.active mat-icon {
-        color: #2dd4bf;
+    
+    .logo-icon {
+        background: linear-gradient(135deg, #0071e3, #38bdf8);
     }
-}
-
-:host-context(body.dark) .nav-divider {
-    background: rgba(51, 65, 85, 0.5);
-}
-
-:host-context(body.dark) .sidebar-footer {
-    border-top-color: rgba(51, 65, 85, 0.5);
+    
+    .collapse-btn {
+        background: rgba(255, 255, 255, 0.05);
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
 }

@@ -1,181 +1,129 @@
-<div class="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden">
+<div class="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden"
+  style="background: linear-gradient(145deg, #f0f4ff 0%, #f5f5f7 40%, #eef6ff 100%);">
 
-  <!-- Premium Mesh Background -->
-  <div
-    class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-cyan-300/40 to-blue-400/40 blur-[100px] mix-blend-multiply animate-pulse"
-    style="animation-duration: 8s;"></div>
-  <div
-    class="absolute top-[20%] right-[-10%] w-[800px] h-[800px] rounded-full bg-gradient-to-bl from-teal-300/40 to-emerald-400/40 blur-[100px] mix-blend-multiply animate-pulse"
-    style="animation-duration: 10s; animation-delay: 2s;"></div>
-  <div
-    class="absolute bottom-[-20%] left-[20%] w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-sky-300/40 to-indigo-400/40 blur-[100px] mix-blend-multiply animate-pulse"
-    style="animation-duration: 9s; animation-delay: 4s;"></div>
+  <!-- Apple Mesh Background — subtle, no saturation clash -->
+  <div class="absolute top-[-5%] left-[-5%] w-[500px] h-[500px] rounded-full opacity-60"
+    style="background: radial-gradient(circle, rgba(0,122,255,0.12) 0%, transparent 70%); animation: pulse 9s ease-in-out infinite;"></div>
+  <div class="absolute top-[30%] right-[-8%] w-[600px] h-[600px] rounded-full opacity-40"
+    style="background: radial-gradient(circle, rgba(90,200,250,0.15) 0%, transparent 70%); animation: pulse 11s ease-in-out infinite; animation-delay: 3s;"></div>
+  <div class="absolute bottom-[-10%] left-[25%] w-[500px] h-[500px] rounded-full opacity-50"
+    style="background: radial-gradient(circle, rgba(52,199,89,0.08) 0%, transparent 70%); animation: pulse 8s ease-in-out infinite; animation-delay: 5s;"></div>
 
   <div
-    class="w-full max-w-5xl bg-white/70 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-white/60 overflow-hidden flex flex-col lg:flex-row z-10 min-h-[650px] animate-fade-in-up transition-all duration-300"
+    class="w-full max-w-lg glass-login-card overflow-hidden z-10 animate-fade-in-up transition-all duration-500"
     [class.shake-card]="triggerShake()">
 
-    <!-- Left Side: Branding (Desktop Only) -->
-    <div
-      class="hidden lg:flex w-1/2 relative items-center justify-center p-12 overflow-hidden border-r border-white/40">
-      <!-- Decorative Pattern -->
-      <div class="absolute inset-0 opacity-[0.03]"
-        style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-
-      <div
-        class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-teal-100 to-transparent rounded-bl-full opacity-50">
-      </div>
-      <div
-        class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-100 to-transparent rounded-tr-full opacity-50">
-      </div>
-
-      <div class="text-center relative z-10 max-w-md">
-        <div
-          class="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto mb-8 flex items-center justify-center transform rotate-3 hover:rotate-6 transition-transform duration-500">
-          <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-16 h-16 drop-shadow-md object-contain">
-        </div>
-        <h2 class="text-3xl font-bold text-slate-800 mb-4 tracking-tight">AsmaSync Dashboard</h2>
-        <div class="space-y-4">
-          <p class="text-slate-600 font-medium text-lg leading-relaxed relative z-10">
-            Plataforma integral para el monitoreo y gestión de pacientes asmáticos.
-          </p>
-          <div class="flex gap-3 justify-center pt-4">
-            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100">
-              <mat-icon class="text-green-500 scale-75">check_circle</mat-icon>
-              <span class="text-xs font-bold text-slate-600">Alertas Real-time</span>
-            </div>
-            <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-100">
-              <mat-icon class="text-blue-500 scale-75">show_chart</mat-icon>
-              <span class="text-xs font-bold text-slate-600">Análisis Predictivo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Right Side: Login Form -->
-    <div class="w-full lg:w-1/2 p-8 md:p-16 flex flex-col justify-center relative bg-white">
+    <div class="w-full p-10 md:p-16 flex flex-col justify-center relative">
 
-      <!-- Mobile Logo -->
-      <div class="lg:hidden flex justify-center mb-8">
-        <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-          <img src="assets/logo-lung.png" alt="AsmaSync Logo" class="w-10 h-10 object-contain">
+      <div class="mb-10 text-center">
+        <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+          <mat-icon class="text-blue-500 scale-125"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#blue"><path d="m574-256 66-67v-37 37l-66 67Zm212 0-66-67v-37 37l66 67ZM480-480ZM80-600v-120q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v220h-80v-220H160v120H80Zm80 440q-33 0-56.5-23.5T80-240v-120h80v120h220v80H160Zm120-120q-11 0-21-5.5T244-302l-69-138H80v-80h120q11 0 21 5.5t15 16.5l44 88 124-248q5-10 15-15t21-5q11 0 21 5t15 15l79 159q-21 2-39.5 9T481-470l-41-80-124 248q-5 11-15 16.5t-21 5.5ZM500-40q-25 0-42.5-17.5T440-100v-147l53-141q9-23 29.5-37.5T568-440h72v-80h80v80h72q25 0 45.5 14.5T867-388l53 141v147q0 25-17.5 42.5T860-40h-80q-25 0-42.5-17.5T720-100v-60h80v40h40v-113l-48-127h-72v37l66 67-56 56-50-50-50 50-56-56 66-67v-37h-72l-48 127v113h40v-40h80v60q0 25-17.5 42.5T580-40h-80Zm180-200Z"/></svg></mat-icon>
         </div>
+        <h3 class="text-2xl font-semibold text-slate-900 mb-2 tracking-tight">Acceso Clínico</h3>
+        <p class="text-slate-500 text-sm">Gestiona la salud respiratoria con precisión.</p>
       </div>
 
-      <div class="mb-10">
-        <h3 class="text-3xl font-bold text-slate-900 mb-2">Bienvenido de nuevo</h3>
-        <p class="text-slate-500">Ingresa tus credenciales para acceder al panel.</p>
-      </div>
-
-      <!-- Lockout Banner -->
-      <div *ngIf="isLocked()" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl animate-pulse">
-        <div class="flex items-center gap-3">
-          <mat-icon class="text-red-500">lock_clock</mat-icon>
-          <div>
-            <h4 class="font-bold text-red-700 m-0">Cuenta Bloqueada</h4>
-            <p class="text-sm text-red-600 m-0">Demasiados intentos fallidos. Intenta de nuevo en <span
-                class="font-bold text-lg">{{ lockoutCountdown() }}s</span></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- FORMULARIO 1: LOGIN NORMAL -->
+      <!-- FORMULARIO: LOGIN -->
       <form *ngIf="!is2FAStage()" [formGroup]="loginForm" (ngSubmit)="onSubmit()"
-        class="flex flex-col gap-5 auth-slide-in" appFocusInvalidInput>
+        class="flex flex-col gap-8 auth-slide-in" appFocusInvalidInput autocomplete="off">
 
         <!-- Email -->
-        <div class="space-y-1">
-          <label class="text-sm font-bold text-slate-700 ml-1">Correo Electrónico</label>
-          <div class="relative">
-            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">email</mat-icon>
-            <input type="email" formControlName="email"
-              class="w-full pl-11 pr-4 py-3.5 bg-white/60 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all duration-300 font-medium text-slate-700 placeholder-slate-400 shadow-sm"
-              placeholder="nombre@ejemplo.com">
+        <div class="space-y-3">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Institución / Correo</label>
+          <div class="clinical-input-group">
+            <mat-icon class="input-icon">medical_services</mat-icon>
+            <input type="email" formControlName="email" autocomplete="username"
+              [class.invalid-input]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              [class.input-error-shake]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              placeholder="doctor@asmasync.com">
           </div>
-          <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-xs ml-1">
-            Ingresa un correo válido
-          </mat-error>
         </div>
 
         <!-- Password -->
-        <div class="space-y-1">
-          <div class="flex justify-between ml-1">
-            <label class="text-sm font-bold text-slate-700">Contraseña</label>
-            <button type="button" (click)="goToForgotPassword()"
-              class="text-xs text-brand-cyan font-bold hover:underline bg-transparent border-none cursor-pointer">¿Olvidaste
-              tu contraseña?</button>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center ml-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Código de Acceso</label>
+            <button *ngIf="failedAttempts() >= 2" type="button" (click)="goToForgotPassword()"
+              class="text-[10px] text-blue-600 font-bold uppercase tracking-wider hover:text-blue-800 transition-colors">¿Ayuda?</button>
           </div>
-          <div class="relative">
-            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
+          <div class="clinical-input-group">
+            <mat-icon class="input-icon">key</mat-icon>
             <input [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
-              class="w-full pl-11 pr-12 py-3.5 bg-white/60 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all duration-300 font-medium text-slate-700 placeholder-dot shadow-sm"
+              autocomplete="current-password"
+              [class.invalid-input]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              [class.input-error-shake]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
               placeholder="••••••••">
             <button type="button" (click)="hidePassword.set(!hidePassword())"
-              class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
-              <mat-icon class="scale-90">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+              class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-300 hover:text-slate-600 rounded-full transition-colors z-10">
+              <mat-icon class="scale-90" style="opacity: 1 !important;">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
             </button>
           </div>
-          <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
-            class="text-xs ml-1">
-            La contraseña es requerida
-          </mat-error>
         </div>
 
+        <!-- Submit Button Section -->
+        <div class="flex flex-col gap-4 mt-2">
+          <button mat-flat-button 
+            class="btn-clinical-pro shadow-xl shadow-slate-200/50"
+            [class.loading]="isLoading()"
+            type="submit">
+            <div class="button-content">
+              <span>{{ isLoading() ? 'Validando...' : 'Entrar al Sistema' }}</span>
+            </div>
+          </button>
 
-
-        <!-- Remember Me -->
-        <div class="flex items-center">
-          <mat-checkbox color="primary" class="font-medium text-slate-600">Recordarme en este dispositivo</mat-checkbox>
+          <!-- Clinical Error Feedback (Consolidated) -->
+          <div *ngIf="errorMessage() || (loginForm.touched && loginForm.invalid)" class="flex justify-center animate-fade-in-up">
+            <div class="clinical-capsule error vibrate shadow-sm">
+              <mat-icon>{{ errorMessage() ? 'security' : 'info_outline' }}</mat-icon>
+              <span>{{ errorMessage() || 'Credenciales no válidas' }}</span>
+            </div>
+          </div>
         </div>
-
-        <!-- Submit Button -->
-        <button mat-flat-button color="primary"
-          class="!py-4 !rounded-2xl !text-lg !font-bold shadow-lg shadow-brand-cyan/30 mt-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-cyan/40 active:scale-95 relative overflow-hidden"
-          [disabled]="loginForm.invalid || isLoading()">
-          <div class="flex items-center justify-center gap-2 transition-opacity duration-300"
-            [class.opacity-0]="isLoading()">
-            <span>Ingresar</span>
-            <mat-icon>arrow_forward</mat-icon>
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
-            [class.opacity-0]="!isLoading()">
-            <mat-spinner diameter="24" class="text-white"></mat-spinner>
-          </div>
-        </button>
 
         <!-- Footer -->
-        <div class="text-center mt-6 text-sm text-slate-500 font-medium">
-          ¿No tienes una cuenta? <a routerLink="/auth/register"
-            class="text-brand-cyan font-bold hover:underline">Regístrate</a>
+        <div class="text-center mt-4 text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em]">
+          Institución Médica Registrada.
+        </div>
+
+        <!-- Register Link -->
+        <div class="text-center mt-3">
+          <span class="text-xs text-slate-400">¿Primera vez en AsmaSync? </span>
+          <a routerLink="/auth/register"
+            class="text-xs text-blue-500 font-bold hover:text-blue-700 transition-colors cursor-pointer">
+            Regístrate
+          </a>
         </div>
       </form>
 
-      <!-- FORMULARIO 2: VERIFICACIÓN 2FA -->
-      <div *ngIf="is2FAStage()" class="flex flex-col gap-5 auth-slide-in flex-1 justify-center mt-4">
+      <!-- FORMULARIO 2: VERIFICACIÓN 2FA (Premium Edition) -->
+      <div *ngIf="is2FAStage()" class="flex flex-col gap-5 auth-slide-in flex-1 justify-center">
         <div class="text-center mb-6">
-          <div class="w-16 h-16 bg-brand-cyan/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <mat-icon class="text-brand-cyan scale-150">mark_email_read</mat-icon>
+          <div class="w-16 h-16 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <mat-icon class="text-blue-500 scale-[1.3]">verified_user</mat-icon>
           </div>
-          <h4 class="text-xl font-bold text-slate-800">Verifica tu Correo</h4>
-          <p class="text-sm text-slate-500 mt-2 leading-relaxed">
-            Te hemos enviado una alerta de inicio de sesión. Toca el número en pantalla que coincida con el correo.
+          <h4 class="text-xl font-bold text-slate-900">Verificación de 2 Pasos</h4>
+          <p class="text-slate-400 text-xs mt-2 font-medium px-4">
+            Ingresa el código de seguridad que enviamos a tu correo institucional.
           </p>
         </div>
 
-        <div class="grid grid-cols-3 gap-4 mt-2">
-          <button *ngFor="let option of twoFactorOptions()" type="button" (click)="select2FACode(option)"
-            [disabled]="isLoading()"
-            class="py-6 bg-white border border-slate-200 rounded-3xl text-3xl font-bold text-slate-700 hover:bg-slate-50 hover:border-brand-cyan hover:text-brand-cyan hover:shadow-md active:scale-95 transition-all duration-300 relative overflow-hidden flex flex-col items-center justify-center">
-            <span [class.opacity-0]="isLoading() && twoFactorCode() === option">{{ option }}</span>
-            <div class="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
-              *ngIf="isLoading() && twoFactorCode() === option">
-              <mat-spinner diameter="24" class="text-brand-cyan"></mat-spinner>
-            </div>
-          </button>
-        </div>
+        <!-- 6-Digit Grid (Elite 2.0 Shared Component) -->
+        <app-otp-input (codeChange)="onOtpChange($event)" (codeComplete)="verify2FA($event)"></app-otp-input>
 
-        <div class="text-center mt-6 text-sm text-slate-500 font-medium cursor-pointer hover:text-slate-700"
+        <button mat-flat-button class="btn-clinical-pro w-full shadow-lg" 
+          [disabled]="isLoading() || otpCode().length < 6" (click)="verify2FA()">
+          <div class="flex items-center justify-center gap-2">
+            <span>{{ isLoading() ? 'Validando...' : 'Verificar e Iniciar Sesi\u00f3n' }}</span>
+            <mat-icon *ngIf="!isLoading()">arrow_forward</mat-icon>
+          </div>
+        </button>
+
+        <p class="text-center text-xs text-slate-400 mt-4">
+          ¿No recibiste el código? <span (click)="resendCode()" class="text-blue-500 font-bold cursor-pointer hover:underline">Reenviar</span>
+        </p>
+
+        <div class="text-center mt-6 text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em] cursor-pointer"
           (click)="is2FAStage.set(false); isLoading.set(false);">
           <mat-icon class="align-middle scale-75">arrow_back</mat-icon> Volver al Login
         </div>

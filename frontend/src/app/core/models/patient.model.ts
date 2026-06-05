@@ -1,3 +1,5 @@
+export type RiskLevel = 'high' | 'moderate' | 'low' | 'unknown';
+
 export interface Patient {
     id: string | number;
     firebase_uid?: string; // SQL alignment
@@ -9,9 +11,23 @@ export interface Patient {
     height_cm?: number;
     weight_kg?: number;
     diagnosisDate?: string; // YYYY-MM-DD
+    blood_type?: string;
+    known_allergies?: string;
+    current_medications?: string;
+    family_history_mother?: string;
+    family_history_father?: string;
+    family_history_siblings?: string;
+    family_history_grandparents?: string;
+    smoking?: string;
+    alcohol?: string;
+    exercise?: string;
+    diet?: string;
+    surgeries_traumas?: string;
+    photo_url?: string;
+    spirometer_id?: string;
+    inhaler_id?: string;
 
-
-    riskLevel: 'green' | 'yellow' | 'red';
+    riskLevel: RiskLevel;
     latest_pef: number; // SQL alignment (was currentPEF)
     personal_best_pef: number;
     currentSpO2: number;
@@ -23,6 +39,24 @@ export interface Patient {
     status?: 'Crítico' | 'Moderado' | 'Estable';
     email?: string;
     phone?: string;
+    trend?: 'up' | 'down' | 'stable';
+    trendValue?: number;
+
+    // WearOS / Smartwatch data (from recent_measurements)
+    heart_rate?: number;
+    sleep_hours?: number;
+    steps?: number;
+    respiratory_rate_wearos?: number;
+
+    // Environmental data (from last spirometer reading)
+    aqi?: number;
+    temperature?: number;
+    humidity?: number;
+    pollen_level?: string;
+    location_name?: string;
+
+    // Raw recent measurements from backend (last 5)
+    recent_measurements?: any[];
     emergencyContact?: {
         name: string;
         phone: string;
@@ -46,7 +80,7 @@ export interface Patient {
         dosage: string;
         frequency: string;
     }[];
-    history?: any[];
+    history?: MeasurementHistory[];
     pefTrend?: PEFTrend[];
     interventions?: {
         date: Date | string;
@@ -61,6 +95,14 @@ export interface Patient {
         url: string;
     }[];
     clinical_history?: ClinicalHistory;
+}
+
+export interface MeasurementHistory {
+    id: number;
+    date: string;
+    value: number;
+    type: 'pef' | 'spo2' | 'heart_rate';
+    note?: string;
 }
 
 export interface PEFTrend {

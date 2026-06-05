@@ -31,7 +31,8 @@ export class ClinicalService {
     constructor(private http: HttpClient) { }
 
     addVitalSign(patientId: number, data: VitalSign): Observable<any> {
-        return this.http.post(`${this.apiUrl}/vitals?patient_id=${patientId}`, data).pipe(
+        // Backend identifies user via token, simplified post
+        return this.http.post(`${this.apiUrl}/vitals`, data).pipe(
             catchError(err => {
                 if (err.status === 422) {
                     console.error('Validation Error (422):', err.error);
@@ -43,7 +44,8 @@ export class ClinicalService {
     }
 
     addSpirometry(patientId: number, data: Spirometry): Observable<any> {
-        return this.http.post(`${this.apiUrl}/spirometry?patient_id=${patientId}`, data).pipe(
+        // Backend name is 'spirometer' in openapi.json
+        return this.http.post(`${this.apiUrl}/spirometer`, data).pipe(
             catchError(err => {
                 if (err.status === 422) {
                     throw new Error('Datos inválidos: PEF debe ser positivo y menor a 900.');
@@ -55,7 +57,6 @@ export class ClinicalService {
 
     getPatientHistory(patientId: number | string): Observable<PatientHistory> {
         if (environment.mockMode) {
-            // Mock data for fallback
             return of({
                 pef: [
                     { x: '2024-01-01T10:00:00', y: 450 },
@@ -70,7 +71,30 @@ export class ClinicalService {
                 heart_rate: []
             });
         }
-        return this.http.get<PatientHistory>(`${this.apiUrl}/history/${patientId}`).pipe(
+        // Backend history endpoint is /api/measurements/history
+        return this.http.get<any[]>(`${this.apiUrl}/history`).pipe(
+            map(list => {
+                const pef: any[] = [];
+                const spo2: any[] = [];
+                const heart_rate: any[] = [];
+                
+                (list || [])
+                .filter(item => {
+                    // If backend includes patient_id, narrow history for detail views
+                    if (item?.patient_id === undefined || item?.patient_id === null) {
+                        return true;
+                    }
+                    return String(item.patient_id) === String(patientId);
+                })
+                .forEach(item => {
+                    const date = item.measured_at;
+                    if (item.pef) pef.push({ x: date, y: item.pef });
+                    if (item.spo2) spo2.push({ x: date, y: item.spo2 });
+                    if (item.heart_rate) heart_rate.push({ x: date, y: item.heart_rate });
+                });
+                
+                return { pef, spo2, heart_rate };
+            }),
             catchError(err => {
                 console.error('Error fetching history', err);
                 return of({ pef: [], spo2: [], heart_rate: [] });

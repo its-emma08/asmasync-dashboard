@@ -1,89 +1,1116 @@
-// Status Badges
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    color: white;
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+@use 'sass:color';
 
-    &.stable {
-        background-color: #10B981;
-    }
+// ─── Variables ────────────────────────────────────────────────────────────────
+$blue: #007AFF;
+$teal: #00B5AD;
+$green: #10B981;
+$amber: #F59E0B;
+$red: #EF4444;
+$indigo: #6366F1;
+$purple: #8B5CF6;
+$gray-50: #F9FAFB;
+$gray-100: #F3F4F6;
+$gray-400: #9CA3AF;
+$gray-500: #6B7280;
+$gray-600: #4B5563;
+$gray-700: #374151;
+$gray-900: #111827;
 
-    &.moderate {
-        background-color: #F59E0B;
-    }
-
-    &.critical {
-        background-color: #EF4444;
-    }
+// ─── Hero Header ──────────────────────────────────────────────────────────────
+.patient-hero-card {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
 }
 
-// Clean Tabs Override
-::ng-deep .clean-tabs {
-    .mat-mdc-tab-header {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        margin-bottom: 1rem;
-    }
+.hero-risk-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
 
-    .mat-mdc-tab-label-container {
-        overflow: visible;
-    }
-
-    .mat-mdc-tab-labels {
-        gap: 1rem;
-    }
-
-    .mat-mdc-tab {
-        opacity: 0.6;
-        transition: all 0.2s ease;
-        padding: 0 1rem;
-        min-width: unset;
-
-        &:hover {
-            opacity: 0.8;
-            background-color: rgba(0, 0, 0, 0.02);
-            border-radius: 12px;
-        }
-
-        &.mdc-tab--active {
-            opacity: 1;
-
-            .mdc-tab__text-label {
-                color: #00B5AD !important; // Brand Cyan
-                font-weight: 700;
-            }
-        }
-    }
-
-    .mat-mdc-tab-indicator {
-        .mdc-tab-indicator__content--underline {
-            border-color: #00B5AD !important;
-            border-top-width: 3px !important;
-        }
-    }
+  &.stable, &.green { background: linear-gradient(90deg, $green, $teal); }
+  &.moderate         { background: linear-gradient(90deg, $amber, #FCD34D); }
+  &.critical         { background: linear-gradient(90deg, $red, #FF6B6B); }
+  &:not(.stable):not(.green):not(.moderate):not(.critical) {
+    background: linear-gradient(90deg, $blue, $teal);
+  }
 }
 
-// Chart Container
-.chart-wrapper {
-    position: relative;
-    height: 320px; // fallback
+.hero-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 32px 32px 28px 32px;
+  padding-top: 36px; // account for accent strip
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 20px 24px 20px;
+    padding-top: 32px;
+  }
+}
+
+.hero-identity {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.hero-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: $blue;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-id {
+  font-size: 10px;
+  font-weight: 700;
+  color: $gray-400;
+  background: $gray-100;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.hero-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: $gray-900;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 10px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 640px) { font-size: 22px; }
+}
+
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: rgba(0,0,0,0.05);
+  font-size: 12px;
+  font-weight: 600;
+  color: $gray-600;
+
+  mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    color: $gray-400;
+  }
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.02);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 20px;
+  padding: 20px 24px;
+
+  @media (max-width: 900px) {
     width: 100%;
+    justify-content: space-around;
+  }
 }
 
-// Evolution Note Textarea
-textarea.mat-mdc-input-element {
+.hero-stat-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &.column {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+}
+
+.hero-divider {
+  width: 1px;
+  height: 56px;
+  background: rgba(0,0,0,0.08);
+}
+
+// Dark mode hero
+.dark {
+  .hero-id { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+  .hero-name { color: white; }
+  .hero-chip { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); mat-icon { color: rgba(255,255,255,0.4); } }
+  .hero-stats { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+  .hero-divider { background: rgba(255,255,255,0.1); }
+}
+
+// ─── Back Button ──────────────────────────────────────────────────────────────
+.action-btn-back {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.06);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  z-index: 10;
+
+  mat-icon { font-size: 20px; color: $gray-600; }
+
+  &:hover { background: rgba(0,0,0,0.12); }
+}
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+.profile-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-frame {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  padding: 3px;
+  background: linear-gradient(135deg, $blue 0%, $teal 100%);
+  box-shadow: 0 8px 32px rgba($blue, 0.25);
+
+  &.critical { background: linear-gradient(135deg, $red 0%, #FF6B6B 100%); box-shadow: 0 8px 32px rgba($red, 0.25); }
+  &.moderate  { background: linear-gradient(135deg, $amber 0%, #FCD34D 100%); box-shadow: 0 8px 32px rgba($amber, 0.25); }
+  &.stable, &.green { background: linear-gradient(135deg, $green 0%, $teal 100%); box-shadow: 0 8px 32px rgba($green, 0.25); }
+}
+
+.avatar-main {
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  background: $gray-100;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+
+  span {
+    font-size: 28px;
+    font-weight: 800;
+    color: $gray-600;
+    letter-spacing: -0.03em;
+  }
+}
+
+.status-indicator-pill {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 2px solid white;
+
+  &.critical { background: $red; color: white; }
+  &.moderate  { background: $amber; color: white; }
+  &.stable, &.green { background: $green; color: white; }
+
+  .pulse-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}
+
+// ─── Buttons ──────────────────────────────────────────────────────────────────
+.apple-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 12px;
+  background: $blue;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: -0.01em;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover { background: #0062CC; transform: translateY(-1px); box-shadow: 0 6px 16px rgba($blue, 0.35); }
+  &:active { transform: scale(0.97); }
+
+  &.small { padding: 7px 14px; font-size: 12px; border-radius: 10px; }
+  &.px-8 { padding-left: 32px; padding-right: 32px; }
+}
+
+.apple-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.06);
+  color: $gray-700;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover { background: rgba(0,0,0,0.1); }
+  &:active { transform: scale(0.97); }
+
+  &.small { padding: 7px 14px; font-size: 12px; border-radius: 10px; }
+  &.indigo { background: rgba($indigo, 0.1); color: $indigo; &:hover { background: rgba($indigo, 0.16); } }
+  &.w-full { width: 100%; justify-content: center; }
+}
+
+.apple-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.06);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  mat-icon { font-size: 18px; color: $gray-600; }
+
+  &:hover { background: rgba(0,0,0,0.1); }
+  &.small { width: 32px; height: 32px; border-radius: 8px; mat-icon { font-size: 16px; } }
+}
+
+// ─── Adherence Card (donut) ────────────────────────────────────────────────────
+.adherence-card-premium {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.metric-visual {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+
+  .circular-chart {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+
+    .circle-bg {
+      fill: none;
+      stroke: $gray-100;
+      stroke-width: 3;
+    }
+
+    .circle {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.6s ease;
+    }
+
+    &.blue .circle { stroke: $blue; }
+    &.orange .circle { stroke: $amber; }
+    &.green .circle { stroke: $green; }
+    &.red .circle { stroke: $red; }
+  }
+
+  .value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: $gray-900;
+    letter-spacing: -0.03em;
+  }
+}
+
+.metric-info {
+  .label {
+    font-size: 13px;
+    font-weight: 700;
+    color: $gray-900;
+    line-height: 1.2;
+  }
+  .period {
+    font-size: 9px;
+    font-weight: 800;
+    color: $gray-400;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+}
+
+// ─── Progress Track ────────────────────────────────────────────────────────────
+.modern-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 100px;
+  background: $gray-100;
+  overflow: hidden;
+
+  .fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, $blue 0%, $teal 100%);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+// ─── Segmented Tabs ───────────────────────────────────────────────────────────
+.segmented-tabs-container {
+  display: flex;
+  justify-content: center;
+}
+
+.segmented-tabs-rail {
+  display: inline-flex;
+  background: rgba(0,0,0,0.05);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 2px;
+
+  button {
+    padding: 8px 20px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: $gray-500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+
+    &:hover { color: $gray-900; background: rgba(255,255,255,0.5); }
+
+    &.active {
+      background: white;
+      color: $gray-900;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+  }
+}
+
+// ─── Vital Cards ──────────────────────────────────────────────────────────────
+.vital-card-apple {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+  .icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: $gray-400;
+    text-transform: uppercase;
+  }
+
+  .value {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    color: $gray-900;
+  }
+
+  .unit {
+    font-size: 11px;
+    font-weight: 600;
+    color: $gray-400;
+    margin-bottom: 2px;
+  }
+
+  .percent-tag, .status-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 3px;
+    width: fit-content;
+  }
+
+  .percent-tag { background: rgba($blue,0.1); color: $blue; }
+
+  .status-tag {
+    background: rgba($green,0.1);
+    color: $green;
+
+    &.low { background: rgba($red,0.1); color: $red; }
+  }
+
+  &.pef {
+    .icon-wrap { background: rgba($blue,0.1); mat-icon { color: $blue; } }
+    .value { color: $blue; }
+  }
+
+  &.spo2 {
+    .icon-wrap { background: rgba($red,0.1); mat-icon { color: $red; } }
+    .value { color: $red; }
+  }
+}
+
+// ─── Calendar Tile ────────────────────────────────────────────────────────────
+.calendar-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 54px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, $blue 0%, color.adjust($blue, $lightness: -10%) 100%);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba($blue, 0.3);
+
+  .month {
+    font-size: 9px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .day {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+}
+
+// ─── WearOS Metric Cards ──────────────────────────────────────────────────────
+.wearos-metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  background: $gray-50;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+
+  &:hover { transform: translateY(-2px); }
+
+  .wearos-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  }
+
+  .wearos-data {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+  }
+
+  .wearos-value {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: $gray-900;
+  }
+
+  .wearos-unit {
+    font-size: 10px;
+    font-weight: 700;
+    color: $gray-400;
+  }
+
+  .wearos-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: $gray-400;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &.hr {
+    .wearos-icon { background: rgba($red,0.1); mat-icon { color: $red; } }
+    .wearos-value { color: $red; }
+  }
+
+  &.spo2 {
+    .wearos-icon { background: rgba($blue,0.1); mat-icon { color: $blue; } }
+    .wearos-value { color: $blue; }
+  }
+
+  &.steps {
+    .wearos-icon { background: rgba($green,0.1); mat-icon { color: $green; } }
+    .wearos-value { color: $green; }
+  }
+
+  &.sleep {
+    .wearos-icon { background: rgba($purple,0.1); mat-icon { color: $purple; } }
+    .wearos-value { color: $purple; }
+  }
+}
+
+// ─── Environmental Pills ──────────────────────────────────────────────────────
+.env-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba($teal, 0.08);
+  color: $teal;
+  font-size: 11px;
+  font-weight: 700;
+
+  mat-icon { font-size: 13px; width: 13px; height: 13px; }
+
+  &.high { background: rgba($red,0.1); color: $red; }
+  &.medium { background: rgba($amber,0.1); color: $amber; }
+}
+
+// ─── Chart Legend ─────────────────────────────────────────────────────────────
+.chart-legend-apple {
+  display: flex;
+  gap: 14px;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: $gray-500;
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+
+      &.blue { background: $blue; }
+      &.green { background: $green; }
+    }
+  }
+}
+
+.chart-container-premium {
+  position: relative;
+  flex: 1;
+  min-height: 240px;
+}
+
+// ─── Meds List ────────────────────────────────────────────────────────────────
+.meds-list-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.med-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.blue { background: $blue; }
+  }
+
+  .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: $gray-900;
+    flex: 1;
+    line-height: 1.3;
+
+    small {
+      font-weight: 500;
+      color: $gray-400;
+      margin-left: 4px;
+    }
+  }
+
+  .info {
+    font-size: 10px;
+    font-weight: 700;
+    color: $gray-400;
+    letter-spacing: 0.02em;
+  }
+}
+
+// ─── Apple Tags ───────────────────────────────────────────────────────────────
+.apple-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 2px;
+
+  &.red { background: rgba($red,0.1); color: $red; }
+  &.blue { background: rgba($blue,0.1); color: $blue; }
+  &.green { background: rgba($green,0.1); color: $green; }
+}
+
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+// ─── Info Groups ──────────────────────────────────────────────────────────────
+.info-group-apple {
+  .label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: $gray-400;
+    text-transform: uppercase;
+  }
+
+  .value-highlight {
+    font-size: 15px;
+    font-weight: 700;
+    color: $gray-900;
+    margin-top: 2px;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0,0,0,0.06);
+}
+
+// ─── Apple Table ──────────────────────────────────────────────────────────────
+.apple-table-dense {
+  width: 100%;
+
+  th {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.1em;
+    color: $gray-400 !important;
+    text-transform: uppercase;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+  }
+
+  td {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+    font-size: 13px;
+  }
+
+  .apple-table-row {
+    transition: background 0.15s;
+
+    &:hover { background: rgba($blue, 0.03) !important; }
+    &:last-child td { border-bottom: none !important; }
+  }
+}
+
+.type-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba($blue,0.1);
+  color: $blue;
+
+  &.pef { background: rgba($teal,0.1); color: $teal; }
+  &.alert { background: rgba($red,0.1); color: $red; }
+  &.medication { background: rgba($purple,0.1); color: $purple; }
+}
+
+// ─── Treatment Tab ────────────────────────────────────────────────────────────
+.step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon { font-size: 20px; }
+
+  &.teal { background: rgba($teal,0.12); mat-icon { color: $teal; } }
+  &.purple { background: rgba($purple,0.12); mat-icon { color: $purple; } }
+}
+
+.textarea-apple-container {
+  textarea {
+    width: 100%;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: $gray-900;
+    background: $gray-50;
+    resize: none;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
     line-height: 1.6;
-    color: #334155;
+
+    &:focus {
+      border-color: $blue;
+      background: white;
+      box-shadow: 0 0 0 3px rgba($blue,0.12);
+    }
+
+    &::placeholder { color: $gray-400; font-style: italic; }
+  }
 }
 
-// Intervention FAB
-.intervention-fab {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    z-index: 100;
-    box-shadow: 0 10px 25px -5px rgba(0, 181, 173, 0.4);
+.apple-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: $gray-400;
+    text-transform: uppercase;
+  }
+
+  input {
+    height: 40px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 0 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: $gray-900;
+    background: $gray-50;
+    outline: none;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: $blue;
+      background: white;
+      box-shadow: 0 0 0 3px rgba($blue, 0.12);
+    }
+
+    &::placeholder { color: $gray-400; }
+  }
+
+  &.col-span-2 { grid-column: span 2; }
 }
+
+// ─── Meds Vertical List ───────────────────────────────────────────────────────
+.meds-vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.med-card-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: $gray-50;
+  border: 1px solid rgba(0,0,0,0.05);
+
+  .med-info {
+    .name {
+      font-size: 13px;
+      font-weight: 700;
+      color: $gray-900;
+    }
+    .dose {
+      font-size: 11px;
+      font-weight: 600;
+      color: $gray-400;
+      margin-top: 1px;
+    }
+  }
+
+  .med-delete-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+
+    mat-icon { font-size: 16px; color: $gray-400; }
+
+    &:hover { background: rgba($red,0.1); mat-icon { color: $red; } }
+  }
+}
+
+.empty-meds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  gap: 8px;
+
+  mat-icon { font-size: 48px; width: 48px; height: 48px; color: $gray-100; }
+}
+
+// ─── Loading ──────────────────────────────────────────────────────────────────
+.apple-loader-heavy {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid $gray-100;
+  border-top-color: $blue;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ─── Animations ───────────────────────────────────────────────────────────────
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+// ─── Dark mode ────────────────────────────────────────────────────────────────
+.dark {
+  .segmented-tabs-rail {
+    background: rgba(255,255,255,0.08);
+
+    button {
+      color: rgba(255,255,255,0.5);
+
+      &:hover { color: white; background: rgba(255,255,255,0.1); }
+
+      &.active {
+        background: rgba(255,255,255,0.12);
+        color: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      }
+    }
+  }
+
+  .vital-card-apple {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.08);
+
+    .value { color: white; }
+    .label { color: rgba(255,255,255,0.4); }
+  }
+
+  .wearos-metric-card {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.06);
+
+    .wearos-value { color: white; }
+    .wearos-label, .wearos-unit { color: rgba(255,255,255,0.35); }
+  }
+
+  .modern-progress-track { background: rgba(255,255,255,0.1); }
+
+  .metric-visual .value { color: white; }
+  .metric-visual .circle-bg { stroke: rgba(255,255,255,0.1); }
+
+  .avatar-main { background: rgba(255,255,255,0.1); span { color: white; } }
+
+  .action-btn-back {
+    background: rgba(255,255,255,0.1);
+    mat-icon { color: rgba(255,255,255,0.7); }
+    &:hover { background: rgba(255,255,255,0.18); }
+  }
+
+  .apple-secondary-btn {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+    &:hover { background: rgba(255,255,255,0.16); }
+    &.indigo { background: rgba($indigo,0.18); color: color.adjust($indigo, $lightness: 20%); }
+  }
+
+  .apple-icon-btn {
+    background: rgba(255,255,255,0.1);
+    mat-icon { color: rgba(255,255,255,0.7); }
+    &:hover { background: rgba(255,255,255,0.16); }
+  }
+
+  .info-group-apple {
+    .value-highlight { color: white; }
+    .label { color: rgba(255,255,255,0.35); }
+  }
+
+  .divider { background: rgba(255,255,255,0.08); }
+
+  .med-card-compact {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.06);
+    .med-info .name { color: white; }
+    .med-info .dose { color: rgba(255,255,255,0.4); }
+  }
+
+  .textarea-apple-container textarea {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    color: white;
+    &:focus { background: rgba(255,255,255,0.08); }
+  }
+
+  .apple-input-group input {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    color: white;
+    &:focus { background: rgba(255,255,255,0.08); }
+  }
+
+  .type-pill { opacity: 0.85; }
+}
+
+// ─── Env pill variants ────────────────────────────────────────────────────────
+.env-pill.aqi      { background: rgba(59,130,246,0.1);  color: #3b82f6; }
+.env-pill.temp     { background: rgba(249,115,22,0.1);  color: #f97316; }
+.env-pill.humidity { background: rgba(6,182,212,0.1);   color: #06b6d4; }
+.env-pill.pollen   { background: rgba(34,197,94,0.1);   color: #16a34a; }
+.env-pill.pollen.medium { background: rgba(234,179,8,0.1);  color: #ca8a04; }
+.env-pill.pollen.high   { background: rgba(239,68,68,0.1);  color: #dc2626; }
+
+// ─── Print ────────────────────────────────────────────────────────────────────
+.print-only { display: none; }
+
+@media print {
+  .print-only { display: block !important; }
+
+  :host { display: block; }
+
+  .hide-on-print,
+  .segmented-tabs-container { display: none !important; }
+
+  .glass-card-premium {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+    break-inside: avoid;
+  }
+
+  canvas { max-height: 250px !important; }
+
+  .tab-content { display: block !important; }
+}
+

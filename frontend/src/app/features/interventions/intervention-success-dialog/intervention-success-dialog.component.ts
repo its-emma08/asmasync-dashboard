@@ -36,13 +36,13 @@ import { MatIconModule } from '@angular/material/icon';
       </mat-dialog-content>
       
       <mat-dialog-actions align="center" class="flex flex-col gap-2 w-full">
-        <button mat-raised-button color="primary" class="w-full" (click)="close('view-patient')">
+        <button mat-raised-button class="w-full brand-primary-btn" (click)="close('view-patient')">
           <mat-icon>person</mat-icon> Ver Paciente
         </button>
-        <button mat-stroked-button color="accent" class="w-full" (click)="close('new')">
+        <button mat-stroked-button class="w-full brand-primary-stroke" (click)="close('new')">
           <mat-icon>add</mat-icon> Nueva Intervención
         </button>
-        <button mat-button class="w-full text-gray-500" (click)="close('close')">Volver al Inicio</button>
+        <button mat-button class="w-full cancel-btn" (click)="close('close')">Volver al Inicio</button>
       </mat-dialog-actions>
     </div>
   `,
@@ -53,6 +53,28 @@ import { MatIconModule } from '@angular/material/icon';
         gap: 8px;
         margin-bottom: 0 !important;
         padding-bottom: 0 !important;
+    }
+    .brand-primary-btn {
+        background: var(--brand-primary) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        height: 44px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px var(--brand-primary-shadow) !important;
+    }
+    .brand-primary-stroke {
+        border-color: var(--brand-primary) !important;
+        color: var(--brand-primary) !important;
+        border-radius: 12px !important;
+        height: 44px !important;
+        font-weight: 700 !important;
+    }
+    .cancel-btn {
+        color: #8e8e93 !important;
+        font-weight: 600 !important;
+    }
+    .dark .cancel-btn {
+        color: #cbd5e1 !important;
     }
   `]
 })

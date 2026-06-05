@@ -2,40 +2,36 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
 import { StorageService } from '../../../core/services/storage.service';
+import { WidgetSize } from '../components/widget-shell/widget-shell.component';
 
 export interface DashboardWidget {
     id: string;
     type: 'kpi-group' | 'alerts-panel' | 'patients-table' | 'trend-chart' | 'activity-list' | 'weather' | 'calendar' | 'quick-actions' | 'medication' | 'device-status' | 'act-score' | 'single-kpi' | 'birthdays' | 'reminders' | 'shortcuts';
-    colSpan: number; // 1 to 12
-    rowSpan?: number;
+    size: WidgetSize;
     title: string;
     config?: any;
 }
 
-// Grid System: 4 Columns Total
-// 4 = Full Width (100%)
-// 3 = Large (75%)
-// 2 = Half (50%)
-// 1 = Small (25%)
+// Bump this version when DEFAULT_LAYOUT changes to auto-reset stale localStorage layouts
+const LAYOUT_VERSION = 6;
 
+// Layout Default - Bento 4 columnas sin espacios vacíos
 const DEFAULT_LAYOUT: DashboardWidget[] = [
-    // Row 1: Vital Stats (Top visibility)
-    { id: 'w_kpi', type: 'kpi-group', colSpan: 4, rowSpan: 1, title: 'Resumen Clínico' },
+    // Fila 1: KPIs ancho completo
+    { id: 'w_kpi', type: 'kpi-group', size: 'full', title: 'Resumen Clínico' },
 
-    // Row 2: Trends & Alerts (The "Pulse")
-    { id: 'w_trend', type: 'trend-chart', colSpan: 3, rowSpan: 2, title: 'Tendencia de PEF (Última Semana)' },
-    { id: 'w_alerts', type: 'alerts-panel', colSpan: 1, rowSpan: 2, title: 'Alertas Activas' },
+    // Fila 2: Acciones (2) + Clima (1) = 3 columnas, pero en grid 2D fluye junto a tendencia/alertas
+    { id: 'w_actions', type: 'quick-actions', size: 'medium', title: 'Acciones Rápidas' },
+    { id: 'w_weather', type: 'weather', size: 'small', title: 'Ambiente' },
+    { id: 'w_trend', type: 'trend-chart', size: 'large', title: 'Flujo Respiratorio' },
 
-    // Row 3: Patient Management
-    { id: 'w_patients', type: 'patients-table', colSpan: 4, rowSpan: 2, title: 'Pacientes Prioritarios' },
+    // Filas 3-4: Alertas large (2 cols, 2 filas) + Agenda large (2 cols, 2 filas) = 4 columnas ✓
+    { id: 'w_alerts', type: 'alerts-panel', size: 'large', title: 'Alertas Clínicas' },
+    { id: 'w_calendar', type: 'calendar', size: 'large', title: 'Agenda del Día' },
 
-    // Row 4: Utilities
-    { id: 'w_actions', type: 'quick-actions', colSpan: 1, rowSpan: 1, title: 'Accesos Directos' },
-    { id: 'w_weather', type: 'weather', colSpan: 1, rowSpan: 1, title: 'Ambiente' },
-    { id: 'w_calendar', type: 'calendar', colSpan: 2, rowSpan: 1, title: 'Agenda del Día' }
+    // Fila 5: Pacientes ancho completo y alto doble
+    { id: 'w_patients', type: 'patients-table', size: 'full-large', title: 'Pacientes Prioritarios' },
 ];
-
-
 
 @Injectable({
     providedIn: 'root'
@@ -61,29 +57,25 @@ export class DashboardService {
 
     addWidget(type: DashboardWidget['type'] | string, subType?: string): void {
         const current = this.widgetsSubject.value;
-
-        // Smart Defaults for Grid (4 col total)
-        let defaultColSpan = 1; // Default to 1/4 width (Small)
-        let defaultRowSpan = 1;
+        let defaultSize: WidgetSize = 'small';
         let title = 'Widget';
         let config = {};
 
         switch (type) {
-            case 'kpi-group': defaultColSpan = 4; break; // Full
-            case 'trend-chart': defaultColSpan = 3; break; // Large
-
-            case 'patients-table': defaultColSpan = 3; defaultRowSpan = 2; break; // Large Table
-            case 'alerts-panel': defaultColSpan = 1; break; // Sidebar
-
-            case 'medication': defaultColSpan = 1; break;
-            case 'act-score': defaultColSpan = 1; break;
-            case 'device-status': defaultColSpan = 1; break;
-            case 'weather': defaultColSpan = 1; break;
-            case 'activity-list': defaultColSpan = 2; break; // Medium
-            case 'quick-actions': defaultColSpan = 1; break;
+            case 'kpi-group': defaultSize = 'full'; break;
+            case 'trend-chart': defaultSize = 'large'; break;
+            case 'patients-table': defaultSize = 'full-large'; break;
+            case 'alerts-panel': defaultSize = 'large'; break;
+            case 'medication': defaultSize = 'small'; break;
+            case 'act-score': defaultSize = 'small'; break;
+            case 'device-status': defaultSize = 'small'; break;
+            case 'weather': defaultSize = 'small'; break;
+            case 'activity-list': defaultSize = 'large'; break;
+            case 'quick-actions': defaultSize = 'medium'; break;
+            case 'calendar': defaultSize = 'large'; break;
 
             case 'single-kpi':
-                defaultColSpan = 1;
+                defaultSize = 'small';
                 if (subType === 'total') {
                     title = 'Total Pacientes';
                     config = { icon: 'groups', color: 'blue', value: 20, label: 'Pacientes', trend: '+12%' };
@@ -98,16 +90,15 @@ export class DashboardService {
                     config = { icon: 'thumb_up', color: 'cyan', value: 15, label: 'Controlados', trend: '+8%' };
                 }
                 break;
-            case 'birthdays': defaultColSpan = 1; break;
-            case 'reminders': defaultColSpan = 1; break;
-            case 'shortcuts': defaultColSpan = 1; break;
+            case 'birthdays': defaultSize = 'small'; break;
+            case 'reminders': defaultSize = 'small'; break;
+            case 'shortcuts': defaultSize = 'small'; break;
         }
 
         const newWidget: DashboardWidget = {
             id: `w_${Date.now()}`,
             type: type as any,
-            colSpan: defaultColSpan,
-            rowSpan: defaultRowSpan,
+            size: defaultSize,
             title: title !== 'Widget' ? title : this.getTitleForType(type),
             config: config
         };
@@ -119,30 +110,10 @@ export class DashboardService {
         this.saveLayout(current.filter(w => w.id !== id));
     }
 
-    toggleWidgetSize(id: string): void {
+    updateWidgetSize(id: string, newSize: WidgetSize): void {
         const current = this.widgetsSubject.value.map(w => {
             if (w.id === id) {
-                // Cycle: 1 -> 2 -> 3 -> 4 -> 1
-                let newCol = w.colSpan + 1;
-                if (newCol > 4) newCol = 1;
-
-                return { ...w, colSpan: newCol };
-            }
-            return w;
-        });
-        this.saveLayout(current);
-    }
-
-    updateWidgetColSpan(id: string, colSpan: number): void {
-        this.updateWidgetSize(id, colSpan);
-    }
-
-    updateWidgetSize(id: string, colSpan: number, rowSpan?: number): void {
-        const current = this.widgetsSubject.value.map(w => {
-            if (w.id === id) {
-                const newCol = Math.max(1, Math.min(4, colSpan));
-                const newRow = rowSpan ? Math.max(1, rowSpan) : (w.rowSpan || 1);
-                return { ...w, colSpan: newCol, rowSpan: newRow };
+                return { ...w, size: newSize };
             }
             return w;
         });
@@ -152,22 +123,55 @@ export class DashboardService {
     reorderWidgets(previousIndex: number, currentIndex: number): void {
         const current = [...this.widgetsSubject.value];
         moveItemInArray(current, previousIndex, currentIndex);
+        this.widgetsSubject.next(current);
         this.saveLayout(current);
     }
 
     resetLayout(): void {
-        // Clear storage to force default reload
         this.storageService.removeItem('asmasync_dashboard_layout');
         this.widgetsSubject.next(DEFAULT_LAYOUT);
     }
 
     private loadLayout(): void {
+        const storedVersion = this.storageService.getItem('asmasync_dashboard_layout_version') as number | null;
         const stored = this.storageService.getItem('asmasync_dashboard_layout');
-        if (stored) {
-            this.widgetsSubject.next(stored);
-        } else {
-            this.widgetsSubject.next(DEFAULT_LAYOUT);
+
+        // Reset if no stored layout or version is outdated
+        if (!stored || (storedVersion ?? 0) < LAYOUT_VERSION) {
+            this.storageService.setItem('asmasync_dashboard_layout_version', LAYOUT_VERSION);
+            this.saveLayout(DEFAULT_LAYOUT);
+            return;
         }
+
+        // Migrate legacy colSpan/rowSpan to size string if needed
+        let migrated = false;
+        const unified = (stored as any[]).map(w => {
+            if (w.colSpan !== undefined && !w.size) {
+                migrated = true;
+                return {
+                    id: w.id, type: w.type, title: w.title, config: w.config,
+                    size: this.mapLegacyToNewSize(w.colSpan, w.rowSpan || 1)
+                } as DashboardWidget;
+            }
+            return w;
+        });
+
+        if (migrated) {
+            this.saveLayout(unified);
+        } else {
+            this.widgetsSubject.next(stored);
+        }
+    }
+
+    private mapLegacyToNewSize(col: number, row: number): WidgetSize {
+        if (col >= 10 || col === 4) return 'full'; // Assuming legacy 12-col mapping or 4
+        if (col >= 8 || col === 3) return 'wide';
+        if (col >= 6 || col === 2) {
+             if (row >= 2) return 'large';
+             return 'medium';
+        }
+        if (row >= 2) return 'tall';
+        return 'small';
     }
 
     private saveLayout(widgets: DashboardWidget[]): void {
@@ -178,7 +182,7 @@ export class DashboardService {
     private getTitleForType(type: string): string {
         switch (type) {
             case 'kpi-group': return 'Indicadores Clave';
-            case 'alerts-panel': return 'Alertas';
+            case 'alerts-panel': return 'Análisis de Riesgo Clínico';
             case 'patients-table': return 'Pacientes';
             case 'trend-chart': return 'Tendencia';
             case 'activity-list': return 'Actividad';
@@ -191,32 +195,5 @@ export class DashboardService {
             case 'shortcuts': return 'Atajos de Personal';
             default: return 'Widget';
         }
-    }
-    // --- Calendar / Appointments State (Phase 11) ---
-    private appointmentsSubject = new BehaviorSubject<any[]>([
-        {
-            month: 'FEB', day: '14',
-            title: 'Consulta: Emmanuel Peña',
-            time: '09:00 AM - 09:30 AM',
-            colorClass: 'bg-indigo-50 text-indigo-600'
-        },
-        {
-            month: 'FEB', day: '14',
-            title: 'Revisión: Ana García',
-            time: '11:15 AM - 11:45 AM',
-            colorClass: 'bg-emerald-50 text-emerald-600'
-        },
-        {
-            month: 'FEB', day: '14',
-            title: 'Espirometría: Carlos R.',
-            time: '01:30 PM - 02:00 PM',
-            colorClass: 'bg-orange-50 text-orange-600'
-        }
-    ]);
-    appointments$ = this.appointmentsSubject.asObservable();
-
-    addAppointment(apt: any): void {
-        const current = this.appointmentsSubject.value;
-        this.appointmentsSubject.next([apt, ...current]);
     }
 }

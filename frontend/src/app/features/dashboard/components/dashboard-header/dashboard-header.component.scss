@@ -1,18 +1,226 @@
-// Dashboard Header Scoped Styles
-// Most styles are Tailwind, but we can add specific overrides here
-
 :host {
     display: block;
+    height: 64px;
 }
 
-// Ensure the menu items wrap correctly for long messages
-::ng-deep .mat-mdc-menu-panel {
-    max-width: 320px !important;
+.header-inner {
+    transition: all 0.3s ease;
 }
 
-// Fix icon alignment in search input
-mat-icon {
-    font-size: 24px;
-    width: 24px;
-    height: 24px;
+/* ─── Search Pill ─── */
+.search-pill {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 14px; /* More Apple */
+    padding: 0 16px;
+    height: 42px; /* Standard Apple Height */
+    width: 280px;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.05);
+
+    &:focus-within {
+        background: white;
+        width: 340px;
+        border-color: #0071e3;
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.1);
+        
+        .search-icon {
+            color: #0071e3;
+        }
+    }
+}
+
+.search-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
+    margin-right: 8px;
+    transition: color 0.2s ease;
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 100%;
+    font-weight: 500;
+
+    &::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+}
+
+/* ─── Profile Pill ─── */
+.profile-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 4px 4px 12px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.02);
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.06);
+        transform: translateY(-1px);
+    }
+}
+
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--brand-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.profile-info {
+    .name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+    .role {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+}
+
+.chevron {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* ─── Notifications ─── */
+.nav-btn {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    color: var(--text-secondary) !important;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04) !important;
+        color: var(--text-primary) !important;
+    }
+}
+
+.icon-badge-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .badge-dot {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        background: var(--brand-danger);
+        border: 2px solid white;
+        border-radius: 50%;
+    }
+}
+
+/* ─── Crystalline Menus ─── */
+::ng-deep .glass-menu {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12) !important;
+    margin-top: 8px !important;
+
+    .notification-item {
+        border-radius: 14px;
+        margin: 4px;
+        width: calc(100% - 8px);
+        
+        &.unread {
+            background: var(--brand-primary-light);
+        }
+    }
+
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &.critical {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--brand-danger);
+        }
+        &.warning {
+            background: rgba(255, 149, 0, 0.1);
+            color: var(--brand-warning);
+        }
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+}
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(body.dark) {
+    .header-inner {
+        background: rgba(30, 41, 59, 0.6);
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+    .search-pill {
+        background: rgba(255, 255, 255, 0.05);
+        &:focus-within {
+            background: rgba(15, 23, 42, 0.8);
+        }
+    }
+    .profile-pill {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .badge-dot {
+        border-color: #1e293b !important;
+    }
+    
+    ::ng-deep .glass-menu {
+        background: rgba(30, 41, 59, 0.8) !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        
+        .notification-item.unread {
+            background: rgba(0, 113, 227, 0.15);
+        }
+        
+        .text-gray-800 { color: #f8fafc !important; }
+        .text-gray-500 { color: #94a3b8 !important; }
+    }
 }

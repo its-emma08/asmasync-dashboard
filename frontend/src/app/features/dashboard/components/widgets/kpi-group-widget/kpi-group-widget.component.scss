@@ -1,199 +1,80 @@
-/* ─── KPI Card: Host ─── */
 :host {
     display: block;
     min-height: 140px;
 }
 
-/* ─── KPI Card Base ─── */
 .kpi-card {
-    animation: kpiFadeUp 0.4s both;
-}
-
-@keyframes kpiFadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.97);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+    transition: all 0.4s var(--apple-easing);
+    
+    &:hover {
+        transform: translateY(-4px) scale(1.02);
     }
 }
 
-/* ─── Left Accent Strip ─── */
-.kpi-accent {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 4px;
-    border-radius: 16px 0 0 16px;
-    transition: width 0.2s;
-
-    &.accent-teal {
-        background: linear-gradient(180deg, #0EA5E9, #00B5AD);
-    }
-
-    &.accent-red {
-        background: linear-gradient(180deg, #F43F5E, #FB923C);
-    }
-
-    &.accent-green {
-        background: linear-gradient(180deg, #22C55E, #10B981);
-    }
-
-    &.accent-yellow {
-        background: linear-gradient(180deg, #EAB308, #F97316);
-    }
-
-    &.accent-purple {
-        background: linear-gradient(180deg, #8B5CF6, #6366F1);
-    }
-}
-
-.kpi-card:hover .kpi-accent {
-    width: 5px;
-}
-
-/* ─── Icon Bubble ─── */
-.kpi-icon-bubble {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    border-radius: 12px;
+/* ─── Apple Icon Style (Round Gradient) ─── */
+.kpi-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    transition: transform 0.2s;
-
-    &.bubble-teal {
-        background: linear-gradient(135deg, #0EA5E9, #00B5AD);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 
-    &.bubble-red {
-        background: linear-gradient(135deg, #F43F5E, #FB923C);
-    }
-
-    &.bubble-green {
-        background: linear-gradient(135deg, #22C55E, #10B981);
-    }
-
-    &.bubble-yellow {
-        background: linear-gradient(135deg, #EAB308, #F97316);
-    }
-
-    &.bubble-purple {
-        background: linear-gradient(135deg, #8B5CF6, #6366F1);
-    }
+    &.bubble-teal { background: linear-gradient(135deg, #0071e3, #38bdf8); }
+    &.bubble-red { background: linear-gradient(135deg, #ff3b30, #ff9f0a); }
+    &.bubble-green { background: linear-gradient(135deg, #34c759, #30b0c7); }
+    &.bubble-yellow { background: linear-gradient(135deg, #ffcc00, #ff9500); }
 }
 
-.kpi-card:hover .kpi-icon-bubble {
-    transform: scale(1.08) rotate(-3deg);
-}
-
-.kpi-icon-inner {
-    color: white !important;
-    font-size: 18px !important;
-    width: 18px !important;
-    height: 18px !important;
-    overflow: visible;
-}
-
-/* ─── Trend Chip ─── */
-.trend-chip {
+/* ─── Trend Pill (Apple High-Contrast) ─── */
+.trend-pill {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    padding: 2px 8px 2px 4px;
-    border-radius: 99px;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.01em;
-    line-height: 1.6;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
 
     &.trend-up {
-        color: #16A34A;
-        background: #F0FDF4;
-
-        .trend-icon {
-            color: #16A34A;
-        }
+        background: rgba(52, 199, 89, 0.12);
+        color: #1d9d3d;
     }
 
     &.trend-down {
-        color: #DC2626;
-        background: #FFF1F2;
+        background: rgba(255, 59, 48, 0.12);
+        color: #d70015;
+    }
 
-        .trend-icon {
-            color: #DC2626;
-        }
+    mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        font-weight: bold;
     }
 }
 
-.trend-icon {
-    font-size: 12px !important;
-    width: 12px !important;
-    height: 12px !important;
-}
-
-/* ─── Progress track ─── */
-.progress-track {
-    height: 5px;
-    border-radius: 99px;
-    background: #F1F5F9;
+/* ─── Apple Progress Bar ─── */
+.progress-bar-wrap {
+    background: rgba(0,0,0,0.05);
+    border-radius: 10px;
+    height: 6px;
     overflow: hidden;
 }
 
-.progress-fill {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &.fill-teal {
-        background: linear-gradient(90deg, #00B5AD, #0EA5E9);
-    }
-
-    &.fill-red {
-        background: linear-gradient(90deg, #F43F5E, #FB923C);
-    }
-
-    &.fill-green {
-        background: linear-gradient(90deg, #22C55E, #10B981);
-    }
-
-    &.fill-yellow {
-        background: linear-gradient(90deg, #EAB308, #F97316);
-    }
-
-    &.fill-purple {
-        background: linear-gradient(90deg, #8B5CF6, #6366F1);
-    }
-}
-
-/* ─── Dark mode overrides ─── */
 :host-context(body.dark) {
-    .progress-track {
-        background: #1E293B;
+    .progress-bar-wrap {
+        background: rgba(255,255,255,0.05);
     }
-
-    ::ng-deep .bg-white {
-        background-color: #1e293b !important;
-        border-color: #334155 !important;
-    }
-
-    .trend-chip.trend-up {
-        background: rgba(22, 163, 74, 0.15);
-    }
-
-    .trend-chip.trend-down {
-        background: rgba(220, 38, 38, 0.15);
-    }
-}
-
-/* ─── mat-icon overflow fix ─── */
-mat-icon {
-    overflow: visible;
+    .trend-pill.trend-up { background: rgba(52, 199, 89, 0.2); color: #34c759; }
+    .trend-pill.trend-down { background: rgba(255, 59, 48, 0.2); color: #ff3b30; }
 }

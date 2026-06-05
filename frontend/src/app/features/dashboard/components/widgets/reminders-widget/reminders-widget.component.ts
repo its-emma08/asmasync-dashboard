@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../../../../core/services/storage.service';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 interface NoteColor {
     id: string;
@@ -19,7 +19,8 @@ interface NoteColor {
     templateUrl: './reminders-widget.component.html',
     styleUrls: ['./reminders-widget.component.scss']
 })
-export class RemindersWidgetComponent implements OnInit {
+export class RemindersWidgetComponent implements OnDestroy {
+    private destroy$ = new Subject<void>();
     noteContent = '';
     justSaved = false;
 
@@ -46,13 +47,13 @@ export class RemindersWidgetComponent implements OnInit {
         // Setup Auto-save Debounce (500ms)
         this.contentSubject.pipe(
             debounceTime(500),
-            distinctUntilChanged()
+            distinctUntilChanged(),
+            takeUntil(this.destroy$)
         ).subscribe(content => {
             this.saveNote(content);
         });
     }
 
-    ngOnInit() { }
 
     onContentChange() {
         this.contentSubject.next(this.noteContent);
@@ -75,5 +76,10 @@ export class RemindersWidgetComponent implements OnInit {
     showSavedIndicator() {
         this.justSaved = true;
         setTimeout(() => this.justSaved = false, 2000);
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 }

@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col bg-white dark:bg-slate-800/80 rounded-3xl overflow-hidden">
+<div class="h-full flex flex-col bg-transparent overflow-hidden">
 
     <!-- Header -->
     <div
@@ -9,10 +9,10 @@
             </div>
             <div>
                 <h3 class="font-bold text-slate-800 dark:text-white text-sm leading-tight">Agenda</h3>
-                <p class="text-[10px] text-slate-400 font-medium">Próximas citas</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Próximas citas</p>
             </div>
         </div>
-        <button mat-icon-button class="!text-indigo-500 !w-8 !h-8" title="Nueva cita">
+        <button mat-icon-button class="!text-indigo-500 dark:!text-indigo-400 !w-8 !h-8" title="Nueva cita" (click)="openNewAppointment()">
             <mat-icon class="!text-base">add</mat-icon>
         </button>
     </div>
@@ -24,29 +24,29 @@
         <div *ngIf="appointments.length === 0"
             class="flex-1 flex flex-col items-center justify-center text-slate-400 gap-3 p-6">
             <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                <mat-icon class="text-indigo-400 !text-2xl">event_available</mat-icon>
+                <mat-icon class="text-indigo-450 !text-2xl">event_available</mat-icon>
             </div>
             <div class="text-center">
                 <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Sin citas programadas</p>
-                <p class="text-xs text-slate-400 mt-1">Agrega citas con el botón +</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Agrega citas con el botón +</p>
             </div>
         </div>
 
         <!-- Appointment list -->
         <div class="flex-1 overflow-y-auto space-y-2 p-4 scrollbar-hide">
             <div *ngFor="let apt of appointments; let i = index"
-                class="group flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 cursor-pointer"
+                class="group flex items-center gap-3 p-3 rounded-2xl transition-all duration-300 ease-out cursor-pointer hover:-translate-y-1 hover:shadow-md"
                 [class]="i === 0
-                    ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 hover:border-indigo-300'
-                    : 'bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 hover:border-slate-200'">
+                    ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 hover:shadow-indigo-100 dark:hover:shadow-indigo-900/20'
+                    : 'bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:shadow-slate-200 dark:hover:shadow-slate-800'">
 
                 <!-- Date badge -->
                 <div class="flex flex-col items-center justify-center w-11 h-11 rounded-xl flex-shrink-0 transition-colors"
                     [class]="i === 0
-                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900'
-                        : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 group-hover:border-indigo-200 group-hover:text-indigo-600'">
+                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200 dark:shadow-none'
+                        : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 group-hover:border-indigo-200 dark:group-hover:border-indigo-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'">
                     <span class="text-[9px] font-bold uppercase leading-none"
-                        [class]="i === 0 ? 'text-indigo-200' : 'text-slate-400 group-hover:text-indigo-400'">{{
+                        [class]="i === 0 ? 'text-indigo-200' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-400'">{{
                         apt.month }}</span>
                     <span class="text-lg font-black leading-none">{{ apt.day }}</span>
                 </div>
@@ -54,14 +54,14 @@
                 <!-- Content -->
                 <div class="flex-1 min-w-0">
                     <h4 class="text-sm font-bold truncate transition-colors"
-                        [class]="i === 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-200 group-hover:text-indigo-600'">
-                        {{ apt.title }}
+                        [class]="i === 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'">
+                        {{ apt.title ?? 'Cita Sin Título' }}
                     </h4>
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <mat-icon class="!text-xs !w-3 !h-3"
-                            [class]="i === 0 ? 'text-indigo-400' : 'text-slate-400'">schedule</mat-icon>
+                            [class]="i === 0 ? 'text-indigo-450' : 'text-slate-400 dark:text-slate-550'">schedule</mat-icon>
                         <span class="text-[11px] font-medium"
-                            [class]="i === 0 ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'">{{ apt.time
+                            [class]="i === 0 ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'">{{ apt.time ?? '--:--'
                             }}</span>
                         <!-- "Hoy" badge for first -->
                         <span *ngIf="i === 0"
@@ -71,7 +71,7 @@
 
                 <!-- Arrow indicator -->
                 <mat-icon class="!text-sm !w-4 !h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    [class]="i === 0 ? 'text-indigo-400' : 'text-slate-400'">chevron_right</mat-icon>
+                    [class]="i === 0 ? 'text-indigo-400' : 'text-slate-400 dark:text-slate-500'">chevron_right</mat-icon>
             </div>
         </div>
 

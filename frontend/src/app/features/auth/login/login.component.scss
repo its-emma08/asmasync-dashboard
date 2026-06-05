@@ -1,34 +1,197 @@
-/* Animations */
-@keyframes shake {
+/* ── Login — Apple HIG Clinical ── */
 
-    0%,
-    100% {
-        transform: translateX(0);
+/* ── Keyframes ── */
+@keyframes fadeInUp       { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes horizontalShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes shakeInput     { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@keyframes breathingPulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+@keyframes breathe        { 0%, 100% { opacity: 1; filter: brightness(1); } 50% { opacity: 0.9; filter: brightness(1.1); } }
+@keyframes spin           { to { transform: rotate(360deg); } }
+
+/* ── Utility Animations ── */
+.animate-fade-in-up  { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.shake-card          { animation: horizontalShake 0.4s cubic-bezier(.36, .07, .19, .97) both; }
+.input-error-shake   { animation: shakeInput 0.3s cubic-bezier(.36, .07, .19, .97) both; }
+.breathing-icon      { animation: breathingPulse 2.5s ease-in-out infinite; }
+
+/* ── Login Card — Frosted Glass ── */
+.glass-login-card {
+    background: rgba(255, 255, 255, 0.78) !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.02),
+        0 12px 40px rgba(0, 0, 0, 0.06),
+        0 40px 80px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 36px !important;
+    transition: box-shadow 0.4s ease;
+}
+
+/* ── Primary Button — Apple Blue ── */
+.btn-clinical-pro {
+    position: relative;
+    width: 100%;
+    height: 52px !important;
+    border-radius: 16px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    letter-spacing: -0.01em !important;
+    background: #007AFF !important;
+    color: #ffffff !important;
+    border: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2) !important;
+
+    &.loading {
+        animation: breathe 1.5s infinite ease-in-out;
+        pointer-events: none;
+        background: #0062CC !important;
+
+        .button-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            &::after {
+                content: "";
+                width: 15px;
+                height: 15px;
+                border: 2px solid rgba(255, 255, 255, 0.35);
+                border-top-color: #fff;
+                border-radius: 50%;
+                animation: spin 0.75s linear infinite;
+                flex-shrink: 0;
+            }
+        }
     }
 
-    10%,
-    30%,
-    50%,
-    70%,
-    90% {
-        transform: translateX(-5px);
+    &:not(.loading):not(:disabled):hover {
+        background: #0062CC !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.32) !important;
     }
 
-    20%,
-    40%,
-    60%,
-    80% {
-        transform: translateX(5px);
+    &:not(.loading):not(:disabled):active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 4px rgba(0, 122, 255, 0.15) !important;
+    }
+
+    &:disabled:not(.loading) {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 }
 
-.shake-card {
-    animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
-    border: 1px solid #ef4444 !important;
-    /* Red border on error */
+/* ── Input Groups — Native Inputs (non-Material) ── */
+.clinical-input-group {
+    position: relative;
+
+    input {
+        width: 100%;
+        height: 50px;
+        padding: 0 1rem 0 2.75rem;
+        background: rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #1D1D1F;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        outline: none;
+        font-family: var(--font-family);
+
+        &::placeholder {
+            color: #AEAEB2;
+            font-weight: 400;
+        }
+
+        &:hover:not(:focus) {
+            background: rgba(0, 0, 0, 0.06) !important;
+            border-color: rgba(0, 0, 0, 0.12);
+        }
+
+        &:focus {
+            background: #ffffff !important;
+            border-color: #007AFF !important;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12) !important;
+        }
+
+        &.invalid-input {
+            border-color: rgba(255, 59, 48, 0.5) !important;
+            background: rgba(255, 59, 48, 0.03) !important;
+            box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.08) !important;
+        }
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #AEAEB2;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        transition: color 0.2s ease;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    &:focus-within .input-icon {
+        color: #007AFF;
+    }
 }
 
-/* Enhancing the card look */
-mat-card {
-    transition: border-color 0.3s ease;
+/* ── OTP Digit Boxes ── */
+.otp-digit-box-small {
+    width: 44px;
+    height: 52px;
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1D1D1F;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    &:focus {
+        outline: none;
+        border-color: #007AFF;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+        transform: translateY(-2px) scale(1.03);
+    }
+
+    &:not(:placeholder-shown) {
+        border-color: rgba(0, 122, 255, 0.5);
+        background: rgba(0, 122, 255, 0.04);
+    }
+}
+
+/* ── Error Capsule ── */
+.clinical-capsule.error {
+    background: rgba(255, 59, 48, 0.08);
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    color: #D70015;
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .glass-login-card { border-radius: 28px !important; }
+}
+
+@media (max-width: 400px) {
+    .otp-digit-box-small { width: 38px; height: 46px; font-size: 18px; }
 }

@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { DashboardService } from '../../../services/dashboard.service';
+import { AppointmentService } from '../../../../../core/services/appointment.service';
 import { AppointmentDialogComponent } from '../../appointment-dialog/appointment-dialog.component';
 
 const ACTIONS = [
@@ -58,7 +58,7 @@ const ACTIONS = [
     standalone: true,
     imports: [CommonModule, MatIconModule, MatRippleModule, RouterModule, MatDialogModule, MatSnackBarModule, MatTooltipModule],
     template: `
-    <div class="h-full flex flex-col bg-white dark:bg-slate-800/80 rounded-3xl overflow-hidden">
+    <div class="h-full flex flex-col bg-transparent overflow-hidden">
 
         <!-- Header -->
         <div class="flex items-center gap-2.5 px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0">
@@ -71,33 +71,33 @@ const ACTIONS = [
             </div>
         </div>
 
-        <!-- Actions grid -->
-        <div class="flex-1 grid grid-cols-2 gap-3 p-4">
+        <!-- Actions list - compact rows -->
+        <div class="flex-1 flex flex-col justify-evenly px-4 pb-4 gap-1.5 overflow-hidden">
             <ng-container *ngFor="let action of actions">
                 <!-- Routed action -->
                 <button *ngIf="action.route" matRipple
                     [routerLink]="action.route"
-                    class="group flex flex-col items-center justify-center rounded-2xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer"
-                    [class]="action.bg + ' ' + action.hoverBg + ' ' + action.shadow"
-                    [matTooltip]="action.label">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-2 transition-transform group-hover:scale-110"
+                    class="group flex items-center gap-3 rounded-2xl px-4 py-3 w-full transition-all duration-200 hover:brightness-95 dark:hover:brightness-110 active:scale-[0.97] cursor-pointer text-left"
+                    [class]="action.bg">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
                         [class]="action.iconBg">
-                        <mat-icon class="!text-xl" [class]="action.iconColor">{{ action.icon }}</mat-icon>
+                        <mat-icon class="!text-lg" [class]="action.iconColor">{{ action.icon }}</mat-icon>
                     </div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">{{ action.label }}</span>
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight flex-1">{{ action.label }}</span>
+                    <mat-icon class="!text-base text-slate-400 dark:text-slate-500 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</mat-icon>
                 </button>
 
                 <!-- Dialog action -->
                 <button *ngIf="!action.route" matRipple
                     (click)="onActionClick(action)"
-                    class="group flex flex-col items-center justify-center rounded-2xl p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 cursor-pointer"
-                    [class]="action.bg + ' ' + action.hoverBg + ' ' + action.shadow"
-                    [matTooltip]="action.label">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-2 transition-transform group-hover:scale-110"
+                    class="group flex items-center gap-3 rounded-2xl px-4 py-3 w-full transition-all duration-200 hover:brightness-95 dark:hover:brightness-110 active:scale-[0.97] cursor-pointer text-left"
+                    [class]="action.bg">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
                         [class]="action.iconBg">
-                        <mat-icon class="!text-xl" [class]="action.iconColor">{{ action.icon }}</mat-icon>
+                        <mat-icon class="!text-lg" [class]="action.iconColor">{{ action.icon }}</mat-icon>
                     </div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">{{ action.label }}</span>
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight flex-1">{{ action.label }}</span>
+                    <mat-icon class="!text-base text-slate-400 dark:text-slate-500 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</mat-icon>
                 </button>
             </ng-container>
         </div>
@@ -109,7 +109,7 @@ export class QuickActionsWidgetComponent {
 
     constructor(
         private dialog: MatDialog,
-        private dashboardService: DashboardService,
+        private appointmentService: AppointmentService,
         private snackBar: MatSnackBar
     ) { }
 
@@ -126,19 +126,27 @@ export class QuickActionsWidgetComponent {
         });
 
         dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            if (result && result.patientId) {
                 const d = new Date(result.date);
-                this.dashboardService.addAppointment({
-                    month: monthNames[d.getMonth()],
-                    day: d.getDate().toString(),
-                    title: result.title,
-                    time: result.time,
-                    colorClass: 'bg-indigo-50 text-indigo-600'
-                });
-                this.snackBar.open('Cita agendada correctamente', 'Cerrar', {
-                    duration: 3000,
-                    panelClass: 'glass-toast'
+                const dto = {
+                    patientId: result.patientId,
+                    date: d.toISOString(),
+                    durationMinutes: 30,
+                    type: 'checkup',
+                    notes: result.notes || result.title || ''
+                };
+                
+                this.appointmentService.createAppointment(dto as any).subscribe({
+                    next: () => {
+                        this.snackBar.open('Cita agendada correctamente', 'Cerrar', {
+                            duration: 3000,
+                            panelClass: 'glass-toast'
+                        });
+                    },
+                    error: (err) => {
+                        console.error(err);
+                        this.snackBar.open('Error al agendar cita', 'Cerrar', { duration: 3000 });
+                    }
                 });
             }
         });

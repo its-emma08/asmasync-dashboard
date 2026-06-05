@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -21,6 +21,7 @@ import { ToastService } from '../../../core/services/toast.service';
 @Component({
   selector: 'app-edit-profile-modal',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -34,8 +35,8 @@ import { ToastService } from '../../../core/services/toast.service';
   template: `
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-slate-800 m-0">Editar Perfil</h2>
-        <button mat-icon-button (click)="dialogRef.close()" class="text-slate-400 hover:text-slate-600">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 m-0">Editar Perfil</h2>
+        <button mat-icon-button (click)="dialogRef.close()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -104,7 +105,8 @@ export class EditProfileModalComponent {
     public dialogRef: MatDialogRef<EditProfileModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private authService: AuthService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef
   ) {
     this.profileForm = this.fb.group({
       full_name: [data.user?.full_name || '', Validators.required],
@@ -117,15 +119,22 @@ export class EditProfileModalComponent {
   save() {
     if (this.profileForm.valid) {
       this.isSaving = true;
+      this.cdr.markForCheck();
       const updatedData = this.profileForm.value;
 
       this.authService.updateProfile(updatedData).subscribe({
         next: (updatedUser: any) => {
-          this.isSaving = false;
-          this.dialogRef.close(updatedUser);
+          queueMicrotask(() => {
+            this.isSaving = false;
+            this.cdr.markForCheck();
+            this.dialogRef.close(updatedUser);
+          });
         },
         error: (err: any) => {
-          this.isSaving = false;
+          queueMicrotask(() => {
+            this.isSaving = false;
+            this.cdr.markForCheck();
+          });
           const msg = err.error?.detail?.[0]?.msg || err.error?.detail || 'Error al actualizar el perfil';
           this.toastService.showError(msg);
         }

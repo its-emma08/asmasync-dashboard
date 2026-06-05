@@ -1,21 +1,20 @@
 <div class="sidebar-wrapper" [class.is-collapsed]="isCollapsed" [style.width]="isCollapsed ? '72px' : '260px'">
 
     <!-- ─── Logo Block ─── -->
-    <div class="logo-block">
+    <div class="logo-block" [class.is-isotype]="isCollapsed">
         <div class="logo-icon">
-            <img src="assets/logo-lung.png" alt="AsmaSync" class="logo-img"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-            <mat-icon
-                style="display:none; color:white; font-size:20px; width:20px; height:20px; justify-content:center; align-items:center;">lungs</mat-icon>
+            <!-- Apple-style Medical SVG Logo -->
+            <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" [style.width.px]="isCollapsed ? 20 : 22" [style.height.px]="isCollapsed ? 20 : 22">
+                <path d="M 50 28 Q 40 30 36 34" fill="none" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                <path d="M 50 28 Q 60 30 64 34" fill="none" stroke="white" stroke-width="8" stroke-linecap="round"/>
+                <path d="M 36 34 C 30 36 24 40 20 48 C 16 56 14 65 16 74 C 18 82 24 88 32 90 C 46 82 49 58 49 34 Z" fill="white"/>
+                <path d="M 64 34 C 70 36 76 40 80 48 C 84 56 86 65 84 74 C 82 82 76 88 68 90 C 54 82 51 58 51 34 Z" fill="white"/>
+            </svg>
         </div>
         <div class="logo-text" [class.hidden]="isCollapsed">
             <span class="logo-name">AsmaSync</span>
             <span class="logo-tagline">Medical Dashboard</span>
         </div>
-        <button class="collapse-btn" [class.is-collapsed]="isCollapsed" (click)="toggleCollapse()"
-            [matTooltip]="isCollapsed ? 'Expandir menú' : 'Contraer menú'" matTooltipPosition="right">
-            <mat-icon>chevron_left</mat-icon>
-        </button>
     </div>
 
     <!-- ─── Main Navigation ─── -->
@@ -35,7 +34,6 @@
         </ng-container>
     </div>
 
-    <!-- ─── Footer Navigation ─── -->
     <div class="sidebar-footer">
         <span class="nav-section-label" [class.hidden]="isCollapsed"
             style="padding-top: 0; padding-bottom: 6px;">SISTEMA</span>
@@ -46,6 +44,12 @@
                 <span>{{ item.label }}</span>
             </a>
         </ng-container>
-    </div>
 
+        <!-- ─── Toggle Collapse (siempre visible en el footer) ─── -->
+        <button class="nav-item footer-toggle-btn" (click)="toggleCollapse()"
+            [matTooltip]="isCollapsed ? 'Expandir menú' : ''" matTooltipPosition="right">
+            <mat-icon>{{ isCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</mat-icon>
+            <span [class.hidden]="isCollapsed">Minimizar</span>
+        </button>
+    </div>
 </div>

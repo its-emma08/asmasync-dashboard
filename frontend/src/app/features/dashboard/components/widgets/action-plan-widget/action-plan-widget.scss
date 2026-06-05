@@ -46,6 +46,15 @@
                 color: #64748b;
             }
 
+            .subtitle {
+                font-size: 10px;
+                font-weight: 700;
+                color: #94a3b8;
+                text-transform: uppercase;
+                margin-left: 8px;
+                flex: 1; /* Pushes condition to the right */
+            }
+
             .condition {
                 font-size: 10px;
                 font-weight: 600;
@@ -199,5 +208,45 @@
 
     100% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(body.dark) {
+    .action-plan-container {
+        background: transparent;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .section {
+        background: rgba(30, 41, 59, 0.4);
+        border-color: rgba(255, 255, 255, 0.05);
+
+        .content {
+            .action { color: #cbd5e1; }
+            .header .title { color: #94a3b8; }
+            .header .condition { background: rgba(255,255,255,0.05); color: #cbd5e1; }
+        }
+
+        &.active {
+            &.green-zone {
+                background: linear-gradient(to right, rgba(16, 185, 129, 0.15), rgba(30, 41, 59, 0.4));
+                .action { color: #a7f3d0; font-weight: 700; }
+                .title { color: #34d399; }
+                .condition { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+            }
+            &.yellow-zone {
+                background: linear-gradient(to right, rgba(234, 179, 8, 0.15), rgba(30, 41, 59, 0.4));
+                .action { color: #fde047; font-weight: 700; }
+                .title { color: #facc15; }
+                .condition { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+            }
+            &.red-zone {
+                background: linear-gradient(to right, rgba(239, 68, 68, 0.15), rgba(30, 41, 59, 0.4));
+                .action { color: #fecaca; font-weight: 800; }
+                .title { color: #f87171; }
+                .condition { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+            }
+        }
     }
 }
