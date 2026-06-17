@@ -1,0 +1,69 @@
+<div class="dialog-shell">
+
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="dialog-header-left">
+      <div class="dialog-icon">
+        <mat-icon>manage_accounts</mat-icon>
+      </div>
+      <div>
+        <h2 class="dialog-title">Editar médico</h2>
+        <p class="dialog-subtitle">{{ doctor.email }}</p>
+      </div>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="cancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" (ngSubmit)="save()" class="dialog-body" novalidate>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Nombre completo</mat-label>
+      <input matInput formControlName="full_name" placeholder="Dr. Juan Pérez" autocomplete="off">
+      <mat-icon matPrefix>person</mat-icon>
+      <mat-error *ngIf="form.get('full_name')?.hasError('required')">El nombre es obligatorio.</mat-error>
+      <mat-error *ngIf="form.get('full_name')?.hasError('minlength')">Mínimo 3 caracteres.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Especialidad</mat-label>
+      <input matInput formControlName="specialty" placeholder="Neumología, Alergología..." autocomplete="off">
+      <mat-icon matPrefix>medical_services</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Cédula profesional</mat-label>
+      <input matInput formControlName="license_number" placeholder="7 u 8 dígitos (SEP)" autocomplete="off">
+      <mat-icon matPrefix>badge</mat-icon>
+      <mat-hint>Registro SEP: 7 u 8 dígitos numéricos</mat-hint>
+      <mat-error *ngIf="form.get('license_number')?.hasError('pattern')">
+        Formato inválido. Solo 7 u 8 dígitos numéricos.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Hospital / Institución</mat-label>
+      <input matInput formControlName="hospital_name" placeholder="IMSS, Hospital Ángeles..." autocomplete="off">
+      <mat-icon matPrefix>local_hospital</mat-icon>
+    </mat-form-field>
+
+    <!-- Error global -->
+    <div class="error-banner" *ngIf="error">
+      <mat-icon>error_outline</mat-icon>
+      {{ error }}
+    </div>
+
+    <!-- Actions -->
+    <div class="dialog-actions">
+      <button mat-button type="button" (click)="cancel()" [disabled]="saving" class="cancel-btn">Cancelar</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving" class="save-btn">
+        <mat-spinner diameter="16" *ngIf="saving"></mat-spinner>
+        <mat-icon *ngIf="!saving">save</mat-icon>
+        {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+
+  </form>
+</div>
