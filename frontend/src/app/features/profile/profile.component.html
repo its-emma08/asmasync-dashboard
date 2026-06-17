@@ -1,0 +1,160 @@
+<div class="page-scroll-container print-friendly">
+    <div class="profile-page">
+    <div class="profile-container animate-in">
+      <!-- Apple Bento Header -->
+      <div class="bento-grid-header mb-8">
+          <!-- Profile Card -->
+          <div class="glass-card-premium hero-card-apple bento-item-large">
+            <div class="hero-body">
+              <div class="hero-avatar-wrapper shadow-apple">
+                <div class="avatar-large">{{ userInitials() }}</div>
+                <div class="status-badge online"></div>
+              </div>
+              
+              <div class="hero-text-apple">
+                <h1 class="dark:text-white">{{ userName() }}</h1>
+                <p class="role-subtitle">{{ profileSubtitle() }}</p>
+                <div class="hero-tags flex gap-2 mt-3">
+                  <span class="apple-badge primary">{{ userRoleLabel() }}</span>
+                  <span class="apple-badge secondary">{{ userEmail() }}</span>
+                </div>
+              </div>
+
+              <div class="hero-actions-apple hide-on-print">
+                <button mat-flat-button color="primary" class="apple-btn-pill" (click)="openEditModal()">
+                  <mat-icon>edit</mat-icon> Editar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Bento -->
+          <div class="glass-card-premium bento-item-sm hide-on-print">
+              <div class="p-5 flex flex-col h-full gap-3">
+                  <h3 class="text-sm font-bold opacity-40 uppercase tracking-widest mb-2">Acciones</h3>
+                  <button class="apple-action-row" (click)="exportCV()">
+                      <div class="action-icon bg-indigo-500"><mat-icon>description</mat-icon></div>
+                      <span>Exportar CV</span>
+                      <mat-icon class="chevron">chevron_right</mat-icon>
+                  </button>
+                  <button class="apple-action-row" (click)="goToSettings()">
+                      <div class="action-icon bg-slate-500"><mat-icon>settings</mat-icon></div>
+                      <span>Ajustes</span>
+                      <mat-icon class="chevron">chevron_right</mat-icon>
+                  </button>
+                  <button class="apple-action-row danger" (click)="logout()">
+                      <div class="action-icon bg-red-500"><mat-icon>logout</mat-icon></div>
+                      <span>Cerrar Sesión</span>
+                      <mat-icon class="chevron">chevron_right</mat-icon>
+                  </button>
+              </div>
+          </div>
+      </div>
+
+      <!-- Doctor Code Card (visible para todos los doctores) -->
+      @if (isDoctor()) {
+      <div class="glass-card-premium p-6 mb-8 relative overflow-hidden">
+          <!-- Background decoration -->
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 pointer-events-none"></div>
+          <div class="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/25">
+                      <mat-icon class="!text-white !text-2xl">qr_code_2</mat-icon>
+                  </div>
+                  <div class="min-w-0">
+                      <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Código de Vinculación</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Los pacientes ingresan este código en la app para vincularse contigo</p>
+                  </div>
+              </div>
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                  <div class="flex-1 sm:flex-none bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-3 text-center min-w-[140px]">
+                      @if (doctorCode()) {
+                        <span class="font-mono text-xl font-black text-gray-900 dark:text-white tracking-wider">{{ doctorCode() }}</span>
+                      } @else if (doctorProfileFetched) {
+                        <span class="text-sm text-gray-400 dark:text-gray-500 font-medium">Sin código</span>
+                      } @else {
+                        <span class="text-sm text-gray-400 dark:text-gray-500 font-medium">Cargando...</span>
+                      }
+                  </div>
+                  <button (click)="copyDoctorCode()" [disabled]="!doctorCode()"
+                          class="flex-shrink-0 flex items-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed"
+                          [class]="codeCopied
+                              ? 'bg-green-500 text-white border-green-500 shadow-lg shadow-green-500/25'
+                              : 'bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20 hover:bg-blue-600'">
+                      <mat-icon class="!text-base !w-4 !h-4">{{ codeCopied ? 'check' : 'content_copy' }}</mat-icon>
+                      {{ codeCopied ? 'Copiado' : 'Copiar' }}
+                  </button>
+              </div>
+          </div>
+      </div>
+      }
+
+      <!-- KPI Stats Grid -->
+      <div class="apple-stats-grid mb-8">
+        <div *ngFor="let kpi of kpis()" class="glass-card-premium stat-item-apple">
+          <div class="stat-icon-box" [style.background]="kpi.gradient">
+            <mat-icon>{{ kpi.icon }}</mat-icon>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value">{{ kpi.value }}</span>
+            <span class="stat-label">{{ kpi.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Details Bento Grid -->
+      <div class="bento-layout-main">
+        <!-- Professional Info -->
+        <div class="glass-card-premium detail-card-apple p-0">
+          <div class="card-header-apple p-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+              <div class="apple-icon-box bg-blue-500 shadow-blue-500/20"><mat-icon>person</mat-icon></div>
+              <h3 class="mb-0 text-lg font-bold">Información Profesional</h3>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="apple-meta-list">
+              <div *ngFor="let field of professionalInfo()" class="meta-row">
+                <span class="meta-label">{{ field.label }}</span>
+                <span class="meta-value">{{ field.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Certifications -->
+        <div class="glass-card-premium detail-card-apple p-0 overflow-hidden">
+          <div class="card-header-apple p-6 border-b border-white/10 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="apple-icon-box bg-purple-500 shadow-purple-500/20"><mat-icon>workspace_premium</mat-icon></div>
+              <h3 class="mb-0 text-lg font-bold">Certificaciones</h3>
+            </div>
+            <button mat-icon-button class="apple-icon-btn" (click)="addingCert = !addingCert">
+              <mat-icon>{{ addingCert ? 'close' : 'add' }}</mat-icon>
+            </button>
+          </div>
+          
+          <div class="p-6">
+            <!-- Add Certification Form -->
+            <div *ngIf="addingCert" class="apple-form-pop mb-6 animate-in">
+              <input type="text" [(ngModel)]="newCert.name" placeholder="Nombre de la certificación" class="apple-input-minimal mb-3">
+              <div class="flex gap-2">
+                <input type="text" [(ngModel)]="newCert.year" placeholder="Año" class="apple-input-minimal flex-1">
+                <button mat-flat-button color="primary" class="apple-btn-pill" (click)="addCert()" [disabled]="!newCert.name">Añadir</button>
+              </div>
+            </div>
+
+            <div class="cert-list-apple">
+              <div *ngFor="let cert of certifications" class="cert-row-apple">
+                <div class="cert-icon-apple shadow-sm">🏅</div>
+                <div class="cert-details">
+                  <p class="cert-title">{{ cert.name }}</p>
+                  <p class="cert-meta">Emitida en {{ cert.year }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>

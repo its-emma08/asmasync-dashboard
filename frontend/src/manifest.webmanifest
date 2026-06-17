@@ -1,0 +1,17 @@
+{
+  "name": "AsmaSync - Respiratory Care",
+  "short_name": "AsmaSync",
+  "theme_color": "#00B5AD",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "assets/images/avatars/male-1.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ]
+}
