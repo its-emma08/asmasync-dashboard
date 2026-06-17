@@ -443,20 +443,25 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
                 const patientsList = allPatients ?? [];
                 // Use priority-patients from API; fall back to filtering locally
-                this.urgentPatients = (priorityPatients?.length ? priorityPatients : patientsList.filter(p => p.riskLevel === 'high'));
-                this.recentPatients = patientsList.slice(0, 5);
+                this.urgentPatients = (priorityPatients?.length 
+                    ? priorityPatients 
+                    : patientsList.filter(p => p.riskLevel === 'high')
+                ).filter(p => p && p.id); // remove null/incomplete entries
+                this.recentPatients = patientsList.filter(p => p && p.id).slice(0, 5);
                 this.hasPatients = patientsList.length > 0;
                 const activities: Activity[] = [];
                 patientsList.forEach((p: any, idx: number) => {
+                    if (!p || !p.id) return; // skip incomplete patient records
                     const baselineTime = new Date();
+                    const pName = p.full_name || 'Paciente';
                     if (p.riskLevel === 'high') {
                         activities.push({
                             id: `act_alert_${p.id}`,
                             type: 'alert',
-                            description: `Descenso de flujo PEF detectado (${p.latest_pef} L/min)`,
+                            description: `Descenso de flujo PEF detectado (${p.latest_pef || '—'} L/min)`,
                             time: new Date(baselineTime.getTime() - (idx * 45 * 60 * 1000) - (15 * 60 * 1000)),
                             patientId: p.id,
-                            patientName: p.full_name
+                            patientName: pName
                         });
                     }
                     if (p.current_medications) {
@@ -468,7 +473,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                                 description: `Dosis de ${meds[0].trim()} registrada`,
                                 time: new Date(baselineTime.getTime() - (idx * 90 * 60 * 1000) - (30 * 60 * 1000)),
                                 patientId: p.id,
-                                patientName: p.full_name
+                                patientName: pName
                             });
                         }
                     }
@@ -479,7 +484,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                             description: `Reporte de sibilancias y tos moderada`,
                             time: new Date(baselineTime.getTime() - (idx * 120 * 60 * 1000) - (60 * 60 * 1000)),
                             patientId: p.id,
-                            patientName: p.full_name
+                            patientName: pName
                         });
                     }
                 });

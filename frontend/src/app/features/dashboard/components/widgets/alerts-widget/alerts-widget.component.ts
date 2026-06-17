@@ -41,7 +41,7 @@ export class AlertsWidgetComponent implements OnInit, OnDestroy {
         if (!this.searchQuery) return this.patients;
         const q = this.searchQuery.toLowerCase();
         return this.patients.filter(p =>
-            p.full_name?.toLowerCase().includes(q) || p.id?.toString().includes(q)
+            (p.full_name || '').toLowerCase().includes(q) || (p.id?.toString() || '').includes(q)
         );
     }
 

@@ -27,51 +27,63 @@
         <div *ngIf="dataReady" class="dashboard-content animate-fade-in">
 
             <!-- Apple-Style Page Header -->
-            <div class="mb-10 px-2 flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div class="mb-10 px-2 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div class="header-left">
                     <span class="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] mb-3 block">CENTRO BIOMÉDICO</span>
                     <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">Panel de Control</h1>
                     
-                    <div class="flex items-center gap-4 mt-4 text-[13px] font-semibold">
+                    <div class="flex items-center gap-3 mt-4 text-[13px] font-semibold flex-wrap">
                         <div class="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-full border border-white/40 shadow-xs">
-                            <span class="text-gray-400 font-bold uppercase text-[9px] tracking-wider">Paciente:</span>
-                            <span class="text-gray-700 dark:text-gray-200">{{ urgentPatients[0]?.full_name || recentPatients[0]?.full_name || 'Vista General' }}</span>
+                            <span class="text-gray-400 font-bold uppercase text-[9px] tracking-wider">Paciente prioritario:</span>
+                            <span class="text-gray-700 dark:text-gray-200">{{ (urgentPatients[0]?.full_name || recentPatients[0]?.full_name) || 'Vista General' }}</span>
                         </div>
                         <div class="flex items-center gap-2 bg-white/40 px-3 py-1.5 rounded-full border border-white/40 shadow-xs" [class.animate-critical-pulse]="alertService.healthStatus() === 'Red'">
                             <span class="text-gray-400 font-bold uppercase text-[9px] tracking-wider">Protocolo:</span>
                             <span class="font-bold flex items-center gap-1.5"
-                                [class]="alertService.healthStatus() === 'Red' ? 'text-red-500' : 'text-green-500'">
-                                <span class="w-2 h-2 rounded-full" [class]="alertService.healthStatus() === 'Red' ? 'bg-red-500' : 'bg-green-500'"></span>
+                                [class.text-red-500]="alertService.healthStatus() === 'Red'"
+                                [class.text-green-500]="alertService.healthStatus() !== 'Red'">
+                                <span class="w-2 h-2 rounded-full" 
+                                    [class.bg-red-500]="alertService.healthStatus() === 'Red'"
+                                    [class.bg-green-500]="alertService.healthStatus() !== 'Red'"></span>
                                 {{ alertService.healthStatus() === 'Red' ? 'Emergencia' : 'Estable' }}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Consolidated Vitals Strip (Refined Apple Look) -->
-                <div class="vitals-strip glass-card px-8 py-4 flex items-center gap-10">
+                <!-- Consolidated Vitals Strip -->
+                <div class="vitals-strip glass-card px-6 py-4 flex items-center gap-8 flex-shrink-0">
                     <div class="vital-item">
                         <span class="label">SpO2</span>
-                        <span class="value">{{ urgentPatients[0]?.currentSpO2 || recentPatients[0]?.currentSpO2 || '--' }}<small *ngIf="urgentPatients[0]?.currentSpO2 || recentPatients[0]?.currentSpO2">%</small></span>
+                        <span class="value">
+                            {{ urgentPatients[0]?.currentSpO2 || recentPatients[0]?.currentSpO2 || '—' }}
+                            <small *ngIf="urgentPatients[0]?.currentSpO2 || recentPatients[0]?.currentSpO2">%</small>
+                        </span>
                     </div>
                     <div class="divider"></div>
                     <div class="vital-item">
                         <span class="label">Pico Flujo</span>
-                        <span class="value">{{ urgentPatients[0]?.latest_pef || recentPatients[0]?.latest_pef || '--' }}<small *ngIf="urgentPatients[0]?.latest_pef || recentPatients[0]?.latest_pef">L/m</small></span>
+                        <span class="value">
+                            {{ urgentPatients[0]?.latest_pef || recentPatients[0]?.latest_pef || '—' }}
+                            <small *ngIf="urgentPatients[0]?.latest_pef || recentPatients[0]?.latest_pef">L/m</small>
+                        </span>
                     </div>
                     <div class="divider"></div>
                     <div class="vital-item">
                         <span class="label">Humedad</span>
-                        <span class="value">{{ weather?.humidity ?? '--' }}<small *ngIf="weather?.humidity != null">%</small></span>
+                        <span class="value">
+                            {{ weather?.humidity ?? '—' }}
+                            <small *ngIf="weather?.humidity != null">%</small>
+                        </span>
                     </div>
                     <div class="divider"></div>
                     <div class="vital-item">
-                        <span class="label">Aire</span>
+                        <span class="label">Calidad Aire</span>
                         <span class="value"
                             [class.text-green-500]="weather?.riskLevel === 'Low'"
                             [class.text-yellow-500]="weather?.riskLevel === 'Medium'"
                             [class.text-red-500]="weather?.riskLevel === 'High'">
-                            {{ weather?.riskLevel === 'Low' ? 'Buena' : weather?.riskLevel === 'Medium' ? 'Moderada' : weather?.riskLevel === 'High' ? 'Alta' : '--' }}
+                            {{ weather?.riskLevel === 'Low' ? 'Buena' : weather?.riskLevel === 'Medium' ? 'Moderada' : weather?.riskLevel === 'High' ? 'Alta' : '—' }}
                         </span>
                     </div>
                 </div>

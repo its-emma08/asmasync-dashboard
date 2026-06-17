@@ -1,56 +1,51 @@
-<div class="grid gap-6 h-full" [class.grid-cols-1]="visibleCount === 1" [class.grid-cols-2]="visibleCount === 2"
-    [class.grid-cols-3]="visibleCount === 3" [class.grid-cols-4]="visibleCount === 4">
+<div class="grid gap-4 h-full items-stretch" 
+    [class.grid-cols-1]="visibleCount === 1" 
+    [class.grid-cols-2]="visibleCount === 2"
+    [class.grid-cols-3]="visibleCount === 3" 
+    [class.grid-cols-4]="visibleCount === 4">
 
     <div *ngFor="let kpi of visibleKpis; let i = index" (click)="navigateToDetail(kpi)"
-        class="kpi-card group glass-card p-6 flex flex-col justify-between"
+        class="kpi-card group glass-card p-5 flex flex-col justify-between relative overflow-hidden"
         [style.animation-delay]="(i * 0.05) + 's'">
 
          <!-- Top row: title + icon -->
-         <div class="flex items-start justify-between mb-4">
-             <div class="flex-1 min-w-0">
+         <div class="flex items-start justify-between mb-3">
+             <div class="flex-1 min-w-0 pr-2">
                  <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 mb-2 truncate">
                      {{ kpi?.title }}
                  </p>
                  <div class="flex items-end gap-3 flex-wrap">
-                     <h3 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-none">
-                         {{ kpi?.displayValue || 0 }}
+                     <h3 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-none tabular-nums">
+                         {{ kpi?.displayValue ?? 0 }}
                      </h3>
-                     <!-- Trend chip (Apple Style) -->
-                     <span *ngIf="kpi?.trend" class="trend-pill" [class.trend-up]="kpi?.trend === 'up'"
-                         [class.trend-down]="kpi?.trend === 'down'">
-                         <mat-icon>{{ kpi?.trend === 'up' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-                         {{ kpi?.trendValue }}
-                     </span>
                  </div>
              </div>
 
              <!-- Mini Icon Bubble -->
-             <div class="kpi-icon-wrap" [ngClass]="kpi?.bubbleClass || 'bubble-teal'">
-                 <mat-icon>{{ kpi?.icon }}</mat-icon>
+             <div class="kpi-icon-wrap flex-shrink-0" [ngClass]="kpi?.bubbleClass || 'bubble-teal'">
+                 <mat-icon>{{ kpi?.icon || 'analytics' }}</mat-icon>
              </div>
          </div>
 
          <!-- Context Middle -->
-         <div class="mb-4">
-            <p class="text-[11px] text-gray-500 font-medium truncate">
+         <div class="mb-3">
+            <p class="text-[11px] text-gray-500 dark:text-slate-400 font-medium truncate">
                 {{ kpi?.subtitle || ('Meta ' + (kpi?.timeframe || 'Mensual')) }}
             </p>
          </div>
 
          <!-- Apple-Style Progress Bar -->
-         <div class="relative pt-1">
-             <div class="flex mb-2 items-center justify-between">
-                 <div>
-                     <span class="text-[10px] font-bold inline-block py-1 px-2 uppercase rounded-full" 
-                           [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'text-red-600 bg-red-50' : 'text-blue-600 bg-blue-50'">
-                         {{ kpi?.progress ?? 0 }}% de la meta
-                     </span>
-                 </div>
+         <div class="mt-auto">
+             <div class="flex mb-1.5 items-center justify-between">
+                 <span class="text-[10px] font-bold inline-block py-0.5 px-2 uppercase rounded-full" 
+                       [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400' : 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400'">
+                     {{ kpi?.progress ?? 0 }}% de la meta
+                 </span>
              </div>
-             <div class="overflow-hidden h-1.5 mb-2 text-xs flex rounded-full bg-gray-100 dark:bg-gray-800">
+             <div class="overflow-hidden h-1.5 flex rounded-full bg-gray-100 dark:bg-gray-800">
                  <div [style.width.%]="kpi?.progress ?? 0" 
-                      class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-700"
-                      [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'bg-red-500' : 'bg-blue-500'">
+                      class="flex-shrink-0 text-center text-white transition-all duration-700 rounded-full"
+                      [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-blue-400'">
                  </div>
              </div>
          </div>

@@ -62,9 +62,10 @@
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: 140px;
+    grid-auto-rows: minmax(160px, auto);
     grid-auto-flow: row dense;
-    gap: 24px;
+    gap: 20px;
+    align-items: start;
 
     /* Cuando hay arrastre activo, todos los items (excepto el
        placeholder) reciben la transición de reordenamiento. */
@@ -85,7 +86,8 @@ app-widget-shell {
 @media (max-width: 1024px) {
     .bento-grid {
         grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: 140px;
+        grid-auto-rows: minmax(160px, auto);
+        gap: 16px;
     }
     
     app-widget-shell.size-full,
@@ -100,7 +102,8 @@ app-widget-shell {
 @media (max-width: 640px) {
     .bento-grid {
         grid-template-columns: 1fr;
-        grid-auto-rows: minmax(140px, auto);
+        grid-auto-rows: minmax(160px, auto);
+        gap: 12px;
     }
     
     app-widget-shell.size-small,
@@ -111,7 +114,8 @@ app-widget-shell {
     app-widget-shell.size-full,
     app-widget-shell.size-full-large {
         grid-column: span 1;
-        grid-row: span 1; /* Reset row span to 1 on small screens to prevent layout gaps */
+        grid-row: span 1;
+        min-height: 200px;
     }
 }
 

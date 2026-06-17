@@ -1,10 +1,15 @@
 :host {
     display: block;
-    min-height: 140px;
+    height: 100%;
+    min-height: 160px;
+    padding: 16px 20px;
+    box-sizing: border-box;
 }
 
 .kpi-card {
     transition: all 0.4s var(--apple-easing);
+    cursor: pointer;
+    min-height: 110px;
     
     &:hover {
         transform: translateY(-4px) scale(1.02);
@@ -13,25 +18,32 @@
 
 /* ─── Apple Icon Style (Round Gradient) ─── */
 .kpi-icon-wrap {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     
     mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+        line-height: 20px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    &.bubble-teal { background: linear-gradient(135deg, #0071e3, #38bdf8); }
-    &.bubble-red { background: linear-gradient(135deg, #ff3b30, #ff9f0a); }
-    &.bubble-green { background: linear-gradient(135deg, #34c759, #30b0c7); }
+    &.bubble-teal   { background: linear-gradient(135deg, #0071e3, #38bdf8); }
+    &.bubble-red    { background: linear-gradient(135deg, #ff3b30, #ff9f0a); }
+    &.bubble-green  { background: linear-gradient(135deg, #34c759, #30b0c7); }
     &.bubble-yellow { background: linear-gradient(135deg, #ffcc00, #ff9500); }
+    &.bubble-purple { background: linear-gradient(135deg, #af52de, #5e5ce6); }
 }
 
 /* ─── Trend Pill (Apple High-Contrast) ─── */
