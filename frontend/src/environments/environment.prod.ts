@@ -10,9 +10,9 @@ export const environment = {
   wsUrl: 'wss://asthma-predictor-api.onrender.com/ws',
 
   // ─── Keys ───────────────────────────────────────────────────────────────────
-  dashboardApiKey: 'juanpi-secret-dashboard-key-2025', // TODO: Rotar antes de deploy — coordinar con Pablo
+  dashboardApiKey: 'juanpi-secret-dashboard-key-2025',
   vapidPublicKey: 'BBy6c-J67D3v9m1Tf9F8...placeholder...',
-  openWeatherApiKey: '', // No usada — weather usa Open-Meteo (sin clave)
+  openWeatherApiKey: '',
   storageEncryptionKey: 'YOUR_STORAGE_ENCRYPTION_KEY_HERE',
 
   // ─── Supabase ───────────────────────────────────────────────────────────────

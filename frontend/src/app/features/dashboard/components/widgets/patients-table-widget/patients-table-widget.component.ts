@@ -53,8 +53,9 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
         const local = this.localSearchTerm ? this.localSearchTerm.toLowerCase().trim() : '';
 
         this.filteredPatients = this.patients.filter(p => {
-            const matchesGlobal = !global || p.full_name.toLowerCase().includes(global);
-            const matchesLocal = !local || p.full_name.toLowerCase().includes(local);
+            const name = (p.full_name || '').toLowerCase();
+            const matchesGlobal = !global || name.includes(global);
+            const matchesLocal = !local || name.includes(local);
             return matchesGlobal && matchesLocal;
         });
     }
