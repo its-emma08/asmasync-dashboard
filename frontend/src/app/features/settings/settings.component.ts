@@ -207,74 +207,8 @@ import { ThemeService } from '../../core/services/theme.service';
           </div>
         </section>
 
-        <!-- ===== DISPOSITIVOS IoT ===== -->
-        <section *ngIf="activeTab === 2" class="settings-section animate-in">
-          <div class="section-header">
-            <h3 class="dark:text-white">Dispositivos Médicos</h3>
-            <p>Estado de la red de monitoreo IoT</p>
-          </div>
-
-          <!-- Loading state -->
-          <div *ngIf="isDevicesLoading" class="flex items-center justify-center p-12">
-            <mat-spinner diameter="32"></mat-spinner>
-          </div>
-
-          <div class="devices-grid-apple" *ngIf="!isDevicesLoading">
-            <div *ngFor="let device of iotDevices" class="glass-card-premium device-card-apple">
-              <div class="device-header-apple">
-                <div class="device-icon-apple" [class]="device.statusClass">
-                  <mat-icon>{{ device.icon }}</mat-icon>
-                </div>
-                <div class="status-indicator">
-                   <div class="status-dot-apple" [class]="device.dotClass"></div>
-                   <span>{{ device.status }}</span>
-                </div>
-              </div>
-              <h4>{{ device.name }}</h4>
-              <p class="device-model-apple">{{ device.model }}</p>
-
-              <div class="device-metrics-apple">
-                <div class="metric-item">
-                  <mat-icon>battery_charging_full</mat-icon>
-                  <span>{{ device.battery }}%</span>
-                </div>
-                <div class="metric-item">
-                  <mat-icon>history</mat-icon>
-                  <span>{{ device.lastSync }}</span>
-                </div>
-              </div>
-
-              <div class="patient-tag-apple" *ngIf="device.patient">
-                <mat-icon>person</mat-icon>
-                <span>{{ device.patient }}</span>
-              </div>
-            </div>
-
-            <!-- Empty state when no devices -->
-            <div *ngIf="iotDevices.length === 0" class="glass-card-premium iot-empty-state">
-              <div class="iot-empty-icon">
-                <mat-icon>sensors_off</mat-icon>
-              </div>
-              <h4>Sin dispositivos vinculados</h4>
-              <p>Los sensores se sincronizan automáticamente cuando un paciente conecta su dispositivo desde la app móvil.</p>
-              <div *ngIf="connectedPatientsCount > 0" class="iot-patient-count">
-                <mat-icon>groups</mat-icon>
-                <span>{{ connectedPatientsCount }} paciente(s) con datos activos</span>
-              </div>
-            </div>
-
-            <!-- Add Device -->
-            <button class="glass-card-premium add-device-apple" routerLink="/onboarding/iot-connection">
-              <div class="add-icon-apple">
-                <mat-icon>add</mat-icon>
-              </div>
-              <span>Vincular nuevo hardware</span>
-            </button>
-          </div>
-        </section>
-
         <!-- ===== SEGURIDAD ===== -->
-        <section *ngIf="activeTab === 3" class="settings-section animate-in">
+        <section *ngIf="activeTab === 2" class="settings-section animate-in">
            <div class="section-header">
             <h3 class="dark:text-white">Privacidad y Seguridad</h3>
             <p>Control de acceso y cifrado de datos (NOM-004)</p>
@@ -329,7 +263,7 @@ import { ThemeService } from '../../core/services/theme.service';
         </section>
 
         <!-- ===== APARIENCIA ===== -->
-        <section *ngIf="activeTab === 4" class="settings-section animate-in">
+        <section *ngIf="activeTab === 3" class="settings-section animate-in">
           <div class="section-header">
             <h3 class="dark:text-white">Estilo Visual</h3>
             <p>Personaliza la atmósfera de tu estación de trabajo</p>
@@ -393,7 +327,7 @@ import { ThemeService } from '../../core/services/theme.service';
         </section>
 
         <!-- ===== ACERCA DE ===== -->
-        <section *ngIf="activeTab === 5" class="settings-section animate-in">
+        <section *ngIf="activeTab === 4" class="settings-section animate-in">
           <div class="section-header mt-4">
             <h3 class="dark:text-white">Acerca de</h3>
             <p>Información de la aplicación</p>
@@ -449,7 +383,7 @@ import { ThemeService } from '../../core/services/theme.service';
         </section>
 
         <!-- ===== AUDITORÍA ===== -->
-        <section *ngIf="activeTab === 6" class="settings-section animate-in">
+        <section *ngIf="activeTab === 5" class="settings-section animate-in">
            <div class="section-header flex justify-between items-end">
             <div>
               <h3 class="dark:text-white">Bitácora Médica</h3>
@@ -1012,7 +946,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const colors = [
       '#0071e3',
       '#FF9500',
-      '#34C759',
       '#FF3B30',
       '#5856D6',
       '#8E8E93',
@@ -1028,7 +961,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   tabs = [
     { icon: 'manage_accounts', label: 'Cuenta' },
     { icon: 'notifications', label: 'Notificaciones' },
-    { icon: 'sensors', label: 'Dispositivos IoT' },
     { icon: 'shield', label: 'Seguridad' },
     { icon: 'palette', label: 'Apariencia' },
     { icon: 'info', label: 'Acerca de' },
@@ -1194,11 +1126,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   setTab(index: number) {
     this.activeTab = index;
-    if (index === 6) {
+    if (index === 5) {
       this.loadAuditLogs();
-    }
-    if (index === 2) {
-      this.loadIoTStatus();
     }
   }
 

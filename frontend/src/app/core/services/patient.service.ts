@@ -4,7 +4,7 @@ import { SKIP_RESILIENCE } from '../interceptors/http-context.tokens';
 import { Observable, BehaviorSubject, of, shareReplay } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Patient, PEFTrend } from '../models/patient.model';
+import { Patient, PEFTrend, RiskLevel } from '../models/patient.model';
 import { DashboardMetrics } from '../models/dashboard.model';
 
 // ── Cache entry shape ──────────────────────────────────────────────────────────
@@ -69,15 +69,21 @@ export class PatientService {
             || 0;
         const latestHR = latestMeasurement.heart_rate || 0;
 
+        const rawRisk = (b.risk_level || '').toLowerCase();
+        const mappedRisk: RiskLevel = rawRisk === 'green' || rawRisk === 'low' ? 'low' :
+                                    rawRisk === 'yellow' || rawRisk === 'moderate' ? 'moderate' :
+                                    rawRisk === 'red' || rawRisk === 'high' ? 'high' : 'unknown';
+
         return {
             id: b.id,
             full_name: b.full_name,
-            date_of_birth: b.date_of_birth,
+            date_of_birth: b.date_of_birth || b.dob || b.birth_date || null,
+            age: b.age || null,
             gender: b.gender || 'other',
             asthma_type: b.asthma_type || 'allergic',
             email: b.email,
             phone: b.phone || b.phone_number || null,
-            riskLevel: b.risk_level || 'unknown',
+            riskLevel: mappedRisk,
             latest_pef: latestPef,
             personal_best_pef: b.personal_best_pef || 500,
             currentSpO2: latestSpo2,

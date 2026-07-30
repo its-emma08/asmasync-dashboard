@@ -4,7 +4,7 @@ export interface Patient {
     id: string | number;
     firebase_uid?: string; // SQL alignment
     full_name: string; // SQL alignment
-    // age: number; // REMOVED
+    age?: number | string;
     date_of_birth: string; // SQL alignment (ISO Date)
     gender: 'male' | 'female' | 'other'; // SQL alignment
     asthma_type: 'allergic' | 'non_allergic' | 'mixed' | 'exercise_induced'; // SQL alignment

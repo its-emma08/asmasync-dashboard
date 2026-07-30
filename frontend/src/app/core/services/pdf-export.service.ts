@@ -78,24 +78,26 @@ export class PdfExportService {
         if (!isPlatformBrowser(this.platformId)) return;
         const container = document.createElement('div');
         container.style.cssText = `
-            position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none;
-            width: 216mm; background: white;
-            font-family: 'Quicksand', 'Inter', sans-serif;
+            position: fixed; left: 0; top: 0; z-index: -99999; pointer-events: none;
+            width: 216mm; background: #ffffff;
+            font-family: 'Quicksand', 'Inter', Arial, sans-serif;
             font-size: 12px; color: #1e293b; line-height: 1.5;
-            padding: 20mm 15mm;
+            padding: 20mm 15mm; box-sizing: border-box;
         `;
         container.innerHTML = html;
         document.body.appendChild(container);
 
         try {
             // Give the browser time to render and load fonts
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 300));
             await this.exportElement(container, options);
         } catch (error) {
             console.error('Error in PDF Generation rendering:', error);
             throw error;
         } finally {
-            document.body.removeChild(container);
+            if (document.body.contains(container)) {
+                document.body.removeChild(container);
+            }
         }
     }
 

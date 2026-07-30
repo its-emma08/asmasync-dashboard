@@ -37,218 +37,319 @@ interface PatientOption { id: string | number; full_name: string; }
     ],
     providers: [{ provide: LOCALE_ID, useValue: 'es-ES' }],
     template: `
-    <div class="apple-dialog-root">
-      <header class="apple-dialog-header">
-        <div class="header-content">
-            <mat-icon class="brand-primary-text">{{ isEdit ? 'edit_calendar' : 'calendar_add_on' }}</mat-icon>
-            <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ isEdit ? 'Editar Cita' : 'Nueva Cita' }}</h2>
+    <div class="appointment-modal-container">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="header-badge-icon">
+          <mat-icon>{{ isEdit ? 'edit_calendar' : 'event_available' }}</mat-icon>
         </div>
-        <button mat-icon-button mat-dialog-close class="text-slate-400">
-            <mat-icon>close</mat-icon>
+        <div class="header-text-group">
+          <h2 class="modal-title">{{ isEdit ? 'Editar Cita Médica' : 'Agendar Nueva Cita' }}</h2>
+          <p class="modal-subtitle">Programe la consulta médica con el paciente</p>
+        </div>
+        <button mat-icon-button mat-dialog-close class="close-btn">
+          <mat-icon>close</mat-icon>
         </button>
-      </header>
+      </div>
 
-      <mat-dialog-content class="!p-0 !overflow-hidden">
-        <div class="apple-group-section">
-            <div class="apple-row-input">
-                <mat-icon class="row-icon brand-primary-text">person</mat-icon>
-                <div class="flex-1">
-                    <mat-select [(ngModel)]="data.patientId" required placeholder="Seleccionar Paciente" class="apple-select">
-                        <mat-option *ngFor="let patient of patients" [value]="patient.id">
-                            {{ patient.full_name }}
-                        </mat-option>
-                    </mat-select>
-                </div>
-            </div>
-            <div class="apple-divider-inc"></div>
-            <div class="apple-row-input">
-                <mat-icon class="row-icon text-slate-400">notes</mat-icon>
-                <input matInput [(ngModel)]="data.notes" placeholder="Motivo de la consulta" class="apple-input-field">
-            </div>
+      <!-- Modal Content Body -->
+      <mat-dialog-content class="modal-body custom-scroll">
+        <!-- Patient Selection -->
+        <div class="field-group">
+          <label class="field-label">Paciente <span class="required">*</span></label>
+          <div class="input-card">
+            <mat-icon class="input-icon brand-icon">person</mat-icon>
+            <mat-select [(ngModel)]="data.patientId" required placeholder="Seleccionar paciente de la lista..." class="custom-select">
+              <mat-option *ngFor="let patient of patients" [value]="patient.id">
+                {{ patient.full_name }}
+              </mat-option>
+            </mat-select>
+          </div>
         </div>
 
-        <div class="apple-group-label">Fecha y Hora</div>
-        <div class="apple-group-section">
-            <div class="apple-row-input" (click)="picker.open()">
-                <mat-icon class="row-icon text-red-500">calendar_today</mat-icon>
-                <div class="flex-1 flex justify-between items-center cursor-pointer">
-                    <span class="text-slate-600 dark:text-slate-300 font-medium">Fecha</span>
-                    <span class="brand-primary-text font-semibold">{{ data.date | date:'EEE, d MMM yyyy':'':'es-ES' }}</span>
-                </div>
-                <input [matDatepicker]="picker" [(ngModel)]="data.date" [min]="today" class="hidden">
-                <mat-datepicker #picker></mat-datepicker>
+        <!-- Consultation Reason / Notes -->
+        <div class="field-group">
+          <label class="field-label">Motivo de Consulta / Notas</label>
+          <div class="input-card">
+            <mat-icon class="input-icon">notes</mat-icon>
+            <input matInput [(ngModel)]="data.notes" placeholder="Ej. Control mensual, espirometría, revisión..." class="custom-input">
+          </div>
+        </div>
+
+        <!-- Date & Time Section -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Date Picker Card -->
+          <div class="field-group">
+            <label class="field-label">Fecha de la Cita <span class="required">*</span></label>
+            <div class="input-card date-card-anchor relative cursor-pointer" (click)="picker.open()">
+              <mat-icon class="input-icon text-teal-600 dark:text-teal-400">calendar_month</mat-icon>
+              <div class="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                {{ data.date ? (data.date | date:'EEE, d MMM yyyy':'':'es-ES') : 'Seleccionar fecha' }}
+              </div>
+              <mat-icon class="text-slate-400 text-sm">expand_more</mat-icon>
+              <!-- Positioned input so CDK calculates bounding box relative to card -->
+              <input [matDatepicker]="picker" [(ngModel)]="data.date" [min]="today"
+                     style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;">
+              <mat-datepicker #picker></mat-datepicker>
             </div>
-            <div class="apple-divider-inc"></div>
-            <div class="apple-row-input">
-                <mat-icon class="row-icon text-orange-500">schedule</mat-icon>
-                <div class="flex-1 flex justify-between items-center">
-                    <span class="text-slate-600 dark:text-slate-300 font-medium">Hora</span>
-                    <input type="time" [(ngModel)]="data.time" class="apple-time-pill">
-                </div>
+          </div>
+
+          <!-- Time Picker Card -->
+          <div class="field-group">
+            <label class="field-label">Hora <span class="required">*</span></label>
+            <div class="input-card">
+              <mat-icon class="input-icon text-amber-500">schedule</mat-icon>
+              <input type="time" [(ngModel)]="data.time" class="time-input">
             </div>
-            <div class="apple-divider-inc"></div>
-            <div class="apple-row-input">
-                <mat-icon class="row-icon text-purple-500">timer</mat-icon>
-                <div class="flex-1 flex justify-between items-center">
-                    <span class="text-slate-600 dark:text-slate-300 font-medium">Duración</span>
-                    <mat-select [(ngModel)]="data.duration_minutes" class="apple-select-mini">
-                        <mat-option [value]="15">15 min</mat-option>
-                        <mat-option [value]="30">30 min</mat-option>
-                        <mat-option [value]="45">45 min</mat-option>
-                        <mat-option [value]="60">1 hora</mat-option>
-                    </mat-select>
-                </div>
-            </div>
+          </div>
+        </div>
+
+        <!-- Duration Selection Chips -->
+        <div class="field-group">
+          <label class="field-label">Duración Estimada</label>
+          <div class="flex gap-2">
+            <button type="button" *ngFor="let option of durationOptions"
+                    (click)="data.duration_minutes = option.value"
+                    class="duration-pill"
+                    [class.active]="(data.duration_minutes || 30) === option.value">
+              <mat-icon class="!text-xs" *ngIf="(data.duration_minutes || 30) === option.value">check</mat-icon>
+              <span>{{ option.label }}</span>
+            </button>
+          </div>
         </div>
       </mat-dialog-content>
 
-      <mat-dialog-actions align="end" class="!px-6 !pb-8 !pt-4 bg-[#F2F2F7] dark:bg-[#1C1C1E]">
-        <button *ngIf="isEdit" mat-button color="warn" (click)="delete()" [disabled]="loading" class="apple-btn-danger">
-            Eliminar Cita
+      <!-- Modal Footer / Actions -->
+      <mat-dialog-actions class="modal-footer">
+        <button *ngIf="isEdit" mat-button (click)="delete()" [disabled]="loading" class="danger-btn">
+          <mat-icon>delete_outline</mat-icon> Eliminar Cita
         </button>
+
         <div class="flex gap-3 ml-auto">
-            <button mat-button mat-dialog-close class="apple-btn-cancel">Cancelar</button>
-            <button mat-flat-button color="primary" (click)="save()" [disabled]="!data.patientId || !data.date || loading" class="apple-btn-main">
-                <mat-spinner diameter="18" *ngIf="loading" class="mr-2"></mat-spinner>
-                {{ isEdit ? 'Actualizar' : 'Agendar' }}
-            </button>
+          <button mat-button mat-dialog-close class="cancel-btn">Cancelar</button>
+          <button mat-flat-button color="primary" (click)="save()" [disabled]="!data.patientId || !data.date || loading" class="save-btn">
+            <mat-spinner diameter="18" *ngIf="loading" class="mr-2"></mat-spinner>
+            <mat-icon *ngIf="!loading">calendar_month</mat-icon>
+            <span>{{ isEdit ? 'Guardar Cambios' : 'Agendar Cita' }}</span>
+          </button>
         </div>
       </mat-dialog-actions>
     </div>
   `,
     styles: [`
-    .apple-dialog-root {
-        background: #F2F2F7;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    .dark .apple-dialog-root { background: #000000; }
-
-    .apple-dialog-header {
+      .appointment-modal-container {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-bottom: 0.5px solid rgba(0,0,0,0.1);
-    }
-    .dark .apple-dialog-header { background: rgba(28, 28, 30, 0.8); border-bottom-color: rgba(255,255,255,0.1); }
-
-    .header-content { display: flex; align-items: center; gap: 12px; }
-
-    .brand-primary-text {
-        color: var(--brand-primary) !important;
-    }
-
-    .apple-group-label {
-        font-size: 13px;
-        font-weight: 500;
-        color: #8E8E93;
-        text-transform: uppercase;
-        margin: 24px 24px 8px;
-        letter-spacing: 0.05em;
-    }
-
-    .apple-group-section {
-        background: white;
-        margin: 0 16px;
-        border-radius: 12px;
+        flex-direction: column;
+        background: #ffffff;
+        border-radius: 24px;
         overflow: hidden;
-    }
-    .dark .apple-group-section { background: #1C1C1E; }
+        color: #0f172a;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
 
-    .apple-row-input {
+      :host-context(.dark) .appointment-modal-container,
+      .dark .appointment-modal-container {
+        background: #0f172a;
+        color: #f8fafc;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-header {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
         gap: 16px;
-        min-height: 52px;
-    }
+        padding: 24px 28px 18px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      }
 
-    .row-icon { font-size: 20px; width: 20px; height: 20px; }
+      .dark .modal-header {
+        border-bottom-color: rgba(255, 255, 255, 0.08);
+      }
 
-    .apple-input-field {
+      .header-badge-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(26, 111, 232, 0.12), rgba(14, 165, 201, 0.12));
+        color: #1A6FE8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .dark .header-badge-icon {
+        background: rgba(26, 111, 232, 0.25);
+        color: #38bdf8;
+      }
+
+      .header-text-group { flex: 1; }
+      .modal-title { font-size: 18px; font-weight: 700; margin: 0; }
+      .modal-subtitle { font-size: 12px; color: #64748b; margin: 2px 0 0; }
+      .dark .modal-subtitle { color: #94a3b8; }
+
+      .close-btn { color: #94a3b8; transition: all 0.2s ease; }
+      .close-btn:hover { color: #0f172a; background: rgba(0,0,0,0.05); }
+      .dark .close-btn:hover { color: #ffffff; background: rgba(255,255,255,0.1); }
+
+      .modal-body {
+        padding: 24px 28px !important;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        max-height: 75vh;
+        overflow-y: auto;
+      }
+
+      .field-group { display: flex; flex-direction: column; gap: 6px; }
+      .field-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #475569; }
+      .dark .field-label { color: #94a3b8; }
+      .required { color: #ef4444; }
+
+      .input-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        transition: all 0.2s ease;
+        min-height: 48px;
+      }
+
+      .dark .input-card {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      .input-card:hover, .input-card:focus-within {
+        border-color: #1A6FE8;
+        box-shadow: 0 0 0 3px rgba(26, 111, 232, 0.12);
+      }
+
+      .input-icon { color: #64748b; font-size: 20px; width: 20px; height: 20px; flex-shrink: 0; }
+      .dark .input-icon { color: #94a3b8; }
+      .brand-icon { color: #1A6FE8 !important; }
+      .dark .brand-icon { color: #38bdf8 !important; }
+
+      .custom-input {
         width: 100%;
         border: none;
         outline: none;
         background: transparent;
-        font-size: 16px;
-        color: var(--text-primary);
-    }
+        font-size: 14px;
+        color: inherit;
+        font-weight: 500;
+      }
 
-    .apple-select {
-        width: 100%;
-        font-size: 16px;
-    }
+      .custom-select { width: 100%; font-size: 14px; font-weight: 500; }
 
-    .apple-divider-inc {
-        height: 0.5px;
-        background: #C6C6C8;
-        margin-left: 52px;
-    }
-    .dark .apple-divider-inc { background: #38383A; }
-
-    .apple-time-pill {
-        background: #E3E3E8;
+      .time-input {
         border: none;
-        border-radius: 6px;
-        padding: 4px 8px;
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--brand-primary);
         outline: none;
-    }
-    .dark .apple-time-pill { background: #3A3A3C; }
-
-    .apple-select-mini {
-        width: 80px;
+        background: transparent;
         font-size: 15px;
+        font-weight: 700;
+        color: #1A6FE8;
+        width: 100%;
+        cursor: pointer;
+      }
+      .dark .time-input { color: #38bdf8; }
+
+      .duration-pill {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 13px;
         font-weight: 600;
-        color: var(--brand-primary);
-    }
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        color: #64748b;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
 
-    .apple-btn-main {
-        border-radius: 10px !important;
-        font-weight: 700 !important;
-        padding: 0 24px !important;
+      .dark .duration-pill {
+        background: #1e293b;
+        border-color: #334155;
+        color: #94a3b8;
+      }
+
+      .duration-pill.active {
+        background: rgba(26, 111, 232, 0.12);
+        border-color: #1A6FE8;
+        color: #1A6FE8;
+      }
+
+      .dark .duration-pill.active {
+        background: rgba(56, 189, 248, 0.15);
+        border-color: #38bdf8;
+        color: #38bdf8;
+      }
+
+      .modal-footer {
+        display: flex;
+        align-items: center;
+        padding: 16px 28px 24px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        background: #f8fafc;
+      }
+
+      .dark .modal-footer {
+        background: #0b1426;
+        border-top-color: rgba(255, 255, 255, 0.08);
+      }
+
+      .save-btn {
+        border-radius: 12px !important;
         height: 44px !important;
-        background: var(--brand-primary) !important;
-        box-shadow: 0 4px 12px var(--brand-primary-shadow) !important;
-        transition: all 0.2s ease-in-out !important;
+        padding: 0 24px !important;
+        font-weight: 700 !important;
+        background: linear-gradient(135deg, #1A6FE8, #0EA5C9) !important;
+        box-shadow: 0 4px 14px rgba(26, 111, 232, 0.25) !important;
         color: white !important;
-    }
-    .apple-btn-main:hover:not([disabled]) {
-        background: var(--brand-primary-hover) !important;
-        box-shadow: 0 6px 20px var(--brand-primary-shadow) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+
+      .save-btn:hover:not([disabled]) {
         transform: translateY(-1px);
-    }
-    .apple-btn-main[disabled] {
-        opacity: 0.5 !important;
-        box-shadow: none !important;
-        transform: none !important;
-    }
+        box-shadow: 0 6px 20px rgba(26, 111, 232, 0.35) !important;
+      }
 
-    .apple-btn-cancel {
+      .cancel-btn {
+        border-radius: 12px !important;
+        height: 44px !important;
         font-weight: 600 !important;
-        color: var(--brand-primary) !important;
-    }
+        color: #64748b !important;
+      }
 
-    .apple-btn-danger {
+      .danger-btn {
+        color: #ef4444 !important;
         font-weight: 600 !important;
-        color: #FF3B30 !important;
-    }
-
-    ::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
-        border-radius: 20px !important;
-        overflow: hidden !important;
-    }
-  `]
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+    `]
 })
 export class AppointmentDialogComponent implements OnInit {
     patients: PatientOption[] = [];
     isEdit = false;
     loading = false;
     readonly today = new Date();
+    readonly durationOptions = [
+        { label: '15 min', value: 15 },
+        { label: '30 min', value: 30 },
+        { label: '45 min', value: 45 },
+        { label: '1 hora', value: 60 }
+    ];
 
     constructor(
         public dialogRef: MatDialogRef<AppointmentDialogComponent>,

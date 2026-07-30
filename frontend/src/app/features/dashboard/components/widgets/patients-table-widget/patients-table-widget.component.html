@@ -62,7 +62,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ p.full_name || 'Paciente' }}</p>
                             <p class="text-[11px] text-gray-400 dark:text-slate-400 truncate mt-0.5">
-                                {{ getAge(p.date_of_birth) }} años • {{ p.gender === 'male' ? 'M' : p.gender === 'female' ? 'F' : 'Otro' }}
+                                {{ getAge(p) }} años • {{ p.gender === 'male' ? 'M' : p.gender === 'female' ? 'F' : 'Otro' }}
                             </p>
                         </div>
                     </div>

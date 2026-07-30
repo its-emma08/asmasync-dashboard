@@ -8,8 +8,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --runner=vitest",
-    "test:run": "vitest run --config vitest-base.config.ts",
-    "test:watch": "vitest --config vitest-base.config.ts",
+    "test:run": "ng test --watch=false",
+    "test:watch": "ng test",
     "serve:ssr:dashboard": "node dist/dashboard/server/server.mjs",
     "clean": "ng cache clean"
   },
