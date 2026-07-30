@@ -37,6 +37,9 @@ const SIZE_LABELS_ES: Record<WidgetSize, string> = {
   'full-large': 'Completo Grande'
 };
 
+// Cycle order for resize (One UI 8.5 style)
+const SIZE_CYCLE: WidgetSize[] = ['small', 'medium', 'large', 'wide', 'tall', 'full', 'full-large'];
+
 @Component({
   selector: 'app-widget-shell',
   standalone: true,
@@ -53,6 +56,23 @@ const SIZE_LABELS_ES: Record<WidgetSize, string> = {
         <button class="ctrl-btn ctrl-delete" (click)="onDelete($event)" aria-label="Eliminar widget">
           <span class="ctrl-icon">−</span>
         </button>
+
+        <!-- Size Controls (One UI 8.5 style) -->
+        <div class="size-controls">
+          <button class="size-btn size-btn--shrink" (click)="shrinkSize($event)"
+            [disabled]="isMinSize" aria-label="Reducir tamaño">
+            <svg width="10" height="10" viewBox="0 0 10 10">
+              <path d="M2 5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <span class="size-label">{{ sizeNameEs }}</span>
+          <button class="size-btn size-btn--grow" (click)="growSize($event)"
+            [disabled]="isMaxSize" aria-label="Ampliar tamaño">
+            <svg width="10" height="10" viewBox="0 0 10 10">
+              <path d="M5 2v6M2 5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
 
         <!-- Drag handle -->
         <div class="drag-handle" cdkDragHandle aria-label="Mover widget">
@@ -105,22 +125,35 @@ const SIZE_LABELS_ES: Record<WidgetSize, string> = {
       height: 100%;
       width: 100%;
       border-radius: 20px;
-      transition: outline 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-      background: var(--bg-card);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+      background: #ffffff;
+      border: 1px solid rgba(0, 20, 60, 0.07);
+      box-shadow:
+        0 2px 8px rgba(0, 20, 60, 0.05),
+        0 1px 2px rgba(0, 20, 60, 0.04);
       cursor: default;
+
+      /* Top edge highlight — premium elevation effect */
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.9);
+        pointer-events: none;
+        z-index: 1;
+      }
     }
 
     .shell-inner:hover {
-      box-shadow: var(--shadow-md);
+      box-shadow:
+        0 8px 24px rgba(0, 20, 60, 0.08),
+        0 3px 6px rgba(0, 20, 60, 0.05);
     }
 
     .shell-inner.dragging {
-      opacity: 0.8 !important;
-      box-shadow: 0 24px 48px rgba(0,0,0,0.2) !important;
+      opacity: 0.85 !important;
+      box-shadow: 0 24px 48px rgba(0, 20, 60, 0.15) !important;
       cursor: grabbing !important;
       transform: scale(1.02);
     }
@@ -189,6 +222,60 @@ const SIZE_LABELS_ES: Record<WidgetSize, string> = {
       margin-top: -2px;
     }
 
+    /* ── Size Controls (One UI 8.5 style pill) ── */
+    .size-controls {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      padding: 3px 6px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      white-space: nowrap;
+    }
+
+    .size-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #007AFF;
+      transition: background 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .size-btn:hover:not(:disabled) {
+      background: rgba(0, 122, 255, 0.1);
+    }
+
+    .size-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .size-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1c1c1e;
+      padding: 0 5px;
+      min-width: 52px;
+      text-align: center;
+      letter-spacing: -0.01em;
+    }
+
     /* Drag handle — bottom center */
     .drag-handle {
       position: absolute;
@@ -226,6 +313,11 @@ const SIZE_LABELS_ES: Record<WidgetSize, string> = {
         background: rgba(30,41,59,0.95);
         color: white;
       }
+      .size-controls {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(255,255,255,0.1);
+      }
+      .size-label { color: #ffffff; }
     }
   `]
 })
@@ -241,8 +333,8 @@ export class WidgetShellComponent implements OnInit, OnDestroy {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Override the size to a fixed size according to the widget type
-    if (this.widgetType) {
+    // Override the size to a fixed size according to the widget type if no custom size set
+    if (this.widgetType && (!this.currentSize || this.currentSize === 'medium')) {
       this.currentSize = WIDGET_SIZE_MAP[this.widgetType] || WIDGET_SIZE_MAP['default'];
     }
   }
@@ -269,6 +361,38 @@ export class WidgetShellComponent implements OnInit, OnDestroy {
       'full-large': 'FL'
     };
     return labels[this.currentSize];
+  }
+
+  get currentSizeIndex(): number {
+    return SIZE_CYCLE.indexOf(this.currentSize);
+  }
+
+  get isMinSize(): boolean {
+    return this.currentSizeIndex <= 0;
+  }
+
+  get isMaxSize(): boolean {
+    return this.currentSizeIndex >= SIZE_CYCLE.length - 1;
+  }
+
+  growSize(event: MouseEvent): void {
+    event.stopPropagation();
+    const idx = this.currentSizeIndex;
+    if (idx < SIZE_CYCLE.length - 1) {
+      this.currentSize = SIZE_CYCLE[idx + 1];
+      this.sizeChanged.emit(this.currentSize);
+      this.cdr.markForCheck();
+    }
+  }
+
+  shrinkSize(event: MouseEvent): void {
+    event.stopPropagation();
+    const idx = this.currentSizeIndex;
+    if (idx > 0) {
+      this.currentSize = SIZE_CYCLE[idx - 1];
+      this.sizeChanged.emit(this.currentSize);
+      this.cdr.markForCheck();
+    }
   }
 
   onDelete(event: MouseEvent): void {

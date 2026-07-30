@@ -16,12 +16,23 @@ export interface PredictionRequest {
 
 export interface PredictionResponse {
   id: number;
-  risk_level: 'green' | 'yellow' | 'red';
-  risk_score: number;
-  confidence: number;
-  factors: string[];
-  recommendation: string;
-  created_at: string;
+  user_id?: number;
+  risk_level: string;
+  probability?: number;
+  input_data?: {
+    factors?: string[];
+    recommendation?: string;
+    [key: string]: any;
+  };
+  predicted_at?: string;
+  model_version?: string;
+  
+  // Legacy or mockup compatibility
+  risk_score?: number;
+  confidence?: number;
+  factors?: string[];
+  recommendation?: string;
+  created_at?: string;
 }
 
 export interface PaginatedPredictions {
@@ -50,6 +61,13 @@ export class PredictionService {
   getLatest(): Observable<PredictionResponse | null> {
     return this.http.get<PredictionResponse>(`${this.BASE}/latest`).pipe(
       catchError(() => of(null))
+    );
+  }
+
+  getPatientPredictions(patientId: number, limit = 10): Observable<PredictionResponse[]> {
+    const parentBase = this.BASE.substring(0, this.BASE.lastIndexOf('/'));
+    return this.http.get<PredictionResponse[]>(`${parentBase}/patients/${patientId}/predictions?limit=${limit}`).pipe(
+      catchError(() => of([]))
     );
   }
 }

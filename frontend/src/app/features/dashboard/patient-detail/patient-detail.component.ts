@@ -41,7 +41,9 @@ import { AgePipe } from '../../../shared/pipes/age-pipe';
 import { SafeDatePipe } from '../../../shared/pipes/safe-date.pipe';
 import { PdfExportService } from '../../../core/services/pdf-export.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PredictionService, PredictionResponse } from '../../../core/services/prediction.service';
 import * as riskHelper from '../../../core/utils/risk.helper';
+
 
 interface VitalMetric {
     label: string;
@@ -227,6 +229,10 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
 
     displayedCrisisColumns: string[] = ['date', 'severity', 'hospitalized', 'duration', 'trigger'];
 
+    predictions: PredictionResponse[] = [];
+    latestPrediction: PredictionResponse | null = null;
+    ginaControlStatus: 'controlled' | 'partially_controlled' | 'uncontrolled' = 'controlled';
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -239,7 +245,8 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
         private dialog: MatDialog,
         private pdfExport: PdfExportService,
         private cdr: ChangeDetectorRef,
-        private authService: AuthService
+        private authService: AuthService,
+        private predictionService: PredictionService
     ) { }
 
     ngOnInit(): void {
@@ -325,6 +332,9 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
             patient: this.patientService.getPatientById(id),
             interventions: this.interventionService.getByPatient(numericId ?? 0).pipe(
                 catchError(() => of([]))
+            ),
+            predictions: (numericId ? this.predictionService.getPatientPredictions(numericId, 10) : of([])).pipe(
+                catchError(() => of([]))
             )
         })
             .pipe(
@@ -340,6 +350,8 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                     if (result && result.patient) {
                         this.patient = result.patient;
                         this.interventions = result.interventions || [];
+                        this.predictions = result.predictions || [];
+                        this.latestPrediction = this.predictions.length > 0 ? this.predictions[0] : null;
 
                         // Build chart data and history timeline from recent_measurements
                         const chartData = this.buildChartDataFromMeasurements(
@@ -350,6 +362,7 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                         );
 
                         this.processHistory(this.history);
+                        this.calculateGinaStatus();
                         this.setupRealCharts(chartData, this.patient?.personal_best_pef || 500);
 
                         // Update vitals from most recent measurement
@@ -392,6 +405,71 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                     console.error('Error loading patient data:', err);
                 }
             });
+    }
+
+    calculateGinaStatus(): void {
+        if (!this.patient || !this.patient.recent_measurements) {
+            this.ginaControlStatus = 'controlled';
+            return;
+        }
+
+        const measurements = this.patient.recent_measurements;
+        let daytimeSymptomsCount = 0;
+        let nightAwakeningsCount = 0;
+        let relieverUseCount = 0;
+        let activityLimitationCount = 0;
+
+        // Analyze recent measurements (up to last 10)
+        measurements.forEach((m: any) => {
+            const symptoms = String(m.symptoms || '').toLowerCase();
+            const notes = String(m.notes || '').toLowerCase();
+
+            // Daytime symptoms
+            if (symptoms.includes('tos') || symptoms.includes('sibilancias') || symptoms.includes('opresión') || symptoms.includes('disnea') || symptoms.includes('cough') || symptoms.includes('wheezing')) {
+                daytimeSymptomsCount++;
+            }
+
+            // Night awakening
+            if (symptoms.includes('despertar') || symptoms.includes('nocturno') || notes.includes('despertar') || notes.includes('noche') || notes.includes('night') || notes.includes('sleep')) {
+                nightAwakeningsCount++;
+            }
+
+            // Reliever inhaler use
+            if (symptoms.includes('rescate') || symptoms.includes('salbutamol') || symptoms.includes('reliever') || symptoms.includes('inhalador de rescate') || notes.includes('rescate') || notes.includes('salbutamol')) {
+                relieverUseCount++;
+            }
+
+            // Activity limitation
+            if (symptoms.includes('limitación') || symptoms.includes('ejercicio') || notes.includes('limitación') || notes.includes('ejercicio') || notes.includes('esfuerzo')) {
+                activityLimitationCount++;
+            }
+        });
+
+        // GINA logic
+        let riskFactorsCount = 0;
+        if (daytimeSymptomsCount > 2) riskFactorsCount++;
+        if (nightAwakeningsCount > 0) riskFactorsCount++;
+        if (relieverUseCount > 2) riskFactorsCount++;
+        if (activityLimitationCount > 0) riskFactorsCount++;
+
+        const risk = (this.latestPrediction?.risk_level || this.patient.riskLevel || '').toLowerCase();
+        if (risk === 'high' || risk === 'red') {
+            this.ginaControlStatus = 'uncontrolled';
+        } else if (risk === 'moderate' || risk === 'yellow') {
+            if (riskFactorsCount >= 1) {
+                this.ginaControlStatus = 'partially_controlled';
+            } else {
+                this.ginaControlStatus = 'controlled';
+            }
+        } else {
+            if (riskFactorsCount >= 3) {
+                this.ginaControlStatus = 'uncontrolled';
+            } else if (riskFactorsCount >= 1) {
+                this.ginaControlStatus = 'partially_controlled';
+            } else {
+                this.ginaControlStatus = 'controlled';
+            }
+        }
     }
 
     /** Converts raw recent_measurements array to PatientHistory chart format */
@@ -444,27 +522,63 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
         });
         const values = pefData.map((d: { x: string; y: number }) => d.y);
 
+        const incidentValues = pefData.map((d: { x: string; y: number }) => {
+            const match = (this.patient?.recent_measurements || []).find((m: any) => {
+                return m.measured_at && new Date(m.measured_at).getTime() === new Date(d.x).getTime();
+            });
+            if (match) {
+                const symptoms = String(match.symptoms || '').toLowerCase();
+                const notes = String(match.notes || '').toLowerCase();
+                const hasSymptom = symptoms.includes('tos') || symptoms.includes('sibilancias') || 
+                                   symptoms.includes('opresión') || symptoms.includes('disnea') || 
+                                   symptoms.includes('cough') || symptoms.includes('wheezing') ||
+                                   symptoms.includes('rescate') || symptoms.includes('salbutamol') || 
+                                   symptoms.includes('reliever') || notes.includes('rescate') || 
+                                   notes.includes('salbutamol') || match.symptom_intensity;
+                if (hasSymptom) {
+                    return d.y; // Show point at the same PEF level
+                }
+            }
+            return null;
+        });
+
         this.pefChartData = {
             labels: dates,
-            datasets: [{
-                data: values,
-                label: 'FEM Medido',
-                borderColor: '#00B5AD',
-                backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                    gradient.addColorStop(0, 'rgba(0, 181, 173, 0.4)');
-                    gradient.addColorStop(1, 'rgba(0, 181, 173, 0.0)');
-                    return gradient;
+            datasets: [
+                {
+                    data: values,
+                    label: 'FEM Medido',
+                    borderColor: '#00B5AD',
+                    backgroundColor: (context: any) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                        gradient.addColorStop(0, 'rgba(0, 181, 173, 0.4)');
+                        gradient.addColorStop(1, 'rgba(0, 181, 173, 0.0)');
+                        return gradient;
+                    },
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4, // Visible points for real data
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#00B5AD',
+                    pointBorderWidth: 2
                 },
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 4, // Visible points for real data
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#00B5AD',
-                pointBorderWidth: 2
-            }]
+                {
+                    data: incidentValues as any,
+                    label: 'Eventos de Síntomas / Rescate',
+                    borderColor: 'transparent',
+                    backgroundColor: '#EF4444',
+                    pointStyle: 'triangle',
+                    pointRadius: 9,
+                    pointHoverRadius: 11,
+                    pointBackgroundColor: '#EF4444',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    showLine: false,
+                    fill: false
+                }
+            ]
         };
 
         // Annotations logic remains same

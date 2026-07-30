@@ -587,8 +587,8 @@ $primary-color: #0E7490;
 /* Identification Grid */
 .grid-form {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 20px;
 
     .field {
         display: flex;
@@ -598,28 +598,34 @@ $primary-color: #0E7490;
             font-size: 8px;
             font-weight: 700;
             color: #94a3b8;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         span {
-            font-size: 11px;
-            color: #334155;
-            font-weight: 500;
-            border-bottom: 1px dotted #e2e8f0;
-            padding-bottom: 1px;
+            font-size: 11.5px;
+            color: #1e293b;
+            font-weight: 600;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 2px;
         }
 
         .editable-highlight {
-            color: var(--accent-color);
+            color: var(--primary-color);
             font-weight: 700;
-            background: rgba(6, 182, 212, 0.05); // Highlight edited fields
-            padding: 0 4px;
-            border-radius: 2px;
+            background: rgba(14, 116, 144, 0.05); // Highlight edited fields
+            padding: 1px 4px;
+            border-radius: 4px;
         }
     }
 
     .col-span-2 {
         grid-column: span 2;
+    }
+
+    .col-span-3 {
+        grid-column: span 3;
     }
 }
 
@@ -627,13 +633,13 @@ $primary-color: #0E7490;
 .vitals-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 12px;
 
     .vital-card {
-        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+        background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 10px;
+        border-radius: 12px;
+        padding: 12px 8px;
         text-align: center;
         position: relative;
         overflow: hidden;
@@ -651,30 +657,29 @@ $primary-color: #0E7490;
         }
 
         .value {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
-            color: var(--primary-color);
-            display: block;
-            background: linear-gradient(135deg, var(--primary-color, #0E7490), var(--accent-color, #06B6D4));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #0f172a;
+            display: inline-block;
+            line-height: 1;
         }
 
         .unit {
-            font-size: 9px;
-            color: #94a3b8;
+            font-size: 10px;
+            color: #64748b;
             font-weight: 600;
+            margin-left: 2px;
+            display: inline-block;
         }
 
         .label {
             display: block;
-            margin-top: 4px;
-            font-size: 9px;
+            margin-top: 6px;
+            font-size: 8px;
             font-weight: 700;
-            color: #475569;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.06em;
         }
     }
 }
@@ -800,16 +805,17 @@ $primary-color: #0E7490;
     strong { color: #991b1b; }
 }
 
-/* Medical Notes (Typewriter Style) */
+/* Medical Notes */
 .notes-content {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-family, sans-serif);
     font-size: 11px;
-    line-height: 24px; // Line height matches background
+    line-height: 1.6;
     white-space: pre-wrap;
-    background-image: repeating-linear-gradient(white 0px, white 23px, #e2e8f0 24px);
-    background-attachment: local;
-    padding: 0 4px;
-    color: #1e293b;
+    background: #f8fafc;
+    border-left: 3px solid var(--primary-color, #0E7490);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    color: #334155;
 }
 
 /* Signatures */
@@ -967,21 +973,27 @@ $primary-color: #0E7490;
     border-collapse: collapse;
     font-size: 11px;
     margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
 
     th {
-        background: var(--primary-color, #0E7490);
-        color: white;
-        padding: 6px 10px;
+        background: #f8fafc;
+        color: #475569;
+        padding: 8px 12px;
         text-align: left;
         font-weight: 700;
-        font-size: 10px;
+        font-size: 9.5px;
         letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
     }
 
     td {
-        padding: 6px 10px;
+        padding: 8px 12px;
         border-bottom: 1px solid #e2e8f0;
-        vertical-align: top;
+        vertical-align: middle;
+        color: #334155;
     }
 
     tr:nth-child(even) td { background: #f8fafc; }

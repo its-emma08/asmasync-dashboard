@@ -37,6 +37,7 @@ export interface Patient {
     profilePicture?: string; // avatar_seed generator
     adherence?: number;
     status?: 'Crítico' | 'Moderado' | 'Estable';
+    probability?: number;
     email?: string;
     phone?: string;
     trend?: 'up' | 'down' | 'stable';

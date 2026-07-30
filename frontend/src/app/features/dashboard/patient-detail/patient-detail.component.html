@@ -36,9 +36,17 @@
                     </div>
 
                     <div class="hero-info">
-                        <div class="hero-badge-row">
+                        <div class="hero-badge-row flex items-center gap-2 flex-wrap">
                             <span class="hero-label">EXPEDIENTE DIGITAL</span>
                             <span class="hero-id">ID #{{ patient.id }}</span>
+                            <span class="gina-badge font-black text-[9px] uppercase px-2 py-0.5 rounded-full border" 
+                                  [ngClass]="{
+                                    'bg-green-500/10 text-green-600 border-green-200': ginaControlStatus === 'controlled',
+                                    'bg-yellow-500/10 text-yellow-600 border-yellow-200': ginaControlStatus === 'partially_controlled',
+                                    'bg-red-500/10 text-red-600 border-red-200': ginaControlStatus === 'uncontrolled'
+                                  }">
+                                GINA: {{ ginaControlStatus === 'controlled' ? 'Controlado' : ginaControlStatus === 'partially_controlled' ? 'Parcial' : 'No Controlado' }}
+                            </span>
                         </div>
                         <h1 class="hero-name">{{ patient.full_name }}</h1>
 
@@ -65,6 +73,9 @@
                             </button>
                             <button (click)="openClinicalHistory()" class="apple-secondary-btn small indigo">
                                 <mat-icon>history_edu</mat-icon> Historia
+                            </button>
+                            <button [routerLink]="['/dashboard/reports']" [queryParams]="{ patientId: patient.id }" class="apple-secondary-btn small teal">
+                                <mat-icon>analytics</mat-icon> Reporte Completo
                             </button>
                             <button (click)="exportPDF()" class="apple-primary-btn small">
                                 <mat-icon>picture_as_pdf</mat-icon> PDF
@@ -136,6 +147,67 @@
                     
                     <!-- Left Column: Critical Status & Vitals (4 cols) -->
                     <div class="xl:col-span-4 flex flex-col gap-6">
+                        
+                        <!-- PANEL PREDICTIVO DE IA (CLÍNICO) -->
+                        <div class="glass-card-premium p-6 border-l-4" 
+                             [ngClass]="{
+                               'border-green-500 bg-green-500/5': (latestPrediction?.risk_level || patient.riskLevel) === 'low',
+                               'border-yellow-500 bg-yellow-500/5': (latestPrediction?.risk_level || patient.riskLevel) === 'moderate',
+                               'border-red-500 bg-red-500/5': (latestPrediction?.risk_level || patient.riskLevel) === 'high'
+                             }">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                        <mat-icon class="!text-lg">psychology</mat-icon>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-black text-gray-900 dark:text-white">Diagnóstico Predictivo (IA)</h4>
+                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">AsmaSync Predictor v2.1</p>
+                                    </div>
+                                </div>
+                                <span class="text-[9px] text-gray-400 font-bold uppercase" *ngIf="latestPrediction?.predicted_at">
+                                    {{ latestPrediction?.predicted_at | safeDate:'shortDate' }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-baseline gap-2 mb-4">
+                                <span class="text-3xl font-black tracking-tight" 
+                                      [ngClass]="{
+                                        'text-green-600': (latestPrediction?.risk_level || patient.riskLevel) === 'low',
+                                        'text-yellow-600': (latestPrediction?.risk_level || patient.riskLevel) === 'moderate',
+                                        'text-red-600': (latestPrediction?.risk_level || patient.riskLevel) === 'high'
+                                      }">
+                                    {{ latestPrediction ? ((latestPrediction.probability || 0) * 100).toFixed(0) : ((patient.probability || 0.15) * 100).toFixed(0) }}%
+                                </span>
+                                <span class="text-xs text-gray-500 font-medium">Probabilidad de Crisis</span>
+                            </div>
+
+                            <!-- Factores de Riesgo Clave -->
+                            <div class="mb-4">
+                                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">FACTORES DE RIESGO IA</span>
+                                <div class="flex flex-wrap gap-1.5" *ngIf="latestPrediction?.input_data?.factors?.length; else defaultFactors">
+                                    <span *ngFor="let factor of latestPrediction?.input_data?.factors" class="apple-tag gray small text-[9px] font-bold">{{ factor }}</span>
+                                </div>
+                                <ng-template #defaultFactors>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <span class="apple-tag gray small text-[9px] font-bold" *ngIf="patient.aqi && patient.aqi > 50">ICA: {{ patient.aqi }} (Moderado)</span>
+                                        <span class="apple-tag gray small text-[9px] font-bold" *ngIf="patient.pollen_level === 'High'">Polen Alto</span>
+                                        <span class="apple-tag gray small text-[9px] font-bold" *ngIf="patient.adherence && patient.adherence < 80">Baja Adherencia ({{ patient.adherence }}%)</span>
+                                        <span class="apple-tag gray small text-[9px] font-bold" *ngIf="patient.latest_pef && patient.latest_pef < (patient.personal_best_pef * 0.8)">FEM bajo meta</span>
+                                        <span class="apple-tag gray small text-[9px] font-bold" *ngIf="!patient.aqi && !patient.pollen_level">Sin desencadenantes ambientales</span>
+                                    </div>
+                                </ng-template>
+                            </div>
+
+                            <!-- Recomendación de la IA -->
+                            <div class="p-3 bg-white/60 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs">
+                                <span class="font-bold text-gray-900 dark:text-white block mb-1">Recomendación IA:</span>
+                                <p class="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                                    {{ latestPrediction?.input_data?.recommendation || latestPrediction?.recommendation || 'Mantener monitoreo regular del pico de flujo y continuar con el tratamiento preventivo prescrito.' }}
+                                </p>
+                            </div>
+                        </div>
+
                         <app-action-plan-widget
                             [riskLevel]="patient.riskLevel"
                             [personalBest]="patient.personal_best_pef || 500"
@@ -214,9 +286,9 @@
                                     <h3 class="text-lg font-extrabold text-gray-900 dark:text-white">Tendencias de Salud</h3>
                                     <p class="text-xs text-gray-500 font-medium uppercase tracking-tight">Monitoreo de FEM (Últimos 7 días)</p>
                                 </div>
-                                <div class="chart-legend-apple">
-                                    <div class="legend-item"><span class="dot blue"></span> Real</div>
-                                    <div class="legend-item"><span class="dot green"></span> Meta</div>
+                                <div class="chart-legend-apple flex items-center gap-4 flex-wrap">
+                                    <div class="legend-item flex items-center gap-1.5"><span class="dot teal" style="background-color: #00B5AD; width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> Pico Flujo</div>
+                                    <div class="legend-item flex items-center gap-1.5"><span class="dot red" style="display: inline-block; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid #EF4444; margin-right: 2px;"></span> Síntoma/Rescate</div>
                                 </div>
                             </div>
                             

@@ -5,61 +5,63 @@
     [class.grid-cols-4]="visibleCount === 4">
 
     <div *ngFor="let kpi of visibleKpis; let i = index" (click)="navigateToDetail(kpi)"
-        class="kpi-card group glass-card p-5 flex flex-col justify-between relative overflow-hidden"
-        [style.animation-delay]="(i * 0.05) + 's'">
+        class="kpi-card group"
+        [style.animation-delay]="(i * 0.06) + 's'"
+        style="animation: fadeIn 0.4s ease both;">
 
-         <!-- Top row: title + icon -->
-         <div class="flex items-start justify-between mb-3">
-             <div class="flex-1 min-w-0 pr-2">
-                 <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 mb-2 truncate">
-                     {{ kpi?.title }}
-                 </p>
-                 <div class="flex items-end gap-3 flex-wrap">
-                     <h3 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-none tabular-nums">
-                         {{ kpi?.displayValue ?? 0 }}
-                     </h3>
-                 </div>
-             </div>
+        <!-- Top row: label + icon -->
+        <div class="flex items-start justify-between">
+            <!-- Icon Bubble -->
+            <div class="kpi-icon-wrap flex-shrink-0" [ngClass]="kpi?.bubbleClass || 'bubble-teal'">
+                <mat-icon>{{ kpi?.icon || 'analytics' }}</mat-icon>
+            </div>
 
-             <!-- Mini Icon Bubble -->
-             <div class="kpi-icon-wrap flex-shrink-0" [ngClass]="kpi?.bubbleClass || 'bubble-teal'">
-                 <mat-icon>{{ kpi?.icon || 'analytics' }}</mat-icon>
-             </div>
-         </div>
+            <!-- Trend pill (top right) -->
+            <span *ngIf="kpi?.progress != null" class="trend-pill"
+                [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'trend-down' : 'trend-up'">
+                <mat-icon>{{ kpi?.progressColorClass === 'fill-red' ? 'south' : 'north' }}</mat-icon>
+                {{ kpi?.progress ?? 0 }}%
+            </span>
+        </div>
 
-         <!-- Context Middle -->
-         <div class="mb-3">
-            <p class="text-[11px] text-gray-500 dark:text-slate-400 font-medium truncate">
+        <!-- Main Value -->
+        <div class="mt-3">
+            <h3 class="tabular-nums leading-none font-extrabold tracking-tight text-gray-900"
+                style="font-size: clamp(2rem, 3.5vw, 2.8rem); color: var(--text-primary);">
+                {{ kpi?.displayValue ?? 0 }}
+            </h3>
+            <p class="mt-1 font-semibold text-xs uppercase tracking-widest" 
+               style="color: var(--text-muted); letter-spacing: 0.10em;">
+                {{ kpi?.title }}
+            </p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mt-auto pt-4">
+            <div class="progress-bar-wrap">
+                <div [style.width.%]="kpi?.progress ?? 0" 
+                     class="h-full flex-shrink-0 rounded-full transition-all duration-700"
+                     [ngClass]="kpi?.progressColorClass === 'fill-red'
+                        ? 'bg-gradient-to-r from-[#E5323E] to-[#E07B12]'
+                        : 'bg-gradient-to-r from-[#1A6FE8] to-[#0EA5C9]'">
+                </div>
+            </div>
+            <p class="mt-2 text-[10px] font-medium" style="color: var(--text-muted);">
                 {{ kpi?.subtitle || ('Meta ' + (kpi?.timeframe || 'Mensual')) }}
             </p>
-         </div>
+        </div>
 
-         <!-- Apple-Style Progress Bar -->
-         <div class="mt-auto">
-             <div class="flex mb-1.5 items-center justify-between">
-                 <span class="text-[10px] font-bold inline-block py-0.5 px-2 uppercase rounded-full" 
-                       [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400' : 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400'">
-                     {{ kpi?.progress ?? 0 }}% de la meta
-                 </span>
-             </div>
-             <div class="overflow-hidden h-1.5 flex rounded-full bg-gray-100 dark:bg-gray-800">
-                 <div [style.width.%]="kpi?.progress ?? 0" 
-                      class="flex-shrink-0 text-center text-white transition-all duration-700 rounded-full"
-                      [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-blue-400'">
-                 </div>
-             </div>
-         </div>
-
-         <!-- Timeframe Menu -->
-         <button mat-icon-button [matMenuTriggerFor]="timeMenu" (click)="$event.stopPropagation()"
-             class="!absolute bottom-2 right-2 !scale-75 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-             <mat-icon>more_horiz</mat-icon>
-         </button>
-         <mat-menu #timeMenu="matMenu" class="glass-menu">
-             <button mat-menu-item (click)="onTimeframeChange(kpi, 'Hoy')">Hoy</button>
-             <button mat-menu-item (click)="onTimeframeChange(kpi, '7 Días')">7 Días</button>
-             <button mat-menu-item (click)="onTimeframeChange(kpi, '30 Días')">30 Días</button>
-         </mat-menu>
+        <!-- Context Menu -->
+        <button mat-icon-button [matMenuTriggerFor]="timeMenu" (click)="$event.stopPropagation()"
+            class="!absolute bottom-2 right-2 !scale-75 opacity-0 group-hover:opacity-100 transition-opacity"
+            style="color: var(--text-muted);">
+            <mat-icon>more_horiz</mat-icon>
+        </button>
+        <mat-menu #timeMenu="matMenu" class="glass-menu">
+            <button mat-menu-item (click)="onTimeframeChange(kpi, 'Hoy')">Hoy</button>
+            <button mat-menu-item (click)="onTimeframeChange(kpi, '7 Días')">7 Días</button>
+            <button mat-menu-item (click)="onTimeframeChange(kpi, '30 Días')">30 Días</button>
+        </mat-menu>
     </div>
 
 </div>
