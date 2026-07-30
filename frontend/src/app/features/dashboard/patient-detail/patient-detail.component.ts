@@ -746,11 +746,39 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
     async exportPDF(): Promise<void> {
         if (!this.patient) return;
         const p = this.patient;
-        const agePipe = new AgePipe();
-        const age = agePipe.transform(p.date_of_birth);
+
+        // Formateador robusto de edad usando AgePipe
+        const ageVal = new AgePipe().transform(p);
+        const ageDisplay = ageVal !== '' ? `${ageVal} años` : '—';
+
+        // Formateador de sexo
+        const formatGender = (g?: string): string => {
+            if (!g) return '—';
+            const lower = String(g).trim().toLowerCase();
+            if (lower === 'male' || lower === 'masculino' || lower === 'm' || lower === 'hombre') return 'MASCULINO';
+            if (lower === 'female' || lower === 'femenino' || lower === 'f' || lower === 'mujer') return 'FEMENINO';
+            if (lower === 'other' || lower === 'otro' || lower === 'o') return 'OTRO';
+            return g.toUpperCase();
+        };
+
+        // Formateador de tipo de asma / diagnóstico
+        const formatAsthmaType = (type?: string): string => {
+            if (!type) return 'Asma Bronquial';
+            const map: Record<string, string> = {
+                'allergic': 'Asma Alérgica',
+                'non_allergic': 'Asma No Alérgica',
+                'mixed': 'Asma Mixta',
+                'exercise_induced': 'Asma Inducida por Ejercicio'
+            };
+            return map[type.toLowerCase()] || type;
+        };
+
+        const genderDisplay = formatGender(p.gender);
+        const asthmaDisplay = formatAsthmaType(p.asthma_type);
         const today = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const riskLabel = riskHelper.getRiskLabel(p.riskLevel);
-        const riskColor = riskHelper.getRiskColor(p.riskLevel);
+        const rawRisk = (this.latestPrediction?.risk_level || p.riskLevel || (p.status === 'Crítico' ? 'high' : p.status === 'Moderado' ? 'moderate' : 'low')).toLowerCase();
+        const riskLabel = riskHelper.getRiskLabel(rawRisk);
+        const riskColor = riskHelper.getRiskColor(rawRisk);
         const institutionName = (this.authService.currentUserValue as any)?.hospital_name || 'AsmaSync Medical Dashboard';
         const meds = (p.medications || []).map((m: any) => `
             <tr><td style="padding:6px 8px;border-bottom:1px solid #f1f5f9">${m.name}</td>
@@ -780,9 +808,9 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
     <div style="font-size:11px;font-weight:700;color:#0e7490;letter-spacing:0.05em;text-transform:uppercase;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:12px;">FICHA DE IDENTIFICACIÓN</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
       <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">PACIENTE</div><div style="font-size:13px;font-weight:700">${(p.full_name || '').toUpperCase()}</div></div>
-      <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">EDAD</div><div style="font-size:13px;font-weight:700">${age} años</div></div>
-      <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">SEXO</div><div style="font-size:13px;font-weight:700">${p.gender === 'male' ? 'MASCULINO' : 'FEMENINO'}</div></div>
-      <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">DIAGNÓSTICO</div><div style="font-size:13px;font-weight:700">${p.asthma_type || 'Asma Bronquial'}</div></div>
+      <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">EDAD</div><div style="font-size:13px;font-weight:700">${ageDisplay}</div></div>
+      <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">SEXO</div><div style="font-size:13px;font-weight:700">${genderDisplay}</div></div>
+      <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">DIAGNÓSTICO</div><div style="font-size:13px;font-weight:700">${asthmaDisplay}</div></div>
       <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">TELÉFONO</div><div style="font-size:13px;font-weight:700">${p.phone || '—'}</div></div>
       <div><div style="font-size:9px;color:#94a3b8;font-weight:700;">RIESGO</div>
         <div style="display:inline-block;padding:2px 10px;border-radius:6px;background:${riskColor}20;color:${riskColor};font-size:11px;font-weight:800;">${riskLabel}</div></div>

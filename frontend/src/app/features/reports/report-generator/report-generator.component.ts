@@ -27,6 +27,7 @@ import { StorageService } from '../../../core/services/storage.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Patient, PEFTrend } from '../../../core/models/patient.model';
 import { PdfExportService } from '../../../core/services/pdf-export.service';
+import { AgePipe } from '../../../shared/pipes/age-pipe';
 import * as riskHelper from '../../../core/utils/risk.helper';
 
 import Chart from 'chart.js/auto';
@@ -439,12 +440,9 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
     computedCurp: string = '';
 
     calculateDerivedData(): void {
-        // Age
-        if (this.selectedPatient?.date_of_birth) {
-            this.computedAge = Math.floor((new Date().getTime() - new Date(this.selectedPatient.date_of_birth).getTime()) / 31557600000);
-        } else {
-            this.computedAge = 0;
-        }
+        // Age calculation using AgePipe
+        const ageVal = new AgePipe().transform(this.selectedPatient || this.editedPatient);
+        this.computedAge = typeof ageVal === 'number' ? ageVal : (Number(ageVal) || 0);
 
         // CURP — only show if the patient has a real CURP on record
         this.computedCurp = (this.selectedPatient as any)?.curp || '';

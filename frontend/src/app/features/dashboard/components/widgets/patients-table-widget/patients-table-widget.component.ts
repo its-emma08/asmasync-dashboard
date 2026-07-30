@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { SearchService } from '../../../../../core/services/search.service';
 import { Subject } from 'rxjs';
 import { Patient } from '../../../../../core/models/patient.model';
+import { AgePipe } from '../../../../../shared/pipes/age-pipe';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -60,16 +61,9 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
         });
     }
 
-    getAge(dobString: string): number {
-        if (!dobString) return 0;
-        const dob = new Date(dobString);
-        const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        const monthDiff = today.getMonth() - dob.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-            age--;
-        }
-        return age;
+    getAge(patient: any): number | string {
+        const val = new AgePipe().transform(patient);
+        return val !== '' ? val : '—';
     }
 
     getAdherenceColor(adherence: number): string {

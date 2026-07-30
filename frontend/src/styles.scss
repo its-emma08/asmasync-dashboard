@@ -3,6 +3,7 @@
    ============================================ */
 @use '@angular/material' as mat;
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import '@angular/cdk/overlay-prebuilt.css';
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
@@ -2139,4 +2140,46 @@ body.dark .apple-search-bar { background: rgba(255,255,255,0.06); }
 .apple-animate-in:nth-child(3) { animation-delay: 80ms; }
 .apple-animate-in:nth-child(4) { animation-delay: 120ms; }
 .apple-animate-in:nth-child(5) { animation-delay: 160ms; }
+
+/* ============================================
+   MatDatepicker & CDK Overlay Global Styling
+   ============================================ */
+.mat-datepicker-content {
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(0, 20, 60, 0.12) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 48px rgba(0, 20, 60, 0.18) !important;
+    overflow: hidden !important;
+    font-family: var(--font-family) !important;
+
+    .mat-calendar-body-selected {
+        background-color: var(--brand-primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px var(--brand-primary-shadow) !important;
+    }
+
+    .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+        border-color: var(--brand-primary) !important;
+        color: var(--brand-primary) !important;
+    }
+}
+
+body.dark .mat-datepicker-content,
+.dark .mat-datepicker-content {
+    background: rgba(15, 23, 42, 0.96) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+    color: #f8fafc !important;
+
+    .mat-calendar-body-cell-content {
+        color: #f8fafc !important;
+    }
+
+    .mat-calendar-table-header th,
+    .mat-calendar-period-button {
+        color: #94a3b8 !important;
+    }
+}
 .apple-animate-in:nth-child(6) { animation-delay: 200ms; }

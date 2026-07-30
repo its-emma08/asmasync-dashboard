@@ -51,8 +51,8 @@
                         <h1 class="hero-name">{{ patient.full_name }}</h1>
 
                         <div class="hero-chips">
-                            <span class="hero-chip" *ngIf="patient.date_of_birth">
-                                <mat-icon>cake</mat-icon>{{ patient.date_of_birth | age }} años
+                            <span class="hero-chip" *ngIf="(patient | age) !== ''">
+                                <mat-icon>cake</mat-icon>{{ patient | age }} años
                             </span>
                             <span class="hero-chip">
                                 <mat-icon>{{ patient.gender === 'male' ? 'male' : (patient.gender === 'female' ? 'female' : 'person') }}</mat-icon>
