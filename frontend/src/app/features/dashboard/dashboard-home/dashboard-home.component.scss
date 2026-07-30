@@ -1,22 +1,22 @@
 /* ============================================
-   Dashboard Home — Apple Premium Layout
+   Dashboard Home — Light Medical Pro
    ============================================ */
 :host {
     display: block;
     min-height: 100%;
-    background: transparent;
+    background: var(--bg-body);
     color: var(--text-primary);
 }
 
 /* ─── Container ─── */
 .dashboard-container {
-    padding: 24px 8px;
+    padding: 8px 16px 24px;
     min-height: 100%;
     position: relative;
     max-width: 100%;
 }
 
-/* ─── Ambient Glow (Refined) ─── */
+/* ─── Ambient Glow (Subtle clinical) ─── */
 .ambient-glow {
     position: fixed;
     top: 0;
@@ -29,25 +29,26 @@
 
     .glow-circle {
         position: absolute;
-        filter: blur(120px);
-        opacity: 0.15;
+        filter: blur(140px);
         border-radius: 50%;
         transition: all 1s ease;
 
         &.primary {
-            width: 600px;
-            height: 600px;
-            background: var(--brand-primary);
-            top: -200px;
-            right: -100px;
+            width: 700px;
+            height: 700px;
+            background: #1A6FE8;
+            opacity: 0.05;
+            top: -300px;
+            right: -150px;
         }
 
         &.accent {
-            width: 400px;
-            height: 400px;
-            background: #38bdf8;
-            bottom: -100px;
-            left: -50px;
+            width: 500px;
+            height: 500px;
+            background: #0DA2BE;
+            opacity: 0.04;
+            bottom: -200px;
+            left: -100px;
         }
     }
 }
@@ -66,6 +67,8 @@
     grid-auto-flow: row dense;
     gap: 20px;
     align-items: start;
+    /* Extra top padding so size-pill controls don't clip at top */
+    padding-top: 16px;
 
     /* Cuando hay arrastre activo, todos los items (excepto el
        placeholder) reciben la transición de reordenamiento. */
@@ -175,8 +178,8 @@ app-widget-shell {
 
 /* ─── Add Widget Placeholder (Refined) ─── */
 .add-widget-placeholder {
-    grid-column: span 4;
-    min-height: 180px;
+    grid-column: 1 / -1;  /* Always spans full width without breaking auto-placement */
+    min-height: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -189,6 +192,7 @@ app-widget-shell {
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     background: rgba(0, 0, 0, 0.02) !important;
     border: 2px dashed var(--border-color) !important;
+    border-radius: 20px;
 
     .icon-wrap {
         width: 44px;

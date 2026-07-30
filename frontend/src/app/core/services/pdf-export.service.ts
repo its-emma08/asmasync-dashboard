@@ -66,16 +66,8 @@ export class PdfExportService {
             heightLeft -= pdfPageHeight;
         }
 
-        // Force download via anchor
-        const blob = pdf.output('blob');
-        const typedBlob = new Blob([blob], { type: 'application/pdf' });
-        const url = URL.createObjectURL(typedBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 60000);
+        // Force download via jsPDF native save
+        pdf.save(filename);
     }
 
     /**

@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AppointmentService } from '../../../../../core/services/appointment.service';
 import { AppointmentDialogComponent } from '../../appointment-dialog/appointment-dialog.component';
+import { SpirometerSimulatorDialogComponent } from '../../spirometer-simulator-dialog/spirometer-simulator-dialog.component';
 
 const ACTIONS = [
     {
@@ -32,14 +33,25 @@ const ACTIONS = [
         shadow: 'hover:shadow-amber-100 dark:hover:shadow-amber-900/30',
     },
     {
-        label: 'Reportes',
-        icon: 'post_add',
-        route: '/dashboard/reports',
+        label: 'Simulador IoT',
+        icon: 'sensors',
+        route: null,
+        action: 'simulate',
         bg: 'bg-teal-50 dark:bg-teal-500/10',
         iconBg: 'bg-teal-100 dark:bg-teal-500/20',
         iconColor: 'text-teal-600 dark:text-teal-400',
         hoverBg: 'hover:bg-teal-100 dark:hover:bg-teal-500/20',
         shadow: 'hover:shadow-teal-100 dark:hover:shadow-teal-900/30',
+    },
+    {
+        label: 'Reportes',
+        icon: 'post_add',
+        route: '/dashboard/reports',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+        iconBg: 'bg-emerald-100 dark:bg-emerald-500/20',
+        iconColor: 'text-emerald-600 dark:text-emerald-400',
+        hoverBg: 'hover:bg-emerald-100 dark:hover:bg-emerald-500/20',
+        shadow: 'hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30',
     },
     {
         label: 'Alertas',
@@ -77,27 +89,27 @@ const ACTIONS = [
                 <!-- Routed action -->
                 <button *ngIf="action.route" matRipple
                     [routerLink]="action.route"
-                    class="group flex items-center gap-3 rounded-2xl px-4 py-3 w-full transition-all duration-200 hover:brightness-95 dark:hover:brightness-110 active:scale-[0.97] cursor-pointer text-left"
+                    class="group flex items-center gap-3 rounded-2xl px-4 py-2.5 w-full transition-all duration-200 hover:brightness-95 dark:hover:brightness-110 active:scale-[0.97] cursor-pointer text-left"
                     [class]="action.bg">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
                         [class]="action.iconBg">
-                        <mat-icon class="!text-lg" [class]="action.iconColor">{{ action.icon }}</mat-icon>
+                        <mat-icon class="!text-base" [class]="action.iconColor">{{ action.icon }}</mat-icon>
                     </div>
-                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight flex-1">{{ action.label }}</span>
-                    <mat-icon class="!text-base text-slate-400 dark:text-slate-500 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</mat-icon>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight flex-1">{{ action.label }}</span>
+                    <mat-icon class="!text-sm text-slate-400 dark:text-slate-500 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</mat-icon>
                 </button>
 
                 <!-- Dialog action -->
                 <button *ngIf="!action.route" matRipple
                     (click)="onActionClick(action)"
-                    class="group flex items-center gap-3 rounded-2xl px-4 py-3 w-full transition-all duration-200 hover:brightness-95 dark:hover:brightness-110 active:scale-[0.97] cursor-pointer text-left"
+                    class="group flex items-center gap-3 rounded-2xl px-4 py-2.5 w-full transition-all duration-200 hover:brightness-95 dark:hover:brightness-110 active:scale-[0.97] cursor-pointer text-left"
                     [class]="action.bg">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
                         [class]="action.iconBg">
-                        <mat-icon class="!text-lg" [class]="action.iconColor">{{ action.icon }}</mat-icon>
+                        <mat-icon class="!text-base" [class]="action.iconColor">{{ action.icon }}</mat-icon>
                     </div>
-                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight flex-1">{{ action.label }}</span>
-                    <mat-icon class="!text-base text-slate-400 dark:text-slate-500 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</mat-icon>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight flex-1">{{ action.label }}</span>
+                    <mat-icon class="!text-sm text-slate-400 dark:text-slate-500 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</mat-icon>
                 </button>
             </ng-container>
         </div>
@@ -116,7 +128,15 @@ export class QuickActionsWidgetComponent {
     onActionClick(action: any) {
         if (action.action === 'appointment') {
             this.openAppointmentDialog();
+        } else if (action.action === 'simulate') {
+            this.openSimulatorDialog();
         }
+    }
+
+    openSimulatorDialog() {
+        this.dialog.open(SpirometerSimulatorDialogComponent, {
+            width: '450px'
+        });
     }
 
     openAppointmentDialog() {

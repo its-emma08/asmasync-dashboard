@@ -303,6 +303,40 @@
                                     placeholder="Ej. Negados, Apendicectomía 2020">
                                 <mat-icon matPrefix class="text-gray-400">healing</mat-icon>
                             </mat-form-field>
+
+                            <!-- Summary Preview Card -->
+                            <div class="summary-card" *ngIf="!isEditMode">
+                                <div class="summary-header">
+                                    <mat-icon>person_check</mat-icon>
+                                    <span>Resumen del Registro</span>
+                                </div>
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <span class="summary-label">Paciente</span>
+                                        <span class="summary-value">{{ form.get('full_name')?.value || '—' }}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Fecha de Nacimiento</span>
+                                        <span class="summary-value">{{ formatSummaryDate(form.get('date_of_birth')?.value) }}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Género</span>
+                                        <span class="summary-value">{{ form.get('gender')?.value === 'male' ? 'Masculino' : form.get('gender')?.value === 'female' ? 'Femenino' : form.get('gender')?.value || '—' }}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Tipo de Asma</span>
+                                        <span class="summary-value">{{ formatAsthmaType(form.get('asthma_type')?.value) }}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Mejor FEM Personal</span>
+                                        <span class="summary-value">{{ form.get('personal_best_pef')?.value || '—' }} L/min</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Correo</span>
+                                        <span class="summary-value">{{ form.get('email')?.value || 'No registrado' }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                     </div>

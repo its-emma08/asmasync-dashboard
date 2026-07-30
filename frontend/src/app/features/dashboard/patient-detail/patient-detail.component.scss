@@ -1114,3 +1114,24 @@ $gray-900: #111827;
   .tab-content { display: block !important; }
 }
 
+// ─── GINA Indicator and IA Panel Styles ──────────────────────────────────────────
+.gina-badge {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.border-green-500 {
+  border-left-color: $green !important;
+}
+.border-yellow-500 {
+  border-left-color: $amber !important;
+}
+.border-red-500 {
+  border-left-color: $red !important;
+}
+
+

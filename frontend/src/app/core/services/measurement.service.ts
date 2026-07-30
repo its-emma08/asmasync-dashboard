@@ -170,14 +170,20 @@ this.startHeartbeat();
     );
   }
 
-  /**
-   * Simulate a spirometry reading for QA purposes
-   */
-  simulateReading(): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/spirometer/simulate`, {}).pipe(
+  simulateReading(payload: {
+    user_identifier: string;
+    pef: number;
+    fev1?: number;
+    symptoms?: string;
+    symptom_intensity?: string;
+    notes?: string;
+    measured_at?: string;
+  }): Observable<any> {
+    const headers = { 'x-api-key': 'ClaveSecretaParaMaestros' };
+    return this.http.post<any>(`${this.API_URL}/spirometer/simulate`, payload, { headers }).pipe(
       catchError(err => {
         console.error('Error during simulation:', err);
-        return throwError(() => new Error('La simulación falló.'));
+        return throwError(() => new Error(err.error?.detail || 'La simulación falló.'));
       })
     );
   }
