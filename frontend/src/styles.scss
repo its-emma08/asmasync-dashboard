@@ -62,58 +62,85 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 /* ============================================
-   Design Tokens — Clinical Clean
+   Design Tokens — Light Medical Pro
    ============================================ */
 :root {
     --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-    /* Surfaces */
-    --bg-body: #f5f5f7; /* Apple System Gray 6 */
-    --bg-card: rgba(255, 255, 255, 0.75);
+    /* ── Surfaces ── */
+    --bg-body: #EEF2F7;            /* Cool clinical white-blue */
+    --bg-body-2: #E8EDF4;          /* Slightly deeper for sections */
+    --bg-card: rgba(255, 255, 255, 0.92);
+    --bg-card-solid: #ffffff;
     --bg-hover: rgba(0, 0, 0, 0.04);
     --bg-input: #ffffff;
+    --bg-surface: #F4F7FB;         /* Input backgrounds, secondary surfaces */
 
-    /* Glassmorphism Base (Global Apple Style) */
-    --glass-bg: rgba(255, 255, 255, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.5);
-    --glass-blur: blur(20px) saturate(190%); /* Premium 20px blur */
+    /* ── Glassmorphism ── */
+    --glass-bg: rgba(255, 255, 255, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.7);
+    --glass-blur: blur(24px) saturate(200%);
 
-    /* Brand - Refined Apple Medical Palette */
-    --brand-primary: #007AFF; /* Apple Blue */
-    --brand-primary-hover: #0062CC;
-    --brand-primary-light: rgba(0, 122, 255, 0.08);
-    --brand-danger: #FF3B30; /* iOS Red */
-    --brand-warning: #FF9500; /* iOS Orange */
-    --brand-success: #34C759; /* iOS Green */
-    --brand-cyan: #5AC8FA; /* Hospital Cyan */
+    /* ── Brand — Clinical Medical Palette ── */
+    --brand-primary: #1A6FE8;      /* Deeper medical blue */
+    --brand-primary-hover: #1259C4;
+    --brand-primary-light: rgba(26, 111, 232, 0.08);
+    --brand-primary-border: rgba(26, 111, 232, 0.25);
+    --brand-primary-shadow: rgba(26, 111, 232, 0.22);
 
-    /* Text */
-    --text-primary: #1D1D1F; 
-    --text-secondary: #86868B;
-    --text-muted: #AFB1B6;
+    --brand-teal: #0DA2BE;         /* Clinical teal for SpO2/vitals */
+    --brand-teal-light: rgba(13, 162, 190, 0.09);
+    --brand-success: #12A150;      /* Clinical green */
+    --brand-success-light: rgba(18, 161, 80, 0.09);
+    --brand-danger: #E5323E;       /* Medical red */
+    --brand-danger-light: rgba(229, 50, 62, 0.08);
+    --brand-warning: #E07B12;      /* Clinical amber */
+    --brand-warning-light: rgba(224, 123, 18, 0.09);
+    --brand-purple: #6C4FD4;       /* AI/Model accent */
+    --brand-cyan: #0EA5C9;
+
+    /* ── Gradients ── */
+    --gradient-primary: linear-gradient(135deg, #1A6FE8 0%, #0EA5C9 100%);
+    --gradient-success: linear-gradient(135deg, #12A150 0%, #0DA2BE 100%);
+    --gradient-danger: linear-gradient(135deg, #E5323E 0%, #E07B12 100%);
+    --gradient-purple: linear-gradient(135deg, #6C4FD4 0%, #1A6FE8 100%);
+
+    /* ── Text ── */
+    --text-primary: #0D1B2A;       /* Rich navy-black for readability */
+    --text-secondary: #5A6B7E;     /* Muted slate */
+    --text-muted: #8A97A6;
     --text-on-primary: #ffffff;
+    --text-on-dark: #f0f4f8;
 
-    /* Borders & Shadows */
-    --border-color: rgba(0, 0, 0, 0.1);
-    --border-light: rgba(0, 0, 0, 0.05);
-    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.07);
-    --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.08);
-    --shadow-apple: 0 8px 30px rgba(0, 0, 0, 0.06);
+    /* ── Borders & Shadows — Multicapa ── */
+    --border-color: rgba(0, 20, 60, 0.09);
+    --border-light: rgba(0, 20, 60, 0.05);
+    --border-medium: rgba(0, 20, 60, 0.12);
 
-    /* Radius */
+    /* Sombras multicapa para elevación real */
+    --shadow-xs:  0 1px 2px rgba(0, 20, 60, 0.06);
+    --shadow-sm:  0 2px 8px rgba(0, 20, 60, 0.05), 0 1px 2px rgba(0, 20, 60, 0.04);
+    --shadow-md:  0 4px 16px rgba(0, 20, 60, 0.07), 0 2px 4px rgba(0, 20, 60, 0.05);
+    --shadow-lg:  0 8px 28px rgba(0, 20, 60, 0.09), 0 4px 8px rgba(0, 20, 60, 0.05);
+    --shadow-xl:  0 16px 48px rgba(0, 20, 60, 0.11), 0 8px 16px rgba(0, 20, 60, 0.06);
+    --shadow-apple: 0 8px 32px rgba(0, 20, 60, 0.08), 0 2px 6px rgba(0, 20, 60, 0.04);
+    /* Brand-coloured glow for primary elements */
+    --shadow-brand: 0 8px 24px rgba(26, 111, 232, 0.20), 0 2px 6px rgba(26, 111, 232, 0.12);
+
+    /* ── Radius ── */
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 20px;
     --radius-xl: 24px;
-    --radius-2xl: 36px;
+    --radius-2xl: 32px;
 
-    /* Sidebar - Transparent Floating */
+    /* ── Sidebar ── */
     --sidebar: transparent;
-    --sidebar-foreground: #1D1D1F;
+    --sidebar-foreground: #0D1B2A;
     --sidebar-primary: var(--brand-primary);
     --sidebar-accent: var(--brand-primary-light);
 }
+
 
 /* ============================================
    Glass Modal System
@@ -224,44 +251,43 @@ select:focus {
 }
 
 /* ============================================
-   Cards — White, Consistent, Everywhere
-   ============================================ */
-/* ============================================
-   Cards — Apple/Stripe Aesthetic
+   Cards — Light Medical Pro
    ============================================ */
 .mat-mdc-card {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border-color) !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 20, 60, 0.07) !important;
     border-radius: var(--radius-xl) !important;
-    box-shadow: var(--shadow-sm) !important;
+    box-shadow:
+        0 2px 8px rgba(0, 20, 60, 0.05),
+        0 1px 2px rgba(0, 20, 60, 0.04) !important;
     padding: 1.5rem !important;
-    transition: border-color 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .mat-mdc-card:hover {
     transform: none !important;
-    border-color: #cbd5e1 !important;
-    box-shadow: var(--shadow-sm) !important;
+    box-shadow:
+        0 6px 20px rgba(0, 20, 60, 0.08),
+        0 2px 4px rgba(0, 20, 60, 0.05) !important;
+    border-color: rgba(0, 20, 60, 0.10) !important;
 }
 
-/* Clinical Capsules - Converted to standard definition below for consistency */
-
 .glass-card {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    border: 1px solid rgba(0, 20, 60, 0.07) !important;
     border-radius: var(--radius-xl);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    box-shadow:
+        0 2px 8px rgba(0, 20, 60, 0.05),
+        0 1px 2px rgba(0, 20, 60, 0.04) !important;
 }
 
 .glass-card-premium {
-    background: rgba(255, 255, 255, 0.72) !important;
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 20, 60, 0.07) !important;
     border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-apple), 0 10px 40px rgba(0, 0, 0, 0.03) !important;
+    box-shadow:
+        0 4px 16px rgba(0, 20, 60, 0.07),
+        0 2px 4px rgba(0, 20, 60, 0.05) !important;
     position: relative;
     overflow: hidden;
 
@@ -272,13 +298,13 @@ select:focus {
         left: 0;
         right: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+        background: linear-gradient(90deg, transparent 10%, rgba(255, 255, 255, 1) 50%, transparent 90%);
         z-index: 1;
     }
 }
 
 /* ============================================
-   Buttons — Apple HIG
+   Buttons — Light Medical Pro
    ============================================ */
 .mat-mdc-raised-button.mat-primary,
 .mat-mdc-flat-button.mat-primary {
@@ -286,25 +312,24 @@ select:focus {
     --mdc-filled-button-label-text-color: #ffffff !important;
     --mdc-filled-button-container-color: var(--brand-primary) !important;
     --mdc-protected-button-container-color: var(--brand-primary) !important;
-    border-radius: 14px !important;
-    box-shadow: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 14px rgba(26, 111, 232, 0.20) !important;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     letter-spacing: -0.01em;
-    padding: 0 24px !important;
-    height: 44px !important;
+    padding: 0 22px !important;
+    height: 42px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--gradient-primary) !important;
 
     &:hover:not(:disabled) {
-        --mdc-filled-button-container-color: var(--brand-primary-hover) !important;
-        --mdc-protected-button-container-color: var(--brand-primary-hover) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px var(--brand-primary-shadow) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(26, 111, 232, 0.30) !important;
     }
 
     &:active:not(:disabled) {
-        transform: scale(0.98);
-        box-shadow: none !important;
+        transform: scale(0.98) translateY(0);
+        box-shadow: 0 2px 8px rgba(26, 111, 232, 0.15) !important;
     }
 }
 
@@ -580,61 +605,57 @@ body.dark * {
    ============================================ */
 body.dark {
     /* Base Surfaces */
-    --bg-body: #0f172a;
-    /* Slate 900 */
-    --bg-card: rgba(30, 41, 59, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    /* Slate 800 */
-    --bg-input: #0f172a;
-    /* Slate 900 for inputs (nested inside cards) */
-    --bg-hover: rgba(248, 250, 252, 0.05);
-    /* Soft light hover */
+    --bg-body: #080e1a;            /* Deep blue-black */
+    --bg-body-2: #0b1426;          /* Slightly lighter depth */
+    --bg-card: rgba(15, 23, 42, 0.8); /* Slate 900 with glass opacity */
+    --bg-card-solid: #0f172a;
+    --glass-bg: rgba(15, 23, 42, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --bg-input: #080e1a;
+    --bg-hover: rgba(255, 255, 255, 0.04);
+    --bg-surface: #0b1426;         /* Secondary surfaces */
 
     /* Text */
-    --text-primary: #f8fafc;
-    /* Slate 50 */
-    --text-secondary: #cbd5e1;
-    /* Slate 300 */
-    --text-muted: #64748b;
-    /* Slate 500 */
+    --text-primary: #f1f5f9;       /* Slate 100 */
+    --text-secondary: #94a3b8;     /* Slate 400 */
+    --text-muted: #64748b;         /* Slate 500 */
 
     /* Borders & Shadows */
-    --border-color: #334155;
-    /* Slate 700 */
-    --border-light: #1e293b;
-    /* Slate 800 / Invisible */
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.04);
+    --border-medium: rgba(255, 255, 255, 0.12);
 
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
-    --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.7);
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.6);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.8);
+    --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.9);
+    --shadow-apple: 0 8px 32px rgba(0, 0, 0, 0.7);
+    --shadow-brand: 0 8px 24px rgba(26, 111, 232, 0.15);
 
     color: var(--text-primary);
     background-color: var(--bg-body);
 
     /* Sidebar overrides */
-    --sidebar: #111827;
-    /* Gray 900 */
-    --sidebar-foreground: #f8fafc;
-    --sidebar-accent: #1f2937;
-    /* Gray 800 */
+    --sidebar: #050a14;
+    --sidebar-foreground: #f1f5f9;
+    --sidebar-accent: rgba(26, 111, 232, 0.15);
     --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #1f2937;
+    --sidebar-border: rgba(255, 255, 255, 0.06);
 
     /* Legacy compat */
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --card: #1e293b;
-    --card-foreground: #f8fafc;
-    --border: #334155;
+    --background: #080e1a;
+    --foreground: #f1f5f9;
+    --card: #0f172a;
+    --card-foreground: #f1f5f9;
+    --border: rgba(255, 255, 255, 0.08);
     --input: transparent;
-    --input-background: #1e293b;
-    --muted: #1e293b;
-    --muted-foreground: #cbd5e1;
+    --input-background: #0f172a;
+    --muted: #0f172a;
+    --muted-foreground: #94a3b8;
 
     /* Layout content area */
-    --color-background-main: #0d1117;
+    --color-background-main: #050a14;
 
     /* Tailwind utility overrides for hardcoded classes */
     .bg-white {

@@ -1,0 +1,334 @@
+<div class="hospital-page">
+
+  <!-- Header -->
+  <header class="hosp-header">
+    <div class="hosp-header-left">
+      <h1 class="hosp-title">{{ stats()?.hospital_name || 'Centro Hospitalario' }}</h1>
+      <p class="hosp-subtitle">Panel de administración · Vista global de riesgos</p>
+    </div>
+    <div class="hosp-header-right">
+      <div class="seg-control">
+        <button class="seg-btn" [class.active]="activeSegment() === 'today'" (click)="activeSegment.set('today')">Hoy</button>
+        <button class="seg-btn" [class.active]="activeSegment() === 'week'" (click)="activeSegment.set('week')">Semana</button>
+        <button class="seg-btn" [class.active]="activeSegment() === 'month'" (click)="activeSegment.set('month')">Mes</button>
+      </div>
+      <button class="btn-secondary" (click)="downloadReport()">
+        <mat-icon style="font-size:16px;width:16px;height:16px;">download</mat-icon>
+        Exportar PDF
+      </button>
+      <button class="btn-primary" (click)="addHospital()">
+        <mat-icon style="font-size:16px;width:16px;height:16px;">add</mat-icon>
+        Nuevo Hospital
+      </button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <div class="hosp-content">
+
+    <!-- KPI Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Pacientes</div>
+        <div class="stat-value blue">{{ stats()?.total_patients ?? '—' }}</div>
+        <div class="stat-sub">En todos los hospitales</div>
+        <div class="stat-badge badge-blue">Activos hoy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Zona Verde</div>
+        <div class="stat-value green">{{ stats()?.zones?.green ?? '—' }}</div>
+        <div class="stat-sub">{{ greenPercent() }}% del total</div>
+        <div class="stat-badge badge-green">Estable</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Zona Amarilla</div>
+        <div class="stat-value amber">{{ stats()?.zones?.yellow ?? '—' }}</div>
+        <div class="stat-sub">Requieren seguimiento</div>
+        <div class="stat-badge badge-amber">Monitoreo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Zona Roja</div>
+        <div class="stat-value red">{{ stats()?.zones?.red ?? '—' }}</div>
+        <div class="stat-sub">Atención inmediata</div>
+        <div class="stat-badge badge-red">Crítico</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="main-grid">
+
+      <!-- Risk Distribution -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon icon-blue">
+              <mat-icon style="font-size:15px;width:15px;height:15px;color:var(--brand-primary);">donut_large</mat-icon>
+            </div>
+            Distribución de riesgo
+          </div>
+          <span class="card-meta">{{ stats()?.total_patients ?? 0 }} pacientes</span>
+        </div>
+        <div class="card-body">
+          <div class="donut-wrap" *ngIf="stats(); else noDataChart">
+            <div class="donut-chart-container">
+              <canvas baseChart
+                [data]="pieChartData"
+                [options]="pieChartOptions"
+                [type]="'doughnut'">
+              </canvas>
+            </div>
+            <div class="donut-stats">
+              <div class="donut-row">
+                <div class="donut-label"><span class="dot green-dot"></span>Verde · estable</div>
+                <div class="donut-right">
+                  <div class="mini-bar"><div class="mini-fill" [style.width]="greenPercent() + '%'" style="background:#34c759"></div></div>
+                  <span class="donut-pct">{{ greenPercent() }}%</span>
+                </div>
+              </div>
+              <div class="donut-row">
+                <div class="donut-label"><span class="dot amber-dot"></span>Amarillo · seguimiento</div>
+                <div class="donut-right">
+                  <div class="mini-bar"><div class="mini-fill" [style.width]="yellowPercent() + '%'" style="background:#ff9f0a"></div></div>
+                  <span class="donut-pct">{{ yellowPercent() }}%</span>
+                </div>
+              </div>
+              <div class="donut-row">
+                <div class="donut-label"><span class="dot red-dot"></span>Rojo · crítico</div>
+                <div class="donut-right">
+                  <div class="mini-bar"><div class="mini-fill" [style.width]="redPercent() + '%'" style="background:#ff3b30"></div></div>
+                  <span class="donut-pct">{{ redPercent() }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noDataChart>
+            <div class="empty-state">
+              <mat-icon class="empty-icon">donut_large</mat-icon>
+              <p>Sin datos disponibles</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Doctor Performance -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon icon-green">
+              <mat-icon style="font-size:15px;width:15px;height:15px;color:#34c759;">groups</mat-icon>
+            </div>
+            Rendimiento médico
+          </div>
+          <span class="card-action" *ngIf="selectedZoneFilter() !== 'all'" (click)="selectedZoneFilter.set('all')">
+            Limpiar filtro
+          </span>
+          <span class="card-action" *ngIf="selectedZoneFilter() === 'all'">Ver todo</span>
+        </div>
+        <div class="card-body">
+          <div class="table-head">
+            <span>Médico</span>
+            <span class="col-center">Pacientes</span>
+            <span class="col-center">Carga</span>
+            <span class="col-right">Estado</span>
+          </div>
+
+          <ng-container *ngIf="filteredDoctorPerformance().length; else noDocData">
+            <div class="doctor-row" *ngFor="let doc of filteredDoctorPerformance(); let i = index">
+              <div class="doctor-info">
+                <div class="avatar" [ngClass]="avatarClass(i)">{{ initials(doc.doctor_name) }}</div>
+                <div>
+                  <div class="doctor-name">{{ doc.doctor_name }}</div>
+                  <div class="doctor-spec">Especialista</div>
+                </div>
+              </div>
+              <div class="patient-count">{{ doc.patient_count }}</div>
+              <div class="load-wrap">
+                <div class="load-label" [ngClass]="loadClass(doc.patient_count, stats()?.total_patients)">
+                  {{ loadLabel(doc.patient_count, stats()?.total_patients) }}
+                </div>
+                <div class="load-bar">
+                  <div class="load-fill" [style.width]="loadPercent(doc.patient_count, stats()?.total_patients) + '%'"
+                       [ngClass]="loadFillClass(doc.patient_count, stats()?.total_patients)"></div>
+                </div>
+              </div>
+              <div class="status-col">
+                <span class="status-pill" [ngClass]="statusPillClass(doc.patient_count, stats()?.total_patients)">
+                  {{ statusLabel(doc.patient_count, stats()?.total_patients) }}
+                </span>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #noDocData>
+            <div class="empty-state small">
+              <mat-icon class="empty-icon">person_search</mat-icon>
+              <p>Sin médicos asignados</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Management -->
+    <div class="card">
+      <div class="card-header flex-col sm:flex-row gap-3">
+        <div class="card-title">
+          <div class="card-icon icon-purple">
+            <mat-icon style="font-size:15px;width:15px;height:15px;color:#5856d6;">manage_accounts</mat-icon>
+          </div>
+          Equipo médico
+        </div>
+        
+        <!-- Search and filters -->
+        <div class="flex items-center gap-2 flex-1 justify-end w-full sm:w-auto flex-wrap">
+          <div class="search-box">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input type="text" placeholder="Buscar médico..." [value]="doctorSearchQuery()" (input)="onDoctorSearch($event)">
+          </div>
+          
+          <select class="status-select" [value]="doctorStatusFilter()" (change)="onStatusFilterChange($event)">
+            <option value="all">Todos</option>
+            <option value="active">Activos</option>
+            <option value="inactive">Inactivos</option>
+          </select>
+
+          <button class="btn-primary btn-sm flex-shrink-0" (click)="openInviteDoctor()">
+            <mat-icon style="font-size:14px;width:14px;height:14px;">person_add</mat-icon>
+            Invitar doctor
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div *ngIf="isLoadingDoctors" class="spinner-center">
+          <mat-spinner diameter="28"></mat-spinner>
+        </div>
+
+        <ng-container *ngIf="!isLoadingDoctors">
+          <div *ngIf="filteredDoctorsList().length === 0" class="empty-state small">
+            <mat-icon class="empty-icon">group_off</mat-icon>
+            <p>Sin doctores que coincidan con la búsqueda</p>
+          </div>
+
+          <div class="doctor-mgmt-list" *ngIf="filteredDoctorsList().length > 0">
+            <div class="doctor-mgmt-row" *ngFor="let doc of filteredDoctorsList(); let i = index">
+              <div class="avatar" [ngClass]="avatarClass(i)">{{ initials(doc.full_name) }}</div>
+              <div class="doctor-mgmt-info">
+                <div class="doctor-name">
+                  {{ doc.full_name || 'Sin nombre' }}
+                  <mat-icon *ngIf="doc.is_verified" matTooltip="Cédula verificada" class="verified-icon">verified</mat-icon>
+                </div>
+                <div class="doctor-spec">{{ doc.specialty || 'Sin especialidad' }} · {{ doc.email }}</div>
+              </div>
+              <span class="status-pill" [ngClass]="doc.is_active ? 'pill-green' : 'pill-grey'">
+                {{ doc.is_active ? 'Activo' : 'Inactivo' }}
+              </span>
+              <button mat-icon-button matTooltip="Editar perfil"
+                (click)="openEditDoctor(doc)" style="color:#5856d6">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Asignar paciente"
+                (click)="openAssignPanel(doc)" style="color:var(--brand-primary)">
+                <mat-icon>person_add</mat-icon>
+              </button>
+              <button mat-icon-button
+                [matTooltip]="doc.is_active ? 'Desactivar' : 'Reactivar'"
+                (click)="toggleDoctorActive(doc)"
+                [style.color]="doc.is_active ? '#ff3b30' : '#34c759'">
+                <mat-icon>{{ doc.is_active ? 'person_off' : 'person' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ── Assign patient panel ── -->
+        <div class="assign-panel" *ngIf="showAssignPanel()">
+          <div class="assign-panel-header">
+            <div class="assign-panel-title">
+              <mat-icon>person_add</mat-icon>
+              Asignar paciente a <strong>{{ selectedDoctorForAssign?.full_name }}</strong>
+            </div>
+            <button mat-icon-button (click)="closeAssignPanel()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div *ngIf="isLoadingPatients" class="spinner-center"><mat-spinner diameter="24"></mat-spinner></div>
+
+          <ng-container *ngIf="!isLoadingPatients">
+            <div *ngIf="allPatients.length === 0" class="assign-empty">Sin pacientes en el sistema.</div>
+            <div class="assign-list" *ngIf="allPatients.length > 0">
+              <div class="assign-patient-row"
+                *ngFor="let p of allPatients"
+                [class.selected]="selectedPatientId === p.id"
+                (click)="selectedPatientId = p.id">
+                <div class="assign-patient-info">
+                  <span class="assign-patient-name">{{ p.full_name || p.email }}</span>
+                  <span class="assign-patient-sub">
+                    {{ p.email }}
+                    <span *ngIf="p.assigned_doctor" class="assign-badge-doctor">· Dr. {{ p.assigned_doctor.full_name }}</span>
+                    <span *ngIf="!p.assigned_doctor" class="assign-badge-none">· Sin doctor</span>
+                  </span>
+                </div>
+                <mat-icon *ngIf="selectedPatientId === p.id" class="assign-check">check_circle</mat-icon>
+              </div>
+            </div>
+            <div class="assign-actions">
+              <button mat-button (click)="closeAssignPanel()">Cancelar</button>
+              <button mat-flat-button color="primary"
+                [disabled]="!selectedPatientId || isAssigning"
+                (click)="assignPatient()" class="assign-confirm-btn">
+                <mat-spinner diameter="16" *ngIf="isAssigning"></mat-spinner>
+                <mat-icon *ngIf="!isAssigning">save</mat-icon>
+                {{ isAssigning ? 'Asignando...' : 'Confirmar asignación' }}
+              </button>
+            </div>
+          </ng-container>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Critical Alerts Strip -->
+    <div class="card" *ngIf="criticalCount() > 0">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon icon-red">
+            <mat-icon style="font-size:15px;width:15px;height:15px;color:#ff3b30;">warning</mat-icon>
+          </div>
+          Alertas activas · pacientes críticos
+        </div>
+        <span class="badge-pill red-pill">{{ criticalCount() }} sin resolver</span>
+      </div>
+      <div class="card-body">
+        <div class="alerts-grid">
+          <div class="alert-card red-alert">
+            <div class="alert-header">
+              <span class="alert-level red-level">Crítico</span>
+              <span class="dot red-dot"></span>
+            </div>
+            <div class="alert-name">Zona Roja</div>
+            <div class="alert-meta">{{ stats()?.zones?.red }} pacientes en estado crítico</div>
+          </div>
+          <div class="alert-card amber-alert">
+            <div class="alert-header">
+              <span class="alert-level amber-level">Moderado</span>
+              <span class="dot amber-dot"></span>
+            </div>
+            <div class="alert-name">Zona Amarilla</div>
+            <div class="alert-meta">{{ stats()?.zones?.yellow }} pacientes requieren seguimiento</div>
+          </div>
+          <div class="alert-card blue-alert">
+            <div class="alert-header">
+              <span class="alert-level blue-level">Info</span>
+              <span class="dot" style="background:var(--brand-primary)"></span>
+            </div>
+            <div class="alert-name">Total activo</div>
+            <div class="alert-meta">{{ stats()?.total_patients }} pacientes registrados hoy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

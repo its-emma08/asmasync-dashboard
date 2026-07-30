@@ -280,11 +280,17 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.isLoading = true;
-        this.cd.detectChanges();
+        const hasCachedData = this.patientService['_allPatientsCache'] !== null;
 
-        // Start loading data immediately
-        this.loadDashboardData();
+        if (hasCachedData) {
+            // Show dashboard immediately from cache; refresh in background after 200ms
+            this.isLoading = false;
+            this.loadDashboardData();
+        } else {
+            this.isLoading = true;
+            this.cd.detectChanges();
+            this.loadDashboardData();
+        }
 
         // Request notification permission non-intrusively
         setTimeout(() => {
@@ -352,6 +358,10 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
         this.dashboardService.addWidget(type, subType);
     }
 
+    onWidgetSizeChanged(id: string, newSize: any): void {
+        this.dashboardService.updateWidgetSize(id, newSize);
+    }
+
     showFeatureComingSoon(featureName: string): void {
         this.snackBar.open(`🛠️ La función "${featureName}" estará disponible próximamente.`, 'Entendido', {
             duration: 3000,
@@ -403,11 +413,9 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     }
 
     public async loadDashboardData(): Promise<void> {
-        this.isLoading = true;
-        this.cd.detectChanges();
         this.loadingService.updateProgress('Cargando métricas...', 10);
 
-        // Etapa 1: métricas, pacientes y priority-patients en paralelo
+        // Single consolidated forkJoin — getAllPatients is called once and reused
         forkJoin({
             metrics: this.patientService.getDashboardMetrics(),
             allPatients: this.patientService.getAllPatients(),
@@ -434,7 +442,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                 this.kpis[3].value = controlled;
 
                 // Calculate dynamic progress based on real data
-                this.kpis[0].progress = 100; // Total is always 100% of itself
+                this.kpis[0].progress = 100;
                 this.kpis[1].progress = total > 0 ? Math.round((active / total) * 100) : 0;
                 this.kpis[2].progress = total > 0 ? Math.round((critical / total) * 100) : 0;
                 this.kpis[3].progress = total > 0 ? Math.round((controlled / total) * 100) : 0;
@@ -443,15 +451,16 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
                 const patientsList = allPatients ?? [];
                 // Use priority-patients from API; fall back to filtering locally
-                this.urgentPatients = (priorityPatients?.length 
-                    ? priorityPatients 
+                this.urgentPatients = (priorityPatients?.length
+                    ? priorityPatients
                     : patientsList.filter(p => p.riskLevel === 'high')
-                ).filter(p => p && p.id); // remove null/incomplete entries
+                ).filter(p => p && p.id);
                 this.recentPatients = patientsList.filter(p => p && p.id).slice(0, 5);
                 this.hasPatients = patientsList.length > 0;
+
                 const activities: Activity[] = [];
                 patientsList.forEach((p: any, idx: number) => {
-                    if (!p || !p.id) return; // skip incomplete patient records
+                    if (!p || !p.id) return;
                     const baselineTime = new Date();
                     const pName = p.full_name || 'Paciente';
                     if (p.riskLevel === 'high') {
@@ -488,12 +497,33 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                         });
                     }
                 });
-                
+
                 this.recentActivity = activities
                     .sort((a, b) => b.time.getTime() - a.time.getTime())
                     .slice(0, 5);
 
-                // Dashboard visible sin esperar la gráfica de tendencia
+                // Build trend chart from the patients list directly (no second getAllPatients() call)
+                const topPatient = patientsList.find(p => p.riskLevel === 'high') ?? patientsList[0];
+                if (topPatient?.id) {
+                    this.patientService.getPatientById(topPatient.id)
+                        .pipe(takeUntil(this.destroy$))
+                        .subscribe({
+                            next: (detail) => {
+                                const measurements: any[] = detail?.recent_measurements ?? [];
+                                if (measurements.length) {
+                                    this.rawMeasurements = [...measurements]
+                                        .filter(m => m.pef)
+                                        .sort((a, b) =>
+                                            new Date(a.measured_at).getTime() - new Date(b.measured_at).getTime()
+                                        );
+                                    this.filterAndRenderTrend();
+                                }
+                            },
+                            error: () => {}
+                        });
+                }
+
+                // Dashboard visible now
                 this.isLoading = false;
                 this.dataReady = true;
                 this.loadingService.updateProgress('Listo!', 100);
@@ -508,38 +538,6 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                 this.loadingService.hideLoading();
             }
         });
-
-        // Etapa 2: tendencia del paciente más crítico (tiene mediciones reales del WearOS)
-        // Se ejecuta después de Etapa 1 para poder usar urgentPatients[0].id
-        // La gráfica simplemente queda vacía si no hay pacientes o fallan los datos
-        this.patientService.getAllPatients()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (patients) => {
-                    const topPatient = (patients ?? [])
-                        .find(p => p.riskLevel === 'high') ?? (patients ?? [])[0];
-                    if (!topPatient?.id) return;
-
-                    this.patientService.getPatientById(topPatient.id)
-                        .pipe(takeUntil(this.destroy$))
-                        .subscribe({
-                            next: (detail) => {
-                                const measurements: any[] = detail?.recent_measurements ?? [];
-                                if (!measurements.length) return;
-
-                                this.rawMeasurements = [...measurements]
-                                    .filter(m => m.pef)
-                                    .sort((a, b) =>
-                                        new Date(a.measured_at).getTime() - new Date(b.measured_at).getTime()
-                                    );
-
-                                this.filterAndRenderTrend();
-                            },
-                            error: () => {}
-                        });
-                },
-                error: () => {}
-            });
     }
 
     onTrendPeriodChange(period: string): void {

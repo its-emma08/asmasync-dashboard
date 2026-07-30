@@ -366,7 +366,7 @@
                             class="report-section identification-section">
                             <div class="section-title">FICHA DE IDENTIFICACIÓN</div>
                             <div class="grid-form">
-                                <div class="field">
+                                <div class="field col-span-2">
                                     <label>PACIENTE:</label>
                                     <span>{{ editedPatient.full_name | uppercase }}</span>
                                 </div>
@@ -382,7 +382,11 @@
                                     <label>EXPEDIENTE:</label>
                                     <span>#{{ editedPatient.id }}</span>
                                 </div>
-                                <div class="field col-span-2">
+                                <div class="field">
+                                    <label>RIESGO:</label>
+                                    <span class="risk-badge" [ngClass]="editedPatient.riskLevel">{{ getRiskLabel(editedPatient.riskLevel) }}</span>
+                                </div>
+                                <div class="field">
                                     <label>CURP:</label>
                                     <span>{{ computedCurp || 'NO REGISTRADO' }}</span>
                                 </div>
@@ -391,17 +395,12 @@
                                     <!-- Live Binding to Edited Patient -->
                                     <span class="editable-highlight">{{ editedPatient.asthma_type | uppercase }}</span>
                                 </div>
-                                <div class="field col-span-2">
-                                    <label>ALERGIAS:</label>
+                                <div class="field col-span-3">
+                                    <label>ALERGIAS / SENSIBILIDADES:</label>
                                     <span *ngIf="editedPatient.allergies?.length">
                                         {{ editedPatient.allergies.join(', ') }}
                                     </span>
                                     <span *ngIf="!editedPatient.allergies?.length">NEGADAS</span>
-                                </div>
-                                <div class="field">
-                                    <label>RIESGO:</label>
-                                    <span class="risk-badge" [ngClass]="editedPatient.riskLevel">{{
-                                        getRiskLabel(editedPatient.riskLevel) }}</span>
                                 </div>
                             </div>
                         </div>

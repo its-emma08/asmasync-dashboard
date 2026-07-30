@@ -20,6 +20,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { ActivatedRoute } from '@angular/router';
 
 import { PatientService } from '../../../core/services/patient.service';
 import { StorageService } from '../../../core/services/storage.service';
@@ -144,7 +145,8 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
         private snackBar: MatSnackBar,
         private cd: ChangeDetectorRef,
         private storageService: StorageService,
-        private pdfExport: PdfExportService
+        private pdfExport: PdfExportService,
+        private route: ActivatedRoute
     ) { }
 
     get currentDoctorName(): string {
@@ -194,9 +196,18 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
                     this.hasPatients = this.patients && this.patients.length > 0;
                     this.cd.detectChanges();
 
-                    // Auto-select first patient for better UX
-                    if (data.length > 0) {
-                        this.selectPatient(data[0].id);
+                    // Auto-select patient from query param or fallback to first patient for better UX
+                    const paramId = this.route.snapshot.queryParamMap.get('patientId');
+                    let selectedId = data.length > 0 ? data[0].id : null;
+                    if (paramId) {
+                        const numericId = Number(paramId);
+                        const match = data.find(p => String(p.id) === String(paramId) || p.id === numericId);
+                        if (match) {
+                            selectedId = match.id;
+                        }
+                    }
+                    if (selectedId) {
+                        this.selectPatient(selectedId);
                     }
                 });
             },

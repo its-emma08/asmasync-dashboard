@@ -1,0 +1,122 @@
+<div class="stepper-container">
+    <mat-horizontal-stepper linear #stepper>
+        <!-- Step 1: Patológicos y Familiares -->
+        <mat-step [stepControl]="historyForm.get('hereditary_diseases')!">
+            <form [formGroup]="historyForm">
+                <ng-template matStepLabel>Patológicos y Familiares</ng-template>
+                <div class="step-content">
+                    <h3 class="section-title">Antecedentes Heredo-Familiares</h3>
+                    <div class="checkbox-grid" formGroupName="hereditary_diseases">
+                        <mat-checkbox formControlName="asthma">Asma</mat-checkbox>
+                        <mat-checkbox formControlName="diabetes">Diabetes</mat-checkbox>
+                        <mat-checkbox formControlName="hypertension">Hipertensión</mat-checkbox>
+                    </div>
+
+                    <mat-form-field appearance="outline" class="full-width mt-4">
+                        <mat-label>Notas adicionales de familia</mat-label>
+                        <textarea matInput formControlName="family_history" rows="2"></textarea>
+                    </mat-form-field>
+
+                    <h3 class="section-title mt-4">Antecedentes Personales Patológicos</h3>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Cirugías y Hospitalizaciones</mat-label>
+                        <textarea matInput formControlName="surgeries_history" rows="2" placeholder="Ej: Apendicectomía (2015), Hospitalización por neumonía (2022)"></textarea>
+                    </mat-form-field>
+
+                    <div class="actions">
+                        <button mat-flat-button color="primary" matStepperNext>Siguiente</button>
+                    </div>
+                </div>
+            </form>
+        </mat-step>
+
+        <!-- Step 2: Vivienda y Zoonosis -->
+        <mat-step [stepControl]="historyForm.get('housing_conditions')!">
+            <form [formGroup]="historyForm">
+                <ng-template matStepLabel>Vivienda y Zoonosis</ng-template>
+                <div class="step-content" formGroupName="housing_conditions">
+                    <h3 class="section-title">Condiciones de Vivienda</h3>
+                    <div class="input-grid">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Entorno</mat-label>
+                            <mat-select formControlName="type">
+                                <mat-option value="urban">Urbana</mat-option>
+                                <mat-option value="rural">Rural</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="checkbox-grid">
+                        <mat-checkbox formControlName="dampness">Presencia de humedad</mat-checkbox>
+                        <mat-checkbox formControlName="carpets">Uso de alfombras</mat-checkbox>
+                    </div>
+
+                    <h3 class="section-title mt-4">Zoonosis (Animales de contacto)</h3>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Mascotas o Animales</mat-label>
+                        <mat-select formControlName="pets" multiple>
+                            <mat-option value="dogs">Perros</mat-option>
+                            <mat-option value="cats">Gatos</mat-option>
+                            <mat-option value="birds">Aves</mat-option>
+                            <mat-option value="others">Otros</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <div class="actions">
+                        <button mat-button matStepperPrevious>Anterior</button>
+                        <button mat-flat-button color="primary" matStepperNext>Siguiente</button>
+                    </div>
+                </div>
+            </form>
+        </mat-step>
+
+        <!-- Step 3: Higiene y Riesgos -->
+        <mat-step>
+            <form [formGroup]="historyForm">
+                <ng-template matStepLabel>Higiene y Riesgos</ng-template>
+                <div class="step-content">
+                    <h3 class="section-title">Hábitos Personales</h3>
+                    <div class="input-grid">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Tabaquismo</mat-label>
+                            <mat-select formControlName="smoking">
+                                <mat-option value="never">Nunca</mat-option>
+                                <mat-option value="former">Ex-fumador</mat-option>
+                                <mat-option value="current">Activo / Pasivo</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Consumo de Alcohol</mat-label>
+                            <mat-select formControlName="alcohol_consumption">
+                                <mat-option value="no">No consume</mat-option>
+                                <mat-option value="social">Ocasional / Social</mat-option>
+                                <mat-option value="frequent">Frecuente</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Actividad Física</mat-label>
+                            <mat-select formControlName="physical_activity">
+                                <mat-option value="sedentary">Sedentario</mat-option>
+                                <mat-option value="light">Ligera (1-2 días/sem)</mat-option>
+                                <mat-option value="active">Activo (3+ días/sem)</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="actions mt-6">
+                        <button mat-button matStepperPrevious>Anterior</button>
+                        <button mat-raised-button color="accent" 
+                                (click)="onSubmit()" 
+                                [disabled]="isSaving() || historyForm.invalid">
+                            <mat-icon *ngIf="!isSaving()">save</mat-icon>
+                            <mat-icon *ngIf="isSaving()" class="spin">sync</mat-icon>
+                            {{ isSaving() ? 'Guardando...' : 'Finalizar y Guardar' }}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </mat-step>
+    </mat-horizontal-stepper>
+</div>

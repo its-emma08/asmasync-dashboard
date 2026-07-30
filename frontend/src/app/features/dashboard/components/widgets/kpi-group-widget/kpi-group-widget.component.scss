@@ -2,33 +2,65 @@
     display: block;
     height: 100%;
     min-height: 160px;
-    padding: 16px 20px;
+    padding: 16px;
     box-sizing: border-box;
 }
 
+/* ─── KPI Card — Light Medical Pro ─── */
 .kpi-card {
-    transition: all 0.4s var(--apple-easing);
+    background: #ffffff;
+    border: 1px solid rgba(0, 20, 60, 0.07);
+    border-radius: 18px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     cursor: pointer;
-    min-height: 110px;
-    
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 2px 8px rgba(0, 20, 60, 0.05),
+        0 1px 2px rgba(0, 20, 60, 0.04);
+
+    /* Top edge highlight — premium elevation effect */
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.9) 50%, transparent 90%);
+    }
+
     &:hover {
-        transform: translateY(-4px) scale(1.02);
+        transform: translateY(-5px);
+        box-shadow:
+            0 12px 32px rgba(0, 20, 60, 0.09),
+            0 4px 8px rgba(0, 20, 60, 0.06);
+        border-color: rgba(0, 20, 60, 0.10);
+    }
+
+    &:active {
+        transform: translateY(-2px);
     }
 }
 
-/* ─── Apple Icon Style (Round Gradient) ─── */
+/* ─── Icon Bubble ─── */
 .kpi-icon-wrap {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    
+    flex-shrink: 0;
+
     mat-icon {
         font-size: 20px !important;
         width: 20px !important;
@@ -39,54 +71,79 @@
         justify-content: center;
     }
 
-    &.bubble-teal   { background: linear-gradient(135deg, #0071e3, #38bdf8); }
-    &.bubble-red    { background: linear-gradient(135deg, #ff3b30, #ff9f0a); }
-    &.bubble-green  { background: linear-gradient(135deg, #34c759, #30b0c7); }
-    &.bubble-yellow { background: linear-gradient(135deg, #ffcc00, #ff9500); }
-    &.bubble-purple { background: linear-gradient(135deg, #af52de, #5e5ce6); }
+    &.bubble-teal {
+        background: linear-gradient(145deg, #1A6FE8 0%, #0EA5C9 100%);
+        box-shadow: 0 4px 14px rgba(26, 111, 232, 0.28);
+    }
+    &.bubble-red {
+        background: linear-gradient(145deg, #E5323E 0%, #E07B12 100%);
+        box-shadow: 0 4px 14px rgba(229, 50, 62, 0.28);
+    }
+    &.bubble-green {
+        background: linear-gradient(145deg, #12A150 0%, #0DA2BE 100%);
+        box-shadow: 0 4px 14px rgba(18, 161, 80, 0.28);
+    }
+    &.bubble-yellow {
+        background: linear-gradient(145deg, #E07B12 0%, #E5323E 100%);
+        box-shadow: 0 4px 14px rgba(224, 123, 18, 0.28);
+    }
+    &.bubble-purple {
+        background: linear-gradient(145deg, #6C4FD4 0%, #1A6FE8 100%);
+        box-shadow: 0 4px 14px rgba(108, 79, 212, 0.28);
+    }
 }
 
-/* ─── Trend Pill (Apple High-Contrast) ─── */
+/* ─── Progress Bar ─── */
+.progress-bar-wrap {
+    background: rgba(0, 20, 60, 0.07);
+    border-radius: 10px;
+    height: 5px;
+    overflow: hidden;
+}
+
+/* ─── Trend Pill ─── */
 .trend-pill {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
+    gap: 3px;
+    padding: 3px 8px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
 
     &.trend-up {
-        background: rgba(52, 199, 89, 0.12);
-        color: #1d9d3d;
+        background: rgba(18, 161, 80, 0.10);
+        color: #0E8042;
     }
-
     &.trend-down {
-        background: rgba(255, 59, 48, 0.12);
-        color: #d70015;
+        background: rgba(229, 50, 62, 0.10);
+        color: #C41E2A;
     }
 
     mat-icon {
-        font-size: 12px;
-        width: 12px;
-        height: 12px;
-        font-weight: bold;
+        font-size: 11px;
+        width: 11px;
+        height: 11px;
     }
 }
 
-/* ─── Apple Progress Bar ─── */
-.progress-bar-wrap {
-    background: rgba(0,0,0,0.05);
-    border-radius: 10px;
-    height: 6px;
-    overflow: hidden;
-}
-
+/* ─── Dark Mode ─── */
 :host-context(body.dark) {
-    .progress-bar-wrap {
-        background: rgba(255,255,255,0.05);
+    .kpi-card {
+        background: rgba(18, 28, 48, 0.95);
+        border-color: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+
+        &:hover {
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+        }
     }
-    .trend-pill.trend-up { background: rgba(52, 199, 89, 0.2); color: #34c759; }
-    .trend-pill.trend-down { background: rgba(255, 59, 48, 0.2); color: #ff3b30; }
+
+    .progress-bar-wrap {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .trend-pill.trend-up { background: rgba(18, 161, 80, 0.15); color: #2ECC71; }
+    .trend-pill.trend-down { background: rgba(229, 50, 62, 0.15); color: #FF4D5A; }
 }

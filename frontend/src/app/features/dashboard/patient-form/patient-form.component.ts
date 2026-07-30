@@ -506,5 +506,24 @@ export class PatientFormComponent implements OnInit, ComponentCanDeactivate {
         const fields = ['full_name', 'date_of_birth', 'gender', 'weight', 'height'];
         return fields.every(f => this.form.get(f)?.valid);
     }
+
+    formatSummaryDate(value: any): string {
+        if (!value) return '—';
+        try {
+            const d = value instanceof Date ? value : new Date(value);
+            return d.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+        } catch { return '—'; }
+    }
+
+    formatAsthmaType(value: string): string {
+        const map: Record<string, string> = {
+            'allergic': 'Alérgica',
+            'non_allergic': 'No Alérgica',
+            'mixed': 'Mixta',
+            'exercise_induced': 'Inducida por Ejercicio'
+        };
+        return map[value] || value || '—';
+    }
 }
+
 

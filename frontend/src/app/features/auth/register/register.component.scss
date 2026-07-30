@@ -1,0 +1,216 @@
+:host {
+  display: block;
+}
+
+/* ── Register Card — Frosted Glass ── */
+.glass-register-card {
+    background: rgba(255, 255, 255, 0.80) !important;
+    backdrop-filter: blur(32px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.88) !important;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.02),
+        0 12px 40px rgba(0, 0, 0, 0.06),
+        0 40px 80px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 32px !important;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    max-width: 460px !important;
+    margin: auto;
+}
+
+.step-container {
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animations for step transitions */
+.step-slide {
+  animation: stepSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes stepSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Progress Indicator */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+
+  .dot {
+    width: 32px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.05);
+    transition: all 0.4s ease;
+
+    &.active {
+      background: #007AFF;
+      box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
+    }
+
+    &.completed {
+      background: #34C759;
+    }
+  }
+}
+
+/* Enhanced Clinical Inputs with Feedback States */
+.clinical-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  
+  input, select {
+    width: 100%;
+    height: 48px; /* Slightly more compact */
+    padding: 0 2.8rem 0 3rem;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1.2px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1d1d1f;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+
+    &::placeholder {
+      color: #8E8E93;
+      font-weight: 400;
+      opacity: 0.5;
+    }
+
+    &:focus {
+      border-color: #007AFF;
+      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.08);
+    }
+    
+    /* Real-time Validation States */
+    &.valid-feedback {
+      border-color: rgba(52, 199, 89, 0.4) !important;
+      background: rgba(52, 199, 89, 0.02) !important;
+      &:focus { box-shadow: 0 0 0 4px rgba(52, 199, 89, 0.08); }
+    }
+
+    &.invalid-feedback {
+      border-color: rgba(255, 59, 48, 0.4) !important;
+      background: rgba(255, 59, 48, 0.02) !important;
+      &:focus { box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.08); }
+    }
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #8E8E93;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    z-index: 2;
+  }
+
+  .feedback-icon {
+    position: absolute;
+    right: 1rem;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    scale: 0.8;
+    animation: scalePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    
+    &.success { color: #34C759; }
+    &.error { color: #FF3B30; }
+  }
+
+  &:focus-within .input-icon {
+    opacity: 1;
+    color: #007AFF;
+  }
+}
+
+@keyframes scalePop {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.btn-elite-next {
+  background: #007AFF !important;
+  color: white !important;
+  height: 52px !important;
+  border-radius: 16px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 20px -6px rgba(0, 122, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
+  &:disabled { opacity: 0.5; filter: grayscale(0.5); }
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 25px -8px rgba(0, 122, 255, 0.4) !important; }
+}
+
+.btn-elite-back {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #1d1d1f !important;
+  height: 52px !important;
+  border-radius: 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  &:hover { background: rgba(0, 0, 0, 0.08) !important; }
+}
+
+.password-strength-mini {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+  padding: 0 4px;
+  .bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    &.active-poor { background: #FF3B30; }
+    &.active-fair { background: #FF9500; }
+    &.active-good { background: #34C759; }
+  }
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #007AFF;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  &::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, rgba(0, 122, 255, 0.2), transparent); }
+}
+
+.register-footer-compact {
+  text-align: center;
+  font-size: 13px;
+  color: #8E8E93;
+  margin-top: 1.5rem;
+  a { color: #007AFF; font-weight: 600; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+.error-bubble {
+  background: #FFF2F2;
+  color: #FF3B30;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1rem;
+}

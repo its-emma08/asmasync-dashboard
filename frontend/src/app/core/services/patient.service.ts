@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { SKIP_RESILIENCE } from '../interceptors/http-context.tokens';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Observable, BehaviorSubject, of, shareReplay } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Patient, PEFTrend } from '../models/patient.model';
 import { DashboardMetrics } from '../models/dashboard.model';
+
+// ── Cache entry shape ──────────────────────────────────────────────────────────
+interface CacheEntry<T> { data: T; timestamp: number; }
+const CACHE_TTL_MS = 60_000; // 60 seconds
 
 export interface PaginatedResponse<T> {
     data: T[];
@@ -25,6 +29,20 @@ export class PatientService {
 
     private patientsSubject = new BehaviorSubject<Patient[]>([]);
     patients$ = this.patientsSubject.asObservable();
+
+    // ── In-memory caches ────────────────────────────────────────────────────────
+    private _allPatientsCache: CacheEntry<Patient[]> | null = null;
+    private _dashboardMetricsCache: CacheEntry<DashboardMetrics> | null = null;
+
+    private isCacheValid<T>(entry: CacheEntry<T> | null): boolean {
+        return !!entry && (Date.now() - entry.timestamp) < CACHE_TTL_MS;
+    }
+
+    /** Call this after write operations to bust the relevant caches */
+    invalidatePatientCache(): void {
+        this._allPatientsCache = null;
+        this._dashboardMetricsCache = null;
+    }
 
     constructor(private http: HttpClient) {
         this.loadInitialData();
@@ -68,6 +86,7 @@ export class PatientService {
             lastCrisis: b.last_crisis_date || null,
             adherence: b.adherence ?? null,
             status: b.risk_level === 'high' ? 'Crítico' : b.risk_level === 'moderate' ? 'Moderado' : 'Estable',
+            probability: b.probability || null,
             profilePicture: b.avatar_seed
                 ? `https://api.dicebear.com/7.x/micah/svg?seed=${b.avatar_seed}`
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.full_name || 'P')}&background=random`,
@@ -170,11 +189,20 @@ export class PatientService {
     }
 
     // GET /api/doctor/my-patients (endpoint original de Pablo)
-    getAllPatients(): Observable<Patient[]> {
+    getAllPatients(forceRefresh = false): Observable<Patient[]> {
+        if (!forceRefresh && this.isCacheValid(this._allPatientsCache)) {
+            return of(this._allPatientsCache!.data);
+        }
         return this.http.get<any[]>(this.DOCTOR_URL).pipe(
             map(res => (res || []).map(p => this.mapToFrontend(p))),
-            tap(patients => this.patientsSubject.next(patients)),
-            catchError(() => of([]))
+            tap(patients => {
+                this.patientsSubject.next(patients);
+                this._allPatientsCache = { data: patients, timestamp: Date.now() };
+            }),
+            catchError(() => {
+                // Return cached data if available even if expired, rather than empty
+                return of(this._allPatientsCache?.data ?? []);
+            })
         );
     }
 
@@ -206,6 +234,8 @@ export class PatientService {
             tap(res => {
                 if (res?.id) {
                     this.patientsSubject.next([this.mapToFrontend(res), ...this.patientsSubject.value]);
+                    // Bust cache so next dashboard visit reflects the new patient
+                    this.invalidatePatientCache();
                 }
             })
             // Sin catchError: los errores deben propagarse al componente
@@ -227,6 +257,7 @@ export class PatientService {
                 const list = [...this.patientsSubject.value];
                 const idx = list.findIndex(p => String(p.id) === String(id));
                 if (idx !== -1) { list[idx] = updated; this.patientsSubject.next(list); }
+                this.invalidatePatientCache();
             }),
             catchError(() => of({} as Patient))
         );
@@ -252,7 +283,10 @@ export class PatientService {
     }
 
     // GET /api/dashboard/metrics
-    getDashboardMetrics(): Observable<DashboardMetrics> {
+    getDashboardMetrics(forceRefresh = false): Observable<DashboardMetrics> {
+        if (!forceRefresh && this.isCacheValid(this._dashboardMetricsCache)) {
+            return of(this._dashboardMetricsCache!.data);
+        }
         return this.http.get<any>(`${this.DASHBOARD_URL}/metrics`).pipe(
             map(m => ({
                 totalPatients: m.total_patients,
@@ -264,18 +298,24 @@ export class PatientService {
                 averagePef: 0,
                 riskDistribution: m.risk_distribution || []
             })),
-            catchError(() => this.getPatientStats().pipe(
-                map(s => ({
-                    totalPatients: s.total, activePatients: s.critical + s.moderate,
-                    criticalAlerts: s.critical, moderateRisk: s.moderate,
-                    interventionsToday: 0, adherenceRate: null, averagePef: 0,
-                    riskDistribution: [
-                        { level: 'low', count: s.stable },
-                        { level: 'moderate', count: s.moderate },
-                        { level: 'high', count: s.critical }
-                    ]
-                }))
-            ))
+            tap(metrics => {
+                this._dashboardMetricsCache = { data: metrics, timestamp: Date.now() };
+            }),
+            catchError(() => {
+                if (this._dashboardMetricsCache) return of(this._dashboardMetricsCache.data);
+                return this.getPatientStats().pipe(
+                    map(s => ({
+                        totalPatients: s.total, activePatients: s.critical + s.moderate,
+                        criticalAlerts: s.critical, moderateRisk: s.moderate,
+                        interventionsToday: 0, adherenceRate: null, averagePef: 0,
+                        riskDistribution: [
+                            { level: 'low', count: s.stable },
+                            { level: 'moderate', count: s.moderate },
+                            { level: 'high', count: s.critical }
+                        ]
+                    }))
+                );
+            })
         );
     }
 

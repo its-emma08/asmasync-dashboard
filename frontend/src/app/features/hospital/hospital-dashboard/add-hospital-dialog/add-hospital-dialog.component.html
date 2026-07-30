@@ -1,0 +1,117 @@
+<div class="ah-wrap">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────────── -->
+  <div class="ah-header">
+    <div class="ah-header-left">
+      <div class="ah-icon">
+        <mat-icon>local_hospital</mat-icon>
+      </div>
+      <div>
+        <h2>Registrar Hospital</h2>
+        <p>Complete los datos del establecimiento de salud</p>
+      </div>
+    </div>
+    <button class="ah-close" type="button" (click)="dialogRef.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ── Form ───────────────────────────────────────────────────────────────── -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ah-form" novalidate>
+
+    <!-- Nombre -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Nombre del hospital</mat-label>
+      <input matInput formControlName="name"
+        placeholder="Ej. Hospital General de Zona No. 1">
+      <mat-icon matPrefix>business</mat-icon>
+      <mat-error *ngIf="form.get('name')?.hasError('required')">Campo requerido</mat-error>
+      <mat-error *ngIf="form.get('name')?.hasError('minlength')">Mínimo 4 caracteres</mat-error>
+      <mat-error *ngIf="form.get('name')?.hasError('maxlength')">Máximo 120 caracteres</mat-error>
+    </mat-form-field>
+
+    <!-- Tipo de institución -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Tipo de institución</mat-label>
+      <mat-select formControlName="institution_type">
+        <mat-option *ngFor="let t of institutionTypes" [value]="t.value">
+          {{ t.label }}
+        </mat-option>
+      </mat-select>
+      <mat-icon matPrefix>category</mat-icon>
+      <mat-error *ngIf="form.get('institution_type')?.hasError('required')">Campo requerido</mat-error>
+    </mat-form-field>
+
+    <!-- CLUES -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Clave CLUES (opcional)</mat-label>
+      <input matInput formControlName="clues"
+        placeholder="Ej. DFSSA000001XX" maxlength="14"
+        style="text-transform: uppercase">
+      <mat-icon matPrefix>badge</mat-icon>
+      <mat-hint>14 caracteres alfanuméricos — identificador único nacional</mat-hint>
+      <mat-error *ngIf="form.get('clues')?.hasError('cluesFormat')">
+        Formato inválido. Debe tener exactamente 14 caracteres alfanuméricos.
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Estado / Ciudad -->
+    <div class="two-col">
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="state">
+          <mat-option *ngFor="let s of states" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>map</mat-icon>
+        <mat-error *ngIf="form.get('state')?.hasError('required')">Requerido</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Ciudad / Municipio</mat-label>
+        <input matInput formControlName="city" placeholder="Ej. Guadalajara">
+        <mat-icon matPrefix>location_city</mat-icon>
+        <mat-error *ngIf="form.get('city')?.hasError('required')">Requerido</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Dirección -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Dirección completa (opcional)</mat-label>
+      <input matInput formControlName="address"
+        placeholder="Calle, número exterior/interior, colonia, CP">
+      <mat-icon matPrefix>place</mat-icon>
+      <mat-error *ngIf="form.get('address')?.hasError('maxlength')">Máximo 200 caracteres</mat-error>
+    </mat-form-field>
+
+    <!-- Teléfono -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Teléfono (opcional)</mat-label>
+      <input matInput formControlName="phone"
+        placeholder="Ej. 33 1234-5678" type="tel">
+      <mat-icon matPrefix>phone</mat-icon>
+      <mat-error *ngIf="form.get('phone')?.hasError('pattern')">
+        Formato inválido. Solo dígitos, espacios, guiones y paréntesis (7–20 caracteres).
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Error banner -->
+    <div class="ah-error-banner" *ngIf="errorMsg()">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMsg() }}</span>
+    </div>
+
+    <!-- Footer -->
+    <div class="ah-footer">
+      <button type="button" mat-button (click)="dialogRef.close()" class="cancel-btn" [disabled]="isSaving()">
+        Cancelar
+      </button>
+      <button type="submit" mat-flat-button color="primary"
+        [disabled]="form.invalid || isSaving()" class="ah-save-btn">
+        <mat-spinner diameter="18" *ngIf="isSaving()"></mat-spinner>
+        <mat-icon *ngIf="!isSaving()">save</mat-icon>
+        {{ isSaving() ? 'Registrando...' : 'Registrar Hospital' }}
+      </button>
+    </div>
+
+  </form>
+</div>

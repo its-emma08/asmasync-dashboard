@@ -1,0 +1,129 @@
+.upload-wrapper {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+
+    &:hover {
+        border-color: #00b5ad;
+        background: #f0fdfa;
+    }
+
+    &.dragging {
+        border-color: #00b5ad;
+        background: #ccfbf1;
+        transform: scale(1.02);
+    }
+}
+
+.zone-content {
+    text-align: center;
+    color: #64748b;
+
+    .upload-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #94a3b8;
+        margin-bottom: 12px;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #334155;
+    }
+
+    p {
+        font-size: 0.9rem;
+    }
+}
+
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    position: relative;
+
+    .preview-container {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pdf-icon {
+            font-size: 40px;
+            width: 40px;
+            height: 40px;
+            color: #ef4444;
+        }
+    }
+
+    .file-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .file-name {
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .file-size {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+}
+
+.progress-bar {
+    margin-top: 16px;
+    text-align: center;
+
+    .status-text {
+        font-size: 0.8rem;
+        color: #0e7490;
+        margin-top: 8px;
+        display: block;
+        font-weight: 500;
+    }
+}
+
+.upload-actions {
+    margin-top: 20px;
+}
+
+.full-width {
+    width: 100%;
+}

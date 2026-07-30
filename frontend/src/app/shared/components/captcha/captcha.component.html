@@ -1,0 +1,36 @@
+<div class="flex items-center justify-between p-3 border rounded-sm bg-slate-50 w-full max-w-[300px] shadow-sm select-none"
+    [ngClass]="{'border-slate-300': status === 'unverified', 'border-green-400': status === 'verified', 'border-brand-cyan': status === 'verifying'}"
+    (click)="verifyCaptcha()">
+
+    <!-- Checkbox Layout -->
+    <div class="flex items-center gap-3 cursor-pointer">
+        <!-- Checkbox Box -->
+        <div class="w-7 h-7 bg-white border-2 rounded-sm flex items-center justify-center transition-colors" [ngClass]="{
+                'border-slate-300 hover:border-slate-400': status === 'unverified',
+                'border-transparent': status !== 'unverified'
+            }">
+
+            <mat-spinner *ngIf="status === 'verifying'" diameter="20" class="text-blue-500"></mat-spinner>
+            <mat-icon *ngIf="status === 'verified'" class="text-green-600 scale-125 font-bold">check</mat-icon>
+        </div>
+
+        <!-- Label -->
+        <span class="text-sm font-medium text-slate-700">
+            {{ type === 'recaptcha' ? 'No soy un robot' : 'Soy humano' }}
+        </span>
+    </div>
+
+    <!-- Branding Layout -->
+    <div class="flex flex-col items-center justify-center opacity-80 cursor-default">
+        <mat-icon *ngIf="type === 'recaptcha'" class="text-blue-600 !w-8 !h-8 text-[32px] leading-8">sync</mat-icon>
+        <mat-icon *ngIf="type === 'hcaptcha'" class="text-cyan-500 !w-8 !h-8 text-[32px] leading-8">pan_tool</mat-icon>
+
+        <div class="text-[10px] text-slate-500 font-bold mt-1">
+            {{ type === 'recaptcha' ? 'reCAPTCHA' : 'hCaptcha' }}
+        </div>
+        <div class="text-[8px] text-slate-400 flex gap-1">
+            <span class="hover:underline cursor-pointer">Privacidad</span> -
+            <span class="hover:underline cursor-pointer">Condiciones</span>
+        </div>
+    </div>
+</div>
