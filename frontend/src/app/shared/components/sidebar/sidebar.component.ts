@@ -36,7 +36,7 @@ export class SidebarComponent implements OnInit {
         { label: 'Tablero', icon: 'grid_view', route: '/dashboard', exact: true },
         { label: 'Alertas', icon: 'notifications', route: '/dashboard/alerts', badge: true },
         { label: 'Pacientes', icon: 'people', route: '/dashboard/patients' },
-        { label: 'Reportes', icon: 'description', route: '/dashboard/reports', roles: ['admin', 'doctor'] },
+        { label: 'Reportes', icon: 'description', route: '/dashboard/reports', roles: ['admin', 'doctor', 'assistant_nurse', 'nurse'] },
         { label: 'Calendario', icon: 'calendar_month', route: '/dashboard/calendar' },
         { label: 'Hospital', icon: 'local_hospital', route: '/dashboard/hospital', roles: ['admin'] },
     ];

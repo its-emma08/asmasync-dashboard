@@ -50,6 +50,11 @@ export const DASHBOARD_ROUTES: Routes = [
                 loadComponent: () => import('../alerts/alert-panel/alert-panel.component').then(m => m.AlertPanelComponent)
             },
             {
+                path: 'interventions',
+                redirectTo: 'interventions/new',
+                pathMatch: 'full'
+            },
+            {
                 path: 'interventions/new',
                 data: { breadcrumb: 'Nueva Intervención' },
                 loadComponent: () => import('../interventions/intervention-form/intervention-form.component').then(m => m.InterventionFormComponent),
