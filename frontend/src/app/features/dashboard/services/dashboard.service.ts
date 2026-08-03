@@ -13,7 +13,7 @@ export interface DashboardWidget {
 }
 
 // Bump this version when DEFAULT_LAYOUT changes to auto-reset stale localStorage layouts
-const LAYOUT_VERSION = 6;
+const LAYOUT_VERSION = 7;
 
 // Layout Default - Bento 4 columnas sin espacios vacíos
 const DEFAULT_LAYOUT: DashboardWidget[] = [

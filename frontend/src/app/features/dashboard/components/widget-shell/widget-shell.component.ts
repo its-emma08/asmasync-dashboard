@@ -333,8 +333,8 @@ export class WidgetShellComponent implements OnInit, OnDestroy {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Override the size to a fixed size according to the widget type if no custom size set
-    if (this.widgetType && (!this.currentSize || this.currentSize === 'medium')) {
+    // Only apply default fallback size if currentSize is missing
+    if (this.widgetType && !this.currentSize) {
       this.currentSize = WIDGET_SIZE_MAP[this.widgetType] || WIDGET_SIZE_MAP['default'];
     }
   }
