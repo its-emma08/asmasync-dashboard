@@ -461,52 +461,23 @@ export class AuthService implements OnDestroy {
         );
     }
 
-    /**
-     * Audit logs mock for UI compatibility 
-     */
     getAuditLogs(): Observable<AuditLog[]> {
-        const logs: AuditLog[] = [
-            {
-                id: 1,
-                action: 'INICIO_SESION',
-                entity: 'auth',
-                user_id: this.currentUserValue?.id || 1,
-                ip_address: '189.203.45.12',
-                user_agent: 'Chrome 122.0 / Windows 11',
-                created_at: new Date(Date.now() - 5 * 60000).toISOString()
-            },
-            {
-                id: 2,
-                action: 'CONSULTA_EXPEDIENTE',
-                entity: 'patient',
-                entity_id: 12,
-                user_id: this.currentUserValue?.id || 1,
-                ip_address: '189.203.45.12',
-                user_agent: 'Chrome 122.0 / Windows 11',
-                created_at: new Date(Date.now() - 15 * 60000).toISOString()
-            },
-            {
-                id: 3,
-                action: 'ACTUALIZACION_CONFIGURACION',
-                entity: 'settings',
-                user_id: this.currentUserValue?.id || 1,
-                ip_address: '189.203.45.12',
-                user_agent: 'Chrome 122.0 / Windows 11',
-                created_at: new Date(Date.now() - 120 * 60000).toISOString()
-            },
-            {
-                id: 4,
-                action: 'DESCARGA_REPORTE_PDF',
-                entity: 'patient',
-                entity_id: 12,
-                user_id: this.currentUserValue?.id || 1,
-                ip_address: '189.203.45.12',
-                user_agent: 'Chrome 122.0 / Windows 11',
-                created_at: new Date(Date.now() - 240 * 60000).toISOString()
-            }
-        ];
-        return of(logs);
+        return this.http.get<any[]>(`${environment.apiUrl}/security/audit-logs`).pipe(
+            map(res => (res || []).map((log: any) => ({
+                id: log.id,
+                action: log.action,
+                entity: log.entity,
+                entity_id: log.entity_id,
+                user_id: log.user_id,
+                ip_address: log.ip_address || '127.0.0.1',
+                user_agent: log.user_agent || 'Browser Client',
+                created_at: log.created_at ? new Date(log.created_at).toISOString() : new Date().toISOString()
+            }))),
+            catchError(() => of([]))
+        );
     }
+
+
 
     private loadUserFromSession(): void {
         const user = this.storageService.getItem('user') as User;

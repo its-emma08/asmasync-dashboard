@@ -22,8 +22,8 @@
     <div class="flex items-center gap-3 dashboard-header glass-card-premium p-2 rounded-2xl border shadow-sm ml-auto backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-slate-200/60 dark:border-slate-700 dark:shadow-none transition-colors duration-300">
 
         <!-- Search Pill -->
-        <div class="search-pill apple-search-bar hidden md:flex">
-            <button class="search-icon-btn" (click)="navigateToSearch()" title="Buscar paciente">
+        <div class="search-pill apple-search-bar hidden md:flex items-center">
+            <button class="search-icon-btn" (click)="navigateToSearch()" title="Buscar paciente (Ctrl+K)">
                 <mat-icon class="search-icon">search</mat-icon>
             </button>
             <input type="text" placeholder="Buscar paciente o reporte..." [(ngModel)]="searchTerm"
@@ -31,12 +31,18 @@
                 (keydown)="onSearchKeydown($event)"
                 class="search-input">
 
+            <!-- Kbd Shortcut Indicator -->
+            <span *ngIf="!searchTerm" class="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 ml-1 select-none pointer-events-none">
+                Ctrl K
+            </span>
+
             <!-- Clear Button -->
             <button *ngIf="searchTerm" (click)="clearSearch()"
                 class="ml-1 text-slate-400 hover:text-red-500 transition-colors">
                 <mat-icon class="scale-75 text-[16px] w-[16px] h-[16px] leading-[16px]">close</mat-icon>
             </button>
         </div>
+
 
 
         <!-- Date Display -->

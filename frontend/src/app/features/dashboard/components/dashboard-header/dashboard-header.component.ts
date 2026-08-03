@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, HostListener } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -67,8 +68,10 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
         if (user) {
           this.doctorName = user.full_name || 'Usuario';
           this.doctorInitials = this.getInitials(user.full_name);
-          this.doctorSpecialty = 'Especialista';
+          this.doctorSpecialty = (user as any).medical_profile?.specialty || (user as any).specialty || (user.role === 'admin' ? 'Administrador Médico' : 'Especialista en Neumología');
         }
+
+
         this.cdr.markForCheck();
       });
     });
@@ -105,9 +108,22 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
     this.searchService.setSearchTerm('');
   }
 
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardShortcut(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  }
+
   toggleSidebar() {
     this.layoutService.toggleSidebar();
   }
+
 
   handleNotificationClick(alert: Alert) {
     if (!alert) return;
