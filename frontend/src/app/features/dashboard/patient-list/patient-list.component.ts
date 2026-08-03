@@ -117,10 +117,42 @@ export class PatientListComponent implements OnInit, OnDestroy {
     }
 
 
+    exportToCsv(): void {
+        if (!this.data || this.data.length === 0) {
+            this.snackBar.open('No hay pacientes para exportar', 'OK', { duration: 3000 });
+            return;
+        }
+
+        const headers = ['ID', 'Nombre Completo', 'Riesgo', 'PEF (L/min)', 'SpO2 (%)', 'FC (bpm)', 'Última Medición'];
+        const rows = this.data.map((p: any) => [
+            p.id,
+            `"${p.full_name || ''}"`,
+            p.riskLevel || 'low',
+            p.latest_pef ?? '--',
+            p.currentSpO2 ?? '--',
+            p.heart_rate ?? '--',
+            p.lastUpdate ? new Date(p.lastUpdate).toLocaleDateString('es-MX') : 'Sin registro'
+        ]);
+
+        const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Directorio_Pacientes_AsmaSync_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        this.snackBar.open('Directorio exportado en CSV exitosamente', 'OK', { duration: 3000 });
+    }
+
+
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
     }
+
 
     // ViewChild setters now only update the existing subscription sources if needed, 
     // or we just let the stream handle it since we use them dynamically in switchMap

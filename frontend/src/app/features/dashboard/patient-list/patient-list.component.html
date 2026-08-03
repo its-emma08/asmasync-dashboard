@@ -14,11 +14,18 @@
                 <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">Pacientes</h1>
                 <p class="text-gray-500 text-sm font-medium mt-1">Gestiona expedientes y monitorea el estado clínico en tiempo real.</p>
             </div>
-            <button mat-flat-button class="apple-btn-primary" routerLink="/dashboard/patients/new">
-                <mat-icon>add</mat-icon>
-                Nuevo Expediente
-            </button>
+            <div class="flex items-center gap-3">
+                <button mat-stroked-button (click)="exportToCsv()" class="!rounded-xl !h-11 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold" title="Exportar directorio a CSV">
+                    <mat-icon class="scale-90">file_download</mat-icon>
+                    Exportar CSV
+                </button>
+                <button mat-flat-button class="apple-btn-primary" routerLink="/dashboard/patients/new">
+                    <mat-icon>add</mat-icon>
+                    Nuevo Expediente
+                </button>
+            </div>
         </div>
+
 
         <!-- Filter Bar (Glass Style) -->
         <div class="filters-glass-bar mb-6 p-2 flex flex-col md:flex-row gap-4 items-center">
