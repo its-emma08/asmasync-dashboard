@@ -86,6 +86,20 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
     this.searchService.setSearchTerm(term);
   }
 
+  onSearchKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && this.searchTerm.trim()) {
+      this.navigateToSearch();
+    }
+  }
+
+  navigateToSearch() {
+    if (!this.searchTerm.trim()) return;
+    this.searchService.setSearchTerm(this.searchTerm.trim());
+    this.router.navigate(['/dashboard/patients'], {
+      queryParams: { search: this.searchTerm.trim() }
+    });
+  }
+
   clearSearch() {
     this.searchTerm = '';
     this.searchService.setSearchTerm('');

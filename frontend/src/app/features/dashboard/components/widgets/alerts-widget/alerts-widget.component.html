@@ -46,7 +46,7 @@
                 <div class="flex justify-between items-start">
                     <div class="flex items-center gap-3">
                         <div class="avatar-wrap">
-                            <img *ngIf="p.profilePicture" [src]="p.profilePicture" alt="Avatar">
+                            <img *ngIf="p.profilePicture" [src]="p.profilePicture" (error)="p.profilePicture = ''" alt="Avatar">
                             <span *ngIf="!p.profilePicture">{{ (p.full_name || '').charAt(0).toUpperCase() || '?' }}</span>
                         </div>
                         <div>
@@ -108,9 +108,10 @@
                     <div class="list-risk-indicator" [class]="p.riskLevel"></div>
                     
                     <div class="avatar-mini">
-                        <img *ngIf="p.profilePicture" [src]="p.profilePicture" alt="Avatar">
+                        <img *ngIf="p.profilePicture" [src]="p.profilePicture" (error)="p.profilePicture = ''" alt="Avatar">
                         <span *ngIf="!p.profilePicture">{{ (p.full_name || '').charAt(0).toUpperCase() || '?' }}</span>
                     </div>
+
 
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ p.full_name || 'Paciente' }}</p>

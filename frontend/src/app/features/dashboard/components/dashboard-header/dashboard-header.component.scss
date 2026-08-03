@@ -40,6 +40,20 @@
     transition: color 0.2s ease;
 }
 
+.search-icon-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+
+    &:hover .search-icon {
+        color: #0071e3;
+    }
+}
+
 .search-input {
     background: transparent;
     border: none;

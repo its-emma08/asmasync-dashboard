@@ -2182,4 +2182,66 @@ body.dark .mat-datepicker-content,
         color: #94a3b8 !important;
     }
 }
-.apple-animate-in:nth-child(6) { animation-delay: 200ms; }
+.apple-animate-in:nth-child(6) { animation-delay: 200ms; }
+
+/* =============================================
+   EMERGENCY MODAL PANEL — glassmorphism
+   ============================================= */
+.emergency-modal-panel {
+  .mat-mdc-dialog-container {
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    box-shadow:
+      0 0 0 1px rgba(239, 68, 68, 0.2),
+      0 25px 60px rgba(239, 68, 68, 0.18),
+      0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    animation: emergencySlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .mat-mdc-dialog-surface {
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+}
+
+/* Dark mode emergency modal */
+body.dark .emergency-modal-panel {
+  .mat-mdc-dialog-surface {
+    background: rgba(15, 23, 42, 0.96) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  }
+}
+
+@keyframes emergencySlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Dark overlay for emergency modal */
+.cdk-overlay-container .cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+/* =============================================
+   GLOBAL DIALOG POLISH
+   ============================================= */
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: 20px;
+}
+
+.cdk-global-overlay-wrapper {
+  align-items: center !important;
+  justify-content: center !important;
+}
+

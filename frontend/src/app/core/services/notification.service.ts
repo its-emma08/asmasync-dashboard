@@ -78,21 +78,52 @@ export class NotificationService implements OnDestroy {
 
   private setupWebSocketListener(): void {
     this.wsService.messages$.pipe(takeUntil(this.destroy$)).subscribe(msg => {
-      if (msg.type === 'risk_update' || msg.type === 'new_symptom' || msg.type === 'pef_update') {
+      if (!msg) return;
+      const type = msg.type ?? msg.event ?? '';
+      const isEmergency = type === 'emergency_alert' || msg.risk_level === 'red' || msg.risk === 'red';
+
+      if (isEmergency) {
+        this.playAlertChime();
+        this.triggerCriticalAlert(msg.patient_name ?? msg.patientName ?? 'Paciente');
+      }
+
+      if (isEmergency || type === 'risk_update' || type === 'new_symptom' || type === 'pef_update') {
         this.handleIncomingAlert(msg);
       }
     });
   }
 
+  public playAlertChime(): void {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {
+      // Silent no-op if Web Audio disabled by browser autoplay policies
+    }
+  }
+
   private handleIncomingAlert(msg: any): void {
+    const isCritical = msg.risk === 'red' || msg.risk_level === 'red' || msg.type === 'emergency_alert';
     const newAlert: Alert = {
       id: Date.now(),
-      patient_id: msg.patientId,
-      alert_type: msg.type === 'risk_update' && msg.risk === 'red' ? 'critical' : 'moderate',
-      message: msg.message || `Nueva actualización clínica para el paciente ${msg.patientId}`,
+      patient_id: msg.patientId ?? msg.patient_id ?? 0,
+      alert_type: isCritical ? 'critical' : 'moderate',
+      message: msg.message || `Nueva actualización clínica para el paciente ${msg.patientName || msg.patientId}`,
       created_at: new Date().toISOString(),
       is_viewed: false,
-      patient: { id: msg.patientId, full_name: msg.patientName || 'Paciente', risk_level: msg.risk || 'yellow' }
+      patient: { id: msg.patientId ?? 0, full_name: msg.patientName || 'Paciente', risk_level: msg.risk || 'yellow' }
     };
     const current = this.notificationsSubject.value;
     this.notificationsSubject.next([newAlert, ...current]);
@@ -111,7 +142,6 @@ export class NotificationService implements OnDestroy {
         this.unreadCountSubject.next(unread);
       }),
       catchError(() => {
-        // Optimistic update even on failure
         const updated = this.notificationsSubject.value.map(a =>
           a.id === id ? { ...a, is_viewed: true } : a
         );
@@ -150,6 +180,7 @@ export class NotificationService implements OnDestroy {
   }
 
   public triggerCriticalAlert(patientName: string): void {
+    this.playAlertChime();
     this.sendLocalNotification('🚨 ¡ALERTA CRÍTICA DE ASMA!', {
       body: `${patientName}, tus niveles están en zona de riesgo. Inicia el protocolo de emergencia ahora.`,
       icon: 'assets/icons/icon-192x192.png',
@@ -160,6 +191,7 @@ export class NotificationService implements OnDestroy {
       data: { url: '/dashboard/emergency' }
     } as any);
   }
+
 
   public reload(): void {
     this.loadFromApi();

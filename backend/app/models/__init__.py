@@ -9,3 +9,6 @@ from app.models.organization import Organization, Hospital, UserHospitalAssociat
 from .medical import ClinicalHistory, PhysicalExam, Condition, Allergy
 from .consent import ConsentTemplate, PatientConsent
 from .associations import doctor_patients
+from app.models.appointment import Appointment
+from app.models.settings import UserSettingsModel
+from app.models.device import IoTDeviceModel

@@ -50,6 +50,8 @@ class Patient(Base):
     measurements = relationship("Measurement", back_populates="patient", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="patient", cascade="all, delete-orphan")
     interventions = relationship("Intervention", back_populates="patient", cascade="all, delete-orphan")
+    appointments = relationship("Appointment", back_populates="patient", cascade="all, delete-orphan")
+
     
     # ECE Relationships
     clinical_history = relationship("ClinicalHistory", back_populates="patient", uselist=False, cascade="all, delete-orphan")

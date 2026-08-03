@@ -12,6 +12,12 @@ class InterventionBase(BaseModel):
 class InterventionCreate(InterventionBase):
     patient_id: int
 
+class InterventionUpdate(BaseModel):
+    intervention_type: Optional[str] = None
+    description: Optional[str] = None
+    recommendations: Optional[str] = None
+    next_follow_up: Optional[date] = None
+
 class Intervention(InterventionBase):
     id: int
     patient_id: int
@@ -21,3 +27,4 @@ class Intervention(InterventionBase):
 
     class Config:
         from_attributes = True
+

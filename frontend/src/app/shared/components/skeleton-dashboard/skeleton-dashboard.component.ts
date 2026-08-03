@@ -12,8 +12,9 @@ import { CommonModule } from '@angular/common';
     trigger('skeletonFadeOut', [
       transition(':leave', [
         style({ opacity: 1, transform: 'scale(1)' }),
-        animate('400ms cubic-bezier(0.4, 0, 0.2, 1)', 
-          style({ opacity: 0, transform: 'scale(1.02)' }))
+        animate('120ms ease-out', 
+          style({ opacity: 0 }))
+
       ])
     ])
   ]

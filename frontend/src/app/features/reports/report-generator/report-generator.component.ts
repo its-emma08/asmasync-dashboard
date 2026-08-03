@@ -101,6 +101,7 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
 
     doctorName = 'Usuario';
     doctorSpecialty = 'Especialista';
+    doctorCedula = '';  // Cédula profesional
 
     // Weekly export state
     activePeriod: 'week' | 'month' | 'custom' = 'week';
@@ -168,6 +169,9 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
             if (user) {
                 this.doctorName = user.full_name || 'Usuario';
                 this.doctorSpecialty = (user as any).specialty || 'Especialista';
+                this.doctorCedula = (user as any).professional_license ||
+                                    (user as any).cedula_profesional ||
+                                    (user as any).license_number || '';
                 // Only override institutionName if the user hasn't customised it
                 if (this.config.institutionName === 'AsmaSync Medical Center' && (user as any).hospital_name) {
                     this.config.institutionName = (user as any).hospital_name;

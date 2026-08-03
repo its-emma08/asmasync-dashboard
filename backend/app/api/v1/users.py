@@ -12,16 +12,20 @@ from app.services.audit_service import AuditService
 router = APIRouter()
 
 @router.get("/me", response_model=UserSchema)
+@router.get("/profile", response_model=UserSchema)
 async def read_user_me(
     current_user: User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    Obtiene el usuario actual (útil para recargar estado como 2FA).
+    Obtiene el usuario actual (útil para recargar estado como 2FA o perfil).
     """
     return current_user
 
+
 @router.put("/me", response_model=UserSchema)
+@router.put("/profile", response_model=UserSchema)
 async def update_user_me(
+
     request: Request,
     user_in: UserUpdate,
     db: AsyncSession = Depends(deps.get_db),

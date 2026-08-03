@@ -19,8 +19,12 @@
 
         <!-- Search Pill -->
         <div class="search-pill apple-search-bar hidden md:flex">
-            <mat-icon class="search-icon">search</mat-icon>
-            <input type="text" placeholder="Buscar paciente o reporte..." [(ngModel)]="searchTerm" (ngModelChange)="onSearch($event)"
+            <button class="search-icon-btn" (click)="navigateToSearch()" title="Buscar paciente">
+                <mat-icon class="search-icon">search</mat-icon>
+            </button>
+            <input type="text" placeholder="Buscar paciente o reporte..." [(ngModel)]="searchTerm"
+                (ngModelChange)="onSearch($event)"
+                (keydown)="onSearchKeydown($event)"
                 class="search-input">
 
             <!-- Clear Button -->
@@ -29,6 +33,7 @@
                 <mat-icon class="scale-75 text-[16px] w-[16px] h-[16px] leading-[16px]">close</mat-icon>
             </button>
         </div>
+
 
         <!-- Date Display -->
         <div class="hidden lg:flex items-center gap-2 text-slate-500 text-xs font-semibold px-3 capitalize">

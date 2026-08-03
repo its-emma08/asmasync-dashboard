@@ -636,6 +636,92 @@
                             </div>
                         </ng-template>
                     </div>
+                    <!-- Guardian / Tutor Card (shown for pediatric patients or if data exists) -->
+                    <div class="glass-card-premium p-6"
+                         *ngIf="patient.guardian_name || patient.emergencyContact">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <mat-icon class="text-indigo-500 text-[18px]">family_restroom</mat-icon>
+                            TUTOR / CONTACTO FAMILIAR
+                        </h4>
+                        <!-- Guardian from new field -->
+                        <div *ngIf="patient.guardian_name" class="flex flex-col gap-1 mb-4">
+                            <p class="text-sm font-bold text-gray-900 dark:text-white">
+                                {{ patient.guardian_name }}
+                            </p>
+                            <p class="text-xs text-gray-500" *ngIf="patient.guardian_relation">
+                                {{ patient.guardian_relation }}
+                            </p>
+                            <a *ngIf="patient.guardian_phone"
+                               [href]="'tel:' + patient.guardian_phone"
+                               class="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1">
+                                <mat-icon class="text-[14px]">phone</mat-icon>
+                                {{ patient.guardian_phone }}
+                            </a>
+                        </div>
+                        <!-- Legacy emergencyContact -->
+                        <div *ngIf="!patient.guardian_name && patient.emergencyContact" class="flex flex-col gap-1">
+                            <p class="text-sm font-bold text-gray-900 dark:text-white">
+                                {{ patient.emergencyContact.name }}
+                            </p>
+                            <p class="text-xs text-gray-500">{{ patient.emergencyContact.relation }}</p>
+                            <a [href]="'tel:' + patient.emergencyContact.phone"
+                               class="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1">
+                                <mat-icon class="text-[14px]">phone</mat-icon>
+                                {{ patient.emergencyContact.phone }}
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile App / FCM Card -->
+                    <div class="glass-card-premium p-6">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <mat-icon class="text-[18px]"
+                                      [ngClass]="patient.app_registered ? 'text-emerald-500' : 'text-slate-400'">
+                                smartphone
+                            </mat-icon>
+                            APP MÓVIL (FCM)
+                        </h4>
+
+                        <!-- App registered -->
+                        <div *ngIf="patient.app_registered; else noApp">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                    App vinculada activa
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-xs text-gray-600 dark:text-gray-400">
+                                <div class="flex justify-between" *ngIf="patient.device_model">
+                                    <span class="font-semibold text-gray-500">Dispositivo</span>
+                                    <span>{{ patient.device_model }}</span>
+                                </div>
+                                <div class="flex justify-between" *ngIf="patient.app_version">
+                                    <span class="font-semibold text-gray-500">Versión app</span>
+                                    <span>v{{ patient.app_version }}</span>
+                                </div>
+                                <div class="flex justify-between" *ngIf="patient.last_app_sync">
+                                    <span class="font-semibold text-gray-500">Última sincronía</span>
+                                    <span>{{ patient.last_app_sync | date:'dd/MM/yy HH:mm' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center" *ngIf="patient.fcm_token">
+                                    <span class="font-semibold text-gray-500">Token FCM</span>
+                                    <span class="text-[10px] bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded font-mono truncate max-w-[120px]"
+                                          [title]="patient.fcm_token">
+                                        {{ patient.fcm_token | slice:0:12 }}...
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ng-template #noApp>
+                            <div class="text-center py-4">
+                                <mat-icon class="text-slate-300 opacity-50 text-4xl mb-2">phonelink_off</mat-icon>
+                                <p class="text-xs text-gray-400 font-semibold">Sin app vinculada</p>
+                                <p class="text-[10px] text-gray-400 mt-1">El paciente no ha instalado la app AsmaSync</p>
+                            </div>
+                        </ng-template>
+                    </div>
+
                 </div>
             </div>
         </div>

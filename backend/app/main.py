@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, patients, alerts, interventions, dashboard, websocket, hospitals, clinical_records, consents, reports, measurements, environment, users, security
+from app.api.v1 import auth, patients, alerts, interventions, dashboard, websocket, hospitals, clinical_records, consents, reports, measurements, environment, users, security, appointments, patient_alerts, settings as settings_router, devices
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -45,7 +45,12 @@ app.include_router(alerts.router, prefix=f"{api_v1_prefix}/alerts", tags=["Alert
 app.include_router(interventions.router, prefix=f"{api_v1_prefix}/interventions", tags=["Interventions"])
 app.include_router(dashboard.router, prefix=f"{api_v1_prefix}/dashboard", tags=["Dashboard"])
 app.include_router(security.router, prefix=f"{api_v1_prefix}/security", tags=["Security"])
+app.include_router(appointments.router, prefix=f"{api_v1_prefix}/appointments", tags=["Appointments"])
+app.include_router(patient_alerts.router, prefix=f"{api_v1_prefix}/patient-alerts", tags=["Patient Alerts"])
+app.include_router(settings_router.router, prefix=f"{api_v1_prefix}/settings", tags=["Settings"])
+app.include_router(devices.router, prefix=f"{api_v1_prefix}/devices", tags=["IoT Devices"])
 app.include_router(websocket.router, tags=["WebSockets"])
+
 
 # Advanced Backend Phase 1
 app.include_router(

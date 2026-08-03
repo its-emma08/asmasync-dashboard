@@ -38,11 +38,17 @@ export class PatientService {
         return !!entry && (Date.now() - entry.timestamp) < CACHE_TTL_MS;
     }
 
+    hasCachedPatients(): boolean {
+        return (this._allPatientsCache !== null && this._allPatientsCache.data.length > 0) ||
+               (this.patientsSubject.value && this.patientsSubject.value.length > 0);
+    }
+
     /** Call this after write operations to bust the relevant caches */
     invalidatePatientCache(): void {
         this._allPatientsCache = null;
         this._dashboardMetricsCache = null;
     }
+
 
     constructor(private http: HttpClient) {
         this.loadInitialData();

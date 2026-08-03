@@ -74,8 +74,9 @@
                     <!-- Patient -->
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="avatar-circle relative flex-shrink-0">
-                            <img *ngIf="p.profilePicture" [src]="p.profilePicture" alt="Avatar">
+                            <img *ngIf="p.profilePicture" [src]="p.profilePicture" (error)="p.profilePicture = ''" alt="Avatar">
                             <span *ngIf="!p.profilePicture">{{ (p.full_name || '?').charAt(0).toUpperCase() }}</span>
+
                             <!-- Micro status dot -->
                             <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"
                                 [class.bg-red-500]="p.riskLevel === 'high'"
@@ -122,11 +123,12 @@
 
                     <!-- Ficha Acceso -->
                     <div class="flex justify-end pr-1">
-                        <button mat-icon-button class="row-arrow-btn">
+                        <span class="row-arrow-btn inline-flex items-center justify-center w-8 h-8 rounded-full">
                             <mat-icon class="!text-sm text-gray-400 dark:text-slate-400">chevron_right</mat-icon>
-                        </button>
+                        </span>
                     </div>
                 </a>
+
             </div>
 
             <!-- Empty State -->

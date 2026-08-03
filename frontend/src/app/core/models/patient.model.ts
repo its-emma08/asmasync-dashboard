@@ -96,6 +96,18 @@ export interface Patient {
         url: string;
     }[];
     clinical_history?: ClinicalHistory;
+
+    // Tutor / Guardian (for pediatric patients)
+    guardian_name?: string;
+    guardian_phone?: string;
+    guardian_relation?: string;
+
+    // Mobile app (FCM / push notifications)
+    fcm_token?: string;
+    app_registered?: boolean;
+    last_app_sync?: string; // ISO datetime
+    app_version?: string;
+    device_model?: string;
 }
 
 export interface MeasurementHistory {

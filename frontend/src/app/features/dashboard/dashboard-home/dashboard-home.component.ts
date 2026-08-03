@@ -61,8 +61,9 @@ import { RemindersWidgetComponent } from '../components/widgets/reminders-widget
 import { SkeletonDashboardComponent } from '../../../shared/components/skeleton-dashboard/skeleton-dashboard.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { externalTooltipHandler } from '../../../shared/utils/chart-tooltip';
-import { EmergencyProtocolComponent } from '../../../shared/components/emergency-protocol/emergency-protocol.component';
+import { EmergencyProtocolComponent, EmergencyProtocolData } from '../../../shared/components/emergency-protocol/emergency-protocol.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 
 
 @Component({
@@ -130,10 +131,13 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                 label: 'PEF (L/min)',
                 borderColor: '#2563EB',
                 backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    if (!ctx) return 'transparent';
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.1)');
+                    const chart = context.chart;
+                    const { ctx, chartArea } = chart;
+                    if (!ctx || !chartArea) return 'rgba(37, 99, 235, 0.05)';
+                    // Recalculate gradient dynamically using actual chart dimensions
+                    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.18)');
+                    gradient.addColorStop(0.6, 'rgba(37, 99, 235, 0.06)');
                     gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
                     return gradient;
                 },
@@ -214,6 +218,8 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     public weatherService = inject(WeatherService);
     get weather() { return this.weatherService.currentWeather(); }
 
+    private emergencyModalOpen = false;
+
     constructor(
         private patientService: PatientService,
         private dashboardService: DashboardService,
@@ -222,7 +228,8 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
         private snackBar: MatSnackBar,
         private dialog: MatDialog,
         private cd: ChangeDetectorRef,
-        private loadingService: LoadingService
+        private loadingService: LoadingService,
+        private wsService: WebSocketService
     ) {
         // ChangeDetectorRef injected to avoid ExpressionChangedAfterItHasBeenChecked errors
         this.widgets$ = combineLatest([
@@ -264,38 +271,90 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
             }
         });
 
-        // Effect to trigger emergency protocol if status turns RED
+        // Effect to trigger emergency protocol when health status turns RED
         this.emergencyEffectRef = effect(() => {
             const status = this.alertService.healthStatus();
-            if (status === 'Red') {
-                this.dialog.open(EmergencyProtocolComponent, {
-                    width: '450px',
-                    disableClose: true,
-                    panelClass: 'emergency-modal-panel'
-                });
-                // Reactive Push Notification Trigger
-                this.notificationService.triggerCriticalAlert(this.authService.currentUserValue?.full_name || 'Paciente');
+            if (status === 'Red' && !this.emergencyModalOpen) {
+                const urgentPatient = this.urgentPatients?.[0];
+                const emergencyData: EmergencyProtocolData = {
+                    patientName: urgentPatient?.full_name ?? undefined,
+                    patientId: urgentPatient?.id ?? undefined,
+                    pefValue: undefined,
+                    pefPercent: undefined,
+                    probability: undefined
+                };
+                this.openEmergencyModal(emergencyData);
             }
         });
     }
 
     ngOnInit(): void {
-        const hasCachedData = this.patientService['_allPatientsCache'] !== null;
+        const hasCachedData = this.patientService.hasCachedPatients();
 
         if (hasCachedData) {
-            // Show dashboard immediately from cache; refresh in background after 200ms
             this.isLoading = false;
+            this.dataReady = true;
             this.loadDashboardData();
         } else {
             this.isLoading = true;
             this.cd.detectChanges();
             this.loadDashboardData();
+
+            // Safety ultra-fast timeout for skeleton (max 250ms)
+            setTimeout(() => {
+                if (this.isLoading) {
+                    this.isLoading = false;
+                    this.dataReady = true;
+                    this.cd.markForCheck();
+                }
+            }, 250);
         }
+
 
         // Request notification permission non-intrusively
         setTimeout(() => {
             this.notificationService.requestPermission();
         }, 3000);
+
+        // ── WebSocket: Auto-trigger emergency protocol on real-time RED alerts ──
+        this.wsService.messages$.pipe(takeUntil(this.destroy$)).subscribe((msg: any) => {
+            if (!msg) return;
+            const type = msg.type ?? msg.event ?? '';
+            const isEmergency =
+                type === 'emergency_alert' ||
+                (msg.risk_level === 'red') ||
+                (msg.risk_level === 'RED') ||
+                (msg.alert_type === 'critical' && msg.is_emergency === true);
+
+            if (isEmergency && !this.emergencyModalOpen) {
+                const emergencyData: EmergencyProtocolData = {
+                    patientName: msg.patient_name ?? msg.full_name ?? this.urgentPatients?.[0]?.full_name,
+                    patientId: msg.patient_id ?? msg.user_id ?? this.urgentPatients?.[0]?.id,
+                    pefValue: msg.pef_value ?? msg.pef,
+                    pefPercent: msg.pef_percent ?? (msg.pef_value ? Math.round((msg.pef_value / 600) * 100) : undefined),
+                    probability: msg.probability ?? msg.crisis_probability
+                };
+                this.openEmergencyModal(emergencyData);
+            }
+        });
+    }
+
+    private openEmergencyModal(data: EmergencyProtocolData): void {
+        if (this.emergencyModalOpen) return;
+        this.emergencyModalOpen = true;
+        const ref = this.dialog.open(EmergencyProtocolComponent, {
+            width: '480px',
+            maxWidth: '95vw',
+            disableClose: true,
+            panelClass: 'emergency-modal-panel',
+            data
+        });
+        ref.afterClosed().subscribe(() => {
+            this.emergencyModalOpen = false;
+        });
+        this.notificationService.triggerCriticalAlert(
+            data.patientName ?? this.authService.currentUserValue?.full_name ?? 'Paciente'
+        );
     }
 
     openAddWidgetDialog(): void {

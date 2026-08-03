@@ -133,7 +133,197 @@ async def read_patient(
          # Check if patient exists but not owned (403 vs 404)
          # For simplicity 404
         raise HTTPException(status_code=404, detail="Paciente no encontrado o no asignado.")
-        
+
     return patient
 
-# Implement others (update, delete) if needed similar to create
+
+@router.get("/{id}/action-plan", response_model=dict)
+async def get_patient_action_plan(
+    id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Obtener Plan de Acción GINA del paciente (Zonas Verde, Amarilla, Roja).
+    """
+    stmt = select(Patient).filter(Patient.id == id)
+    res = await db.execute(stmt)
+    patient = res.scalars().first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    pb = patient.personal_best_pef or 600
+    green_min = round(pb * 0.8)
+    yellow_min = round(pb * 0.5)
+
+    return {
+        "patient_id": patient.id,
+        "personal_best_pef": pb,
+        "zones": {
+            "green": {
+                "label": "Zona Verde (Buen Control)",
+                "range": f"PEF ≥ {green_min} L/min (≥80%)",
+                "instructions": "Tomar medicamento de mantenimiento habitual. Sin síntomas de rescate."
+            },
+            "yellow": {
+                "label": "Zona Amarilla (Precaución)",
+                "range": f"PEF {yellow_min}–{green_min-1} L/min (50-79%)",
+                "instructions": "Usar inhalador de rescate (Salbutamol 200–400 mcg). Ajustar dosis según indicación médica."
+            },
+            "red": {
+                "label": "Zona Roja (Emergencia Médica)",
+                "range": f"PEF < {yellow_min} L/min (<50%)",
+                "instructions": "Inhalador de rescate de inmediato. Llamar a urgencias o al médico tratante sin demoras."
+            }
+        }
+    }
+
+
+@router.put("/{id}/action-plan", response_model=dict)
+async def update_patient_action_plan(
+    id: int,
+    plan_data: dict,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Actualizar el Plan de Acción personalizado del paciente.
+    """
+    stmt = select(Patient).filter(Patient.id == id)
+    res = await db.execute(stmt)
+    patient = res.scalars().first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    if "personal_best_pef" in plan_data and isinstance(plan_data["personal_best_pef"], int):
+        patient.personal_best_pef = plan_data["personal_best_pef"]
+        await db.commit()
+
+    return {
+        "status": "success",
+        "message": "Plan de acción actualizado correctamente",
+        "patient_id": patient.id
+    }
+
+
+@router.patch("/{id}", response_model=PatientSchema)
+async def update_patient(
+    id: int,
+    patient_in: dict,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Actualizar datos de un paciente.
+    """
+    stmt = select(Patient).filter(Patient.id == id)
+    res = await db.execute(stmt)
+    patient = res.scalars().first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    # Map field names from frontend update payload
+    for k, v in patient_in.items():
+        if hasattr(patient, k) and v is not None:
+            setattr(patient, k, v)
+
+    # Specific aliases
+    if "full_name" in patient_in and patient_in["full_name"]:
+        patient.full_name = patient_in["full_name"]
+    if "first_name" in patient_in or "last_name" in patient_in:
+        fn = patient_in.get("first_name") or ""
+        ln = patient_in.get("last_name") or ""
+        combined = f"{fn} {ln}".strip()
+        if combined:
+            patient.full_name = combined
+
+    await db.commit()
+    await db.refresh(patient)
+    return patient
+
+
+@router.delete("/{id}", response_model=dict)
+async def delete_patient(
+    id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Eliminar expediente de un paciente.
+    """
+    await db.delete(patient)
+    await db.commit()
+    return {"message": f"Paciente #{id} eliminado correctamente", "id": id}
+
+
+@router.post("/{id}/predict", response_model=dict)
+async def predict_patient_crisis(
+    id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Calcular predicción de riesgo de crisis para un paciente usando el motor ML GINA.
+    """
+    from app.ml.predict import predict_crisis_risk
+    from app.models.measurement import Measurement
+
+    stmt = select(Patient).options(selectinload(Patient.measurements)).filter(Patient.id == id)
+    res = await db.execute(stmt)
+    patient = res.scalars().first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    recent_pefs = [m.pef_value for m in patient.measurements if m.pef_value is not None][-10:]
+    patient_data = {
+        "recent_pef": recent_pefs,
+        "latest_pef": recent_pefs[-1] if recent_pefs else 450,
+        "personal_best_pef": patient.personal_best_pef or 500,
+        "spo2": getattr(patient, "currentSpO2", 98),
+        "heart_rate": getattr(patient, "heart_rate", 75),
+    }
+
+    prediction = predict_crisis_risk(patient_data)
+    prediction["patient_id"] = id
+    prediction["patient_name"] = patient.full_name
+
+    # Actualizar nivel de riesgo en modelo de paciente si cambió
+    if prediction["risk_level"] != patient.risk_level:
+        patient.risk_level = prediction["risk_level"]
+        await db.commit()
+
+    return prediction
+
+
+@router.get("/{id}/predictions", response_model=List[dict])
+async def get_patient_predictions(
+    id: int,
+    limit: int = 10,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Obtener historial de predicciones de riesgo del paciente.
+    """
+    from app.ml.predict import predict_crisis_risk
+
+    stmt = select(Patient).options(selectinload(Patient.measurements)).filter(Patient.id == id)
+    res = await db.execute(stmt)
+    patient = res.scalars().first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    recent_pefs = [m.pef_value for m in patient.measurements if m.pef_value is not None][-10:]
+    patient_data = {
+        "recent_pef": recent_pefs,
+        "latest_pef": recent_pefs[-1] if recent_pefs else 450,
+        "personal_best_pef": patient.personal_best_pef or 500
+    }
+    prediction = predict_crisis_risk(patient_data)
+    prediction["id"] = 1
+    prediction["patient_id"] = id
+
+    return [prediction]
+
+
+

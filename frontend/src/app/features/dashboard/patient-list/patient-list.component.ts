@@ -98,6 +98,11 @@ export class PatientListComponent implements OnInit, OnDestroy {
             if (params['filter'] === 'risk' || params['filter'] === 'high') {
                 this.riskFilterControl.setValue('high');
             }
+            // Read 'search' param from header global search redirect
+            if (params['search'] && params['search'] !== this.searchControl.value) {
+                this.searchControl.setValue(params['search']);
+                this.searchService.setSearchTerm(params['search']);
+            }
         });
 
         // Connect Global Search
@@ -110,6 +115,7 @@ export class PatientListComponent implements OnInit, OnDestroy {
         // Trigger initial load
         this.refreshTable$.next();
     }
+
 
     ngOnDestroy(): void {
         this.destroy$.next();

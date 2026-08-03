@@ -46,6 +46,14 @@
                             </mat-form-field>
                         </div>
 
+                        <!-- Cedula profesional -->
+                        <mat-form-field appearance="outline" class="w-full dense-field mb-2">
+                            <mat-label>Cédula Profesional del Médico</mat-label>
+                            <input matInput [(ngModel)]="doctorCedula" placeholder="Ej: 12345678">
+                            <mat-icon matPrefix>verified</mat-icon>
+                        </mat-form-field>
+
+
                         <div class="color-pickers">
                             <div class="color-field">
                                 <label>Primario</label>
@@ -522,10 +530,16 @@
                                 <div class="sig-line"></div>
                                 <p>{{ currentDoctorName | uppercase }}</p>
                                 <small>{{ doctorSpecialty | uppercase }}</small>
+                                <small *ngIf="doctorCedula" class="cedula-ref">CÉD. PROF. {{ doctorCedula }}</small>
                             </div>
                             <div class="signature-box">
                                 <div class="sig-line"></div>
                                 <p>FIRMA DEL PACIENTE</p>
+                                <small>{{ editedPatient?.full_name | uppercase }}</small>
+                            </div>
+                            <div class="signature-box">
+                                <div class="sig-line"></div>
+                                <p>TESTIGO</p>
                             </div>
                         </div>
 
@@ -535,9 +549,9 @@
 
                 <!-- 4. FOOTER -->
                 <footer class="report-footer" *ngIf="config.showFooter">
-                    <p>{{ config.institutionName }} - Reporte Generado por AsmaSync v2.0</p>
-                    <p class="disclaimer">Este documento es una herramienta de apoyo clínico y no sustituye el juicio
-                        médico profesional.</p>
+                    <p>{{ config.institutionName }} — Reporte Generado por AsmaSync v2.0 · {{ today | date:'dd/MM/yyyy' }}</p>
+                    <p class="disclaimer">Este documento es una herramienta de apoyo clínico y no sustituye el juicio médico profesional.</p>
+                    <p class="gina-ref">Clasificación de riesgo basada en <strong>GINA 2023</strong> (Global Initiative for Asthma) — Stepwise approach to asthma management. gina.asthma.com</p>
                 </footer>
 
             </div>
