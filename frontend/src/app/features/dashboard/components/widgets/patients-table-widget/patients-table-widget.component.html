@@ -14,6 +14,30 @@
             </div>
         </div>
         
+        <!-- Risk Filter Pills -->
+        <div class="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-full text-[11px] font-semibold">
+            <button (click)="setRiskFilter('all')"
+                    class="px-2.5 py-0.5 rounded-full transition-all"
+                    [ngClass]="selectedRiskFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'">
+                Todos
+            </button>
+            <button (click)="setRiskFilter('high')"
+                    class="px-2.5 py-0.5 rounded-full transition-all"
+                    [ngClass]="selectedRiskFilter === 'high' ? 'bg-red-500 text-white shadow-sm' : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'">
+                Críticos
+            </button>
+            <button (click)="setRiskFilter('moderate')"
+                    class="px-2.5 py-0.5 rounded-full transition-all"
+                    [ngClass]="selectedRiskFilter === 'moderate' ? 'bg-amber-500 text-white shadow-sm' : 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30'">
+                En Riesgo
+            </button>
+            <button (click)="setRiskFilter('low')"
+                    class="px-2.5 py-0.5 rounded-full transition-all"
+                    [ngClass]="selectedRiskFilter === 'low' ? 'bg-emerald-500 text-white shadow-sm' : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'">
+                Estables
+            </button>
+        </div>
+
         <!-- Search bar inside header -->
         <div class="flex items-center gap-4 flex-1 max-w-[160px] sm:max-w-[220px] relative">
             <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 scale-90">search</mat-icon>

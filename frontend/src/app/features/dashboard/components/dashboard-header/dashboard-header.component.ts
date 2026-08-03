@@ -14,6 +14,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { BreadcrumbService, Breadcrumb } from '../../../../core/services/breadcrumb.service';
 import { Alert } from '../../../../core/models/alert.model';
 import { ThemeService } from '../../../../core/services/theme.service';
+import { WebSocketService, ConnectionState } from '../../../../core/services/websocket.service';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 
@@ -37,6 +38,7 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
   unreadCount$: Observable<number>;
   notifications$: Observable<Alert[]>;
   breadcrumbs$: Observable<Breadcrumb[]>;
+  wsStatus$: Observable<ConnectionState>;
 
   constructor(
     private router: Router,
@@ -46,11 +48,17 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private breadcrumbService: BreadcrumbService,
     private themeService: ThemeService,
+    private wsService: WebSocketService,
     private cdr: ChangeDetectorRef
   ) {
     this.unreadCount$ = this.notificationService.unreadCount$;
     this.notifications$ = this.notificationService.notifications$;
     this.breadcrumbs$ = this.breadcrumbService.breadcrumbs$;
+    this.wsStatus$ = this.wsService.status$;
+  }
+
+  reconnectWs() {
+    this.wsService.reconnect();
   }
 
   ngOnInit() {

@@ -21,6 +21,7 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
     @Input() patients: Patient[] = [];
     filteredPatients: Patient[] = [];
     localSearchTerm = '';
+    selectedRiskFilter: 'all' | 'high' | 'moderate' | 'low' = 'all';
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -49,6 +50,11 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
         this.filterPatients(this.searchService.currentTerm);
     }
 
+    setRiskFilter(filter: 'all' | 'high' | 'moderate' | 'low'): void {
+        this.selectedRiskFilter = filter;
+        this.filterPatients(this.searchService.currentTerm);
+    }
+
     filterPatients(globalTerm: string) {
         const global = globalTerm ? globalTerm.toLowerCase().trim() : '';
         const local = this.localSearchTerm ? this.localSearchTerm.toLowerCase().trim() : '';
@@ -57,7 +63,8 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
             const name = (p.full_name || '').toLowerCase();
             const matchesGlobal = !global || name.includes(global);
             const matchesLocal = !local || name.includes(local);
-            return matchesGlobal && matchesLocal;
+            const matchesRisk = this.selectedRiskFilter === 'all' || p.riskLevel === this.selectedRiskFilter;
+            return matchesGlobal && matchesLocal && matchesRisk;
         });
     }
 

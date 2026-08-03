@@ -36,6 +36,26 @@
             <span>{{ currentDate | date:'fullDate':'':'es-ES' }}</span>
         </div>
 
+        <!-- Live Connection Status Pill -->
+        <ng-container *ngIf="wsStatus$ | async as status">
+            <div (click)="reconnectWs()"
+                 class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer select-none"
+                 [ngClass]="{
+                   'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800': status === 'connected',
+                   'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800': status === 'connecting',
+                   'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700': status === 'disconnected'
+                 }"
+                 [title]="status === 'connected' ? 'Sincronización en vivo activa' : 'Hacer clic para reconectar'">
+                <span class="w-2 h-2 rounded-full"
+                      [ngClass]="{
+                        'bg-emerald-500 animate-pulse': status === 'connected',
+                        'bg-amber-500 animate-ping': status === 'connecting',
+                        'bg-slate-400': status === 'disconnected'
+                      }"></span>
+                <span>{{ status === 'connected' ? 'En vivo' : (status === 'connecting' ? 'Conectando...' : 'Modo Offline') }}</span>
+            </div>
+        </ng-container>
+
         <!-- Divider -->
         <div class="hidden lg:block w-px h-8 bg-slate-200/60"></div>
 
