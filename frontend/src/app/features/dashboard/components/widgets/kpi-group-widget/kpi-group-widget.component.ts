@@ -107,10 +107,21 @@ export class KpiGroupWidgetComponent implements OnChanges, OnDestroy {
     }
 
     navigateToDetail(kpi: any): void {
-        if (kpi.title.includes('Pacientes')) {
+        const title = (kpi?.title || '').toLowerCase();
+        if (title.includes('cita') || title.includes('agenda')) {
+            this.router.navigate(['/dashboard/calendar']);
+        } else if (title.includes('alerta') || title.includes('crisis')) {
+            this.router.navigate(['/dashboard/alerts']);
+        } else if (title.includes('intervencion')) {
+            this.router.navigate(['/dashboard/interventions']);
+        } else if (title.includes('riesgo') || title.includes('crítico') || title.includes('alto')) {
+            this.router.navigate(['/dashboard/patients'], { queryParams: { filter: 'high' } });
+        } else if (title.includes('observación') || title.includes('moderado')) {
+            this.router.navigate(['/dashboard/patients'], { queryParams: { filter: 'moderate' } });
+        } else if (title.includes('estable')) {
+            this.router.navigate(['/dashboard/patients'], { queryParams: { filter: 'low' } });
+        } else {
             this.router.navigate(['/dashboard/patients']);
-        } else if (kpi.title.includes('Riesgo')) {
-            this.router.navigate(['/dashboard/patients'], { queryParams: { filter: 'risk' } });
         }
     }
 
