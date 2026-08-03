@@ -145,6 +145,18 @@ const SIZE_CYCLE: WidgetSize[] = ['small', 'medium', 'large', 'wide', 'tall', 'f
       }
     }
 
+    :host-context(.dark) .shell-inner,
+    .dark .shell-inner {
+      background: rgba(15, 23, 42, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+
+      &::before {
+        border-top-color: rgba(255, 255, 255, 0.12) !important;
+      }
+    }
+
+
     .shell-inner:hover {
       box-shadow:
         0 8px 24px rgba(0, 20, 60, 0.08),

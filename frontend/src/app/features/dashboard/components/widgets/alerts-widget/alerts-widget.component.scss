@@ -264,10 +264,11 @@
 }
 
 /* ─── Dark Mode Overrides ─── */
-:host-context(body.dark) {
+:host-context(.dark), .dark {
     .icon-bubble { background: rgba(255, 255, 255, 0.05); }
     .segmented-control { background: rgba(255, 255, 255, 0.05); button.active { background: #334155; } }
     .data-box { background: rgba(255, 255, 255, 0.03); }
     .icon-action-btn, .text-action-btn { background: rgba(255, 255, 255, 0.05); border: none; color: white; }
     .item-check-btn { opacity: 0.8 !important; }
 }
+
