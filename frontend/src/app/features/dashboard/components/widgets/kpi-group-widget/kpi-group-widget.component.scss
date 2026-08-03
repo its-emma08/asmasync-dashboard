@@ -129,7 +129,7 @@
 }
 
 /* ─── Dark Mode ─── */
-:host-context(body.dark) {
+:host-context(.dark), .dark {
     .kpi-card {
         background: rgba(18, 28, 48, 0.95);
         border-color: rgba(255, 255, 255, 0.06);
@@ -146,4 +146,4 @@
 
     .trend-pill.trend-up { background: rgba(18, 161, 80, 0.15); color: #2ECC71; }
     .trend-pill.trend-down { background: rgba(229, 50, 62, 0.15); color: #FF4D5A; }
-}
+}

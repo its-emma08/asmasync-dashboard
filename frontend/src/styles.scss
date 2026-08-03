@@ -19,12 +19,21 @@
     50% { opacity: 0.7; transform: scale(1.05); }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+@keyframes floatGlow {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(24px, -18px) scale(1.06); }
 }
 
-.animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.ambient-glow .glow-circle.primary {
+    animation: floatGlow 14s ease-in-out infinite;
+}
+
+.ambient-glow .glow-circle.accent {
+    animation: floatGlow 18s ease-in-out infinite reverse;
+}
+
+.animate-fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
 
 /* ============================================
    Layout Utilities
