@@ -103,7 +103,7 @@ import { WeatherService, WeatherData } from '../../../../../core/services/weathe
             letter-spacing: 0.08em; 
             color: #94a3b8;
         }
-        :host-context(body.dark) .stat-label {
+        :host-context(.dark) .stat-label, .dark .stat-label {
             color: #64748b;
         }
         .stat-value {
@@ -112,9 +112,10 @@ import { WeatherService, WeatherData } from '../../../../../core/services/weathe
             color: #1e293b;
             line-height: 1.1;
         }
-        :host-context(body.dark) .stat-value { 
+        :host-context(.dark) .stat-value, .dark .stat-value { 
             color: #f1f5f9; 
         }
+
     `]
 })
 export class WeatherWidgetComponent {
