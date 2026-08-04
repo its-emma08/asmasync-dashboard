@@ -68,7 +68,7 @@ export class DashboardHeaderComponent implements OnInit, OnDestroy {
         if (user) {
           this.doctorName = user.full_name || 'Usuario';
           this.doctorInitials = this.getInitials(user.full_name);
-          this.doctorSpecialty = (user as any).medical_profile?.specialty || (user as any).specialty || (user.role === 'admin' ? 'Administrador Médico' : 'Especialista en Neumología');
+          this.doctorSpecialty = (user as any).medical_profile?.specialty || (user as any).specialty || (user.role === 'admin' ? 'Administrador Médico' : user.role === 'nurse' ? 'Enfermero/a' : 'Especialista en Neumología');
         }
 
 

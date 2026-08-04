@@ -264,7 +264,7 @@ const SIZE_CYCLE: WidgetSize[] = ['small', 'medium', 'large', 'wide', 'tall', 'f
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #007AFF;
+      color: var(--brand-primary);
       transition: background 0.15s ease;
       flex-shrink: 0;
     }

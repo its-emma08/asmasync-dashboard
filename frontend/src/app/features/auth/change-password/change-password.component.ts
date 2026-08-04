@@ -25,26 +25,25 @@ import { take } from 'rxjs/operators';
         MatProgressSpinnerModule
     ],
     template: `
-    <div class="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden">
-        
-      <div class="w-full max-w-lg bg-white rounded-[2rem] shadow-xl p-8 animate-fade-in-up border border-slate-100 relative z-10">
+    <div class="w-full flex justify-center">
+      <div class="w-full max-w-lg glass-login-card p-8 md:p-10 animate-fade-in-up border border-slate-100 dark:border-slate-700 relative z-10">
         
         <div class="flex items-center gap-4 mb-8">
-            <button mat-icon-button routerLink="/dashboard" class="!bg-slate-100 !text-slate-600">
+            <button mat-icon-button routerLink="/dashboard" class="!bg-slate-100 dark:!bg-slate-800 !text-slate-600 dark:!text-slate-300">
                 <mat-icon>arrow_back</mat-icon>
             </button>
-            <h2 class="text-2xl font-bold text-slate-800 m-0">Cambiar Contraseña</h2>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white m-0">Cambiar Contraseña</h2>
         </div>
 
         <form [formGroup]="pwdForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
             
             <!-- Current Password -->
             <div class="space-y-1">
-                <label class="font-bold text-slate-700 ml-1">Contraseña Actual</label>
+                <label class="font-bold text-slate-700 dark:text-slate-300 ml-1">Contraseña Actual</label>
                 <div class="relative">
                     <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">lock</mat-icon>
                     <input [type]="hideCurrent() ? 'password' : 'text'" formControlName="currentPassword"
-                        class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium">
+                        class="w-full pl-11 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium">
                     <button type="button" (click)="hideCurrent.set(!hideCurrent())"
                         class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400">
                         <mat-icon class="scale-90">{{hideCurrent() ? 'visibility_off' : 'visibility'}}</mat-icon>
@@ -54,28 +53,28 @@ import { take } from 'rxjs/operators';
 
             <!-- New Password -->
             <div class="space-y-1">
-                <label class="font-bold text-slate-700 ml-1">Nueva Contraseña</label>
+                <label class="font-bold text-slate-700 dark:text-slate-300 ml-1">Nueva Contraseña</label>
                 <div class="relative">
                     <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">key</mat-icon>
                     <input [type]="hideNew() ? 'password' : 'text'" formControlName="newPassword"
-                        class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium">
+                        class="w-full pl-11 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium">
                     <button type="button" (click)="hideNew.set(!hideNew())"
                         class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400">
                         <mat-icon class="scale-90">{{hideNew() ? 'visibility_off' : 'visibility'}}</mat-icon>
                     </button>
                 </div>
-                <div class="text-xs text-slate-500 ml-1 mt-1">
+                <div class="text-xs text-slate-500 dark:text-slate-400 ml-1 mt-1">
                     Mínimo 8 caracteres, una mayúscula, una minúscula y un número.
                 </div>
             </div>
 
             <!-- Confirm Password -->
             <div class="space-y-1">
-                <label class="font-bold text-slate-700 ml-1">Confirmar Nueva Contraseña</label>
+                <label class="font-bold text-slate-700 dark:text-slate-300 ml-1">Confirmar Nueva Contraseña</label>
                 <div class="relative">
                     <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 scale-90">check_circle</mat-icon>
                     <input [type]="hideConfirm() ? 'password' : 'text'" formControlName="confirmPassword"
-                        class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium">
+                        class="w-full pl-11 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-cyan/20 focus:border-brand-cyan outline-none transition-all font-medium">
                 </div>
                 <mat-error *ngIf="pwdForm.hasError('mismatch') && pwdForm.get('confirmPassword')?.touched" class="text-xs ml-1 font-bold text-red-500">
                     Las contraseñas no coinciden

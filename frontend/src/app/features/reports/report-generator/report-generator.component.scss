@@ -1077,4 +1077,108 @@ $primary-color: #0E7490;
     margin-top: 3px;
     border-top: 1px dashed rgba(0,0,0,0.1);
     padding-top: 4px;
-}
+}
+
+/* ═══════════════════════════════════════
+   DARK MODE — UI CHROME ONLY
+   (la hoja imprimible .print-page se mantiene blanca)
+   ═══════════════════════════════════════ */
+:host-context(body.dark) {
+    ::ng-deep .sidebar-tabs .mat-mdc-tab.mdc-tab--active {
+        box-shadow: var(--shadow-sm), 0 0 0 1px rgba(34, 211, 238, 0.25);
+
+        .mdc-tab__text-label {
+            color: #22d3ee !important;
+        }
+    }
+
+    .paper-size-toggle {
+        border-color: var(--border-color);
+
+        mat-button-toggle {
+            color: var(--text-muted);
+
+            &.mat-button-toggle-checked {
+                background-color: rgba(14, 116, 144, 0.18);
+                color: #22d3ee;
+            }
+        }
+    }
+
+    .section-drag-handle {
+        color: var(--text-muted);
+    }
+
+    .toc-enabled {
+        background: rgba(6, 182, 212, 0.1);
+        color: var(--text-primary, #e2e8f0);
+
+        .toc-ico { color: #34d399; }
+    }
+
+    .toc-disabled {
+        .toc-ico { color: var(--text-muted); }
+    }
+
+    .toc-num { color: #22d3ee; }
+
+    .preview-toolbar {
+        background: rgba(15, 23, 42, 0.85);
+        border-bottom-color: var(--border-color);
+    }
+
+    .toolbar-left { color: var(--text-muted); }
+    .toolbar-icon { color: var(--text-muted); }
+
+    .paper-badge {
+        background: var(--bg-hover);
+        color: var(--text-muted);
+    }
+
+    .generating-progress {
+        background: linear-gradient(135deg, rgba(14, 116, 144, 0.15), rgba(59, 130, 246, 0.15));
+    }
+
+    .gen-step.active { color: #22d3ee; }
+    .gen-label { color: #22d3ee; }
+
+    .gen-bar-track { background: var(--bg-hover); }
+
+    .weekly-export-panel {
+        background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(6, 182, 212, 0.1));
+        border-color: rgba(45, 212, 191, 0.3);
+    }
+
+    .weekly-header { color: #2dd4bf; }
+
+    .period-chip {
+        border-color: rgba(45, 212, 191, 0.3);
+        background: var(--bg-card);
+        color: #2dd4bf;
+
+        &:hover { background: rgba(45, 212, 191, 0.12); }
+
+        &.active {
+            background: #0f766e;
+            color: white;
+            border-color: #0f766e;
+        }
+    }
+
+    .weekly-btn {
+        border-color: #2dd4bf !important;
+        color: #2dd4bf !important;
+    }
+
+    .med-editor-row {
+        border-color: var(--border-color);
+        background: var(--bg-hover);
+    }
+
+    .chip {
+        &.chip-total { background: rgba(14, 165, 233, 0.18); color: #7dd3fc; }
+        &.chip-green { background: rgba(34, 197, 94, 0.16); color: #86efac; }
+        &.chip-red { background: rgba(239, 68, 68, 0.16); color: #fca5a5; }
+    }
+}
+

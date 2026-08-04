@@ -30,9 +30,11 @@ const mockPatientService = {
   resolveAlert: vi.fn().mockReturnValue(of(true)),
   // used by widget children — included so they don't throw if Angular resolves them
   patients$:     new BehaviorSubject([]),
+  hasCachedPatients: vi.fn().mockReturnValue(false),
   getPatients:   vi.fn().mockReturnValue(of({ data: [] })),
   getPatientStats: vi.fn().mockReturnValue(of({ total: 0, critical: 0, moderate: 0, stable: 0 })),
 };
+
 
 const mockDashboardService = {
   widgets$:        new BehaviorSubject([{ id: 'w1', type: 'kpi-group', size: 'full', title: 'KPI' }]),

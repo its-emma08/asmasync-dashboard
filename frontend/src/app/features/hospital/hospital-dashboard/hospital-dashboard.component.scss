@@ -1,7 +1,7 @@
 :host { display: block; }
 
 .hospital-page {
-  background: #f2f2f7;
+  background: var(--bg-body);
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   transition: background 0.3s ease;
@@ -638,7 +638,7 @@
 /* ── Dark Mode Overrides ── */
 :host-context(body.dark) {
   .hospital-page {
-    background: #000000;
+    background: var(--bg-body);
   }
   
   .hosp-header {

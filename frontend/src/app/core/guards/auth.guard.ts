@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { StorageService } from '../services/storage.service';
 
 /**
  * Verifica si el JWT (access_token) existe y no ha expirado.
@@ -59,5 +60,32 @@ export const publicGuard: CanActivateFn = (_route, _state) => {
         router.navigate(['/dashboard']);
         return false;
     }
+    return true;
+};
+
+/**
+ * Guard para la ruta de verificación 2FA (/auth/2fa).
+ * Solo permite el acceso si hay una verificación de dos pasos PENDIENTE:
+ * - El usuario aún NO tiene sesión completa (sin access_token válido).
+ * - Existe un temp_2fa_token emitido por el backend en el paso previo del login.
+ * Cualquier otro acceso se redirige a /login.
+ */
+export const twoFactorPendingGuard: CanActivateFn = (_route, _state) => {
+    const authService = inject(AuthService);
+    const storageService = inject(StorageService);
+    const router = inject(Router);
+
+    // Ya autenticado (verificación completa) -> no debe estar aquí
+    if (authService.getToken()) {
+        router.navigate(['/dashboard']);
+        return false;
+    }
+
+    // Sin temp token pendiente -> no hay verificación 2FA en curso
+    if (!storageService.getItem('temp_2fa_token')) {
+        router.navigate(['/login']);
+        return false;
+    }
+
     return true;
 };

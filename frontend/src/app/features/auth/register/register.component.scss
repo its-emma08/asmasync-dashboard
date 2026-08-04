@@ -2,23 +2,6 @@
   display: block;
 }
 
-/* ── Register Card — Frosted Glass ── */
-.glass-register-card {
-    background: rgba(255, 255, 255, 0.80) !important;
-    backdrop-filter: blur(32px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.88) !important;
-    box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.02),
-        0 12px 40px rgba(0, 0, 0, 0.06),
-        0 40px 80px rgba(0, 0, 0, 0.04) !important;
-    border-radius: 32px !important;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow: hidden;
-    max-width: 460px !important;
-    margin: auto;
-}
-
 .step-container {
   overflow: hidden;
   position: relative;
@@ -49,8 +32,8 @@
     transition: all 0.4s ease;
 
     &.active {
-      background: #007AFF;
-      box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
+      background: var(--brand-primary);
+      box-shadow: 0 0 10px var(--brand-primary-shadow);
     }
 
     &.completed {
@@ -86,8 +69,8 @@
     }
 
     &:focus {
-      border-color: #007AFF;
-      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.08);
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 4px var(--brand-primary-light);
     }
     
     /* Real-time Validation States */
@@ -131,7 +114,7 @@
 
   &:focus-within .input-icon {
     opacity: 1;
-    color: #007AFF;
+    color: var(--brand-primary);
   }
 }
 
@@ -141,16 +124,16 @@
 }
 
 .btn-elite-next {
-  background: #007AFF !important;
+  background: var(--brand-primary) !important;
   color: white !important;
   height: 52px !important;
   border-radius: 16px !important;
   font-size: 15px !important;
   font-weight: 600 !important;
-  box-shadow: 0 8px 20px -6px rgba(0, 122, 255, 0.3) !important;
+  box-shadow: 0 8px 20px -6px var(--brand-primary-shadow) !important;
   transition: all 0.3s ease !important;
   &:disabled { opacity: 0.5; filter: grayscale(0.5); }
-  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 25px -8px rgba(0, 122, 255, 0.4) !important; }
+  &:hover:not(:disabled) { transform: translateY(-2px); background: var(--brand-primary-hover) !important; box-shadow: 0 12px 25px -8px var(--brand-primary-shadow) !important; }
 }
 
 .btn-elite-back {
@@ -184,14 +167,14 @@
 .section-label {
   font-size: 10px;
   font-weight: 700;
-  color: #007AFF;
+  color: var(--brand-primary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  &::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, rgba(0, 122, 255, 0.2), transparent); }
+  &::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--brand-primary-border), transparent); }
 }
 
 .register-footer-compact {
@@ -199,7 +182,7 @@
   font-size: 13px;
   color: #8E8E93;
   margin-top: 1.5rem;
-  a { color: #007AFF; font-weight: 600; text-decoration: none; &:hover { text-decoration: underline; } }
+  a { color: var(--brand-primary); font-weight: 600; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
 .error-bubble {
@@ -213,4 +196,39 @@
   align-items: center;
   gap: 8px;
   margin-top: 1rem;
+}
+
+/* ── Dark Mode — Register overrides ── */
+:host-context(body.dark) {
+  .clinical-input-group {
+    input, select {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #F1F5F9;
+      &::placeholder { color: #64748B; }
+    }
+
+    .input-icon { color: #64748B; }
+  }
+
+  .step-indicator .dot {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .btn-elite-back {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #E2E8F0 !important;
+    &:hover { background: rgba(255, 255, 255, 0.14) !important; }
+  }
+
+  .error-bubble {
+    background: rgba(255, 59, 48, 0.12);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+  }
+
+  select {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #F1F5F9 !important;
+    option { color: #0f172a; }
+  }
 }

@@ -191,7 +191,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
                     return;
                 }
 
-                // Guardar token para que el interceptor lo envíe en la siguiente llamada
+                // Guardar token y sincronizar usuario.
+                // setUserFromSupabase ya hace el POST /auth/register contra la API
+                // (no duplicar con authService.register aquí).
                 this.authService.setUserFromSupabase({
                     access_token: jwt,
                     email: supabaseUser?.email ?? email,
@@ -200,20 +202,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
                     id: supabaseUser?.id ?? ''
                 });
 
-                // Registrar en Pablo's DB con el JWT ya disponible
-                this.authService.register({ full_name: fullName, role: 'doctor' }).pipe(take(1)).subscribe({
-                    next: () => {
-                        this.isLoading.set(false);
-                        this.toastService.showSuccess('¡Cuenta creada con éxito!');
-                        this.router.navigate(['/dashboard']);
-                    },
-                    error: () => {
-                        // Si el registro en Pablo falla, igual dejamos pasar (pueden operar con Supabase)
-                        this.isLoading.set(false);
-                        this.toastService.showSuccess('¡Cuenta confirmada!');
-                        this.router.navigate(['/dashboard']);
-                    }
-                });
+                this.isLoading.set(false);
+                this.toastService.showSuccess('¡Cuenta creada con éxito!');
+                this.router.navigate(['/dashboard']);
             },
             error: (err) => {
                 this.isLoading.set(false);

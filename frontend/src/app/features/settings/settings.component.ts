@@ -21,6 +21,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 import { PatientService } from '../../core/services/patient.service';
+import { RoleLabelPipe } from '../../shared/pipes/role-label.pipe';
 import { EditProfileModalComponent } from './modals/edit-profile-modal.component';
 import { ChangePasswordModalComponent } from './modals/change-password-modal.component';
 import { TwoFactorModalComponent } from './modals/two-factor-modal.component';
@@ -36,7 +37,8 @@ import { ThemeService } from '../../core/services/theme.service';
     CommonModule, FormsModule, MatSlideToggleModule,
     MatButtonModule, MatIconModule, MatDividerModule, MatSelectModule,
     MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressBarModule, MatProgressSpinnerModule,
-    MatDialogModule, MatTableModule, MatTooltipModule
+    MatDialogModule, MatTableModule, MatTooltipModule,
+    RoleLabelPipe
   ],
   template: `
     <div class="settings-layout">
@@ -80,10 +82,10 @@ import { ThemeService } from '../../core/services/theme.service';
               <h4 class="text-xl font-bold">{{ currentUser.full_name || 'Usuario' }}</h4>
               <p class="text-sm opacity-60">{{ currentUser.email }}</p>
               <div class="flex gap-2 mt-2 flex-wrap">
-                <span class="apple-badge primary">{{ currentUser.role === 'admin' ? 'Administrador' : 'Médico' }}</span>
+                <span class="apple-badge primary">{{ currentUser.role | roleLabel }}</span>
                 <span class="apple-badge secondary">Especialista</span>
                 <span class="apple-badge" *ngIf="currentUser.doctor_code"
-                  style="background:rgba(0,122,255,0.12);color:#007AFF;font-family:monospace;letter-spacing:0.05em;cursor:pointer;"
+                  style="background:var(--brand-primary-light);color:var(--brand-primary);font-family:monospace;letter-spacing:0.05em;cursor:pointer;"
                   title="Código para que tus pacientes te vinculen"
                   (click)="copyDoctorCode()">
                   <mat-icon style="font-size:13px;height:13px;width:13px;margin-right:3px;vertical-align:middle;">badge</mat-icon>
@@ -538,7 +540,7 @@ import { ThemeService } from '../../core/services/theme.service';
     .dark .nav-item:hover { background: rgba(255,255,255,0.05); }
 
     .nav-item.active {
-      background: #007AFF;
+      background: var(--brand-primary);
       color: white;
       font-weight: 500;
       box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
@@ -734,7 +736,7 @@ import { ThemeService } from '../../core/services/theme.service';
     .dark .save-bar-inner p { color: #fff; }
 
     .apple-btn-pill {
-      background: #007AFF !important;
+      background: var(--brand-primary) !important;
       color: white !important;
       border-radius: 20px !important;
       font-size: 13px !important;
@@ -930,7 +932,7 @@ import { ThemeService } from '../../core/services/theme.service';
     }
 
     /* ===== Colors ===== */
-    .bg-blue { background: #007AFF !important; }
+    .bg-blue { background: var(--brand-primary) !important; }
     .bg-orange { background: #FF9500 !important; }
     .bg-green { background: #34C759 !important; }
     .bg-red { background: #FF3B30 !important; }

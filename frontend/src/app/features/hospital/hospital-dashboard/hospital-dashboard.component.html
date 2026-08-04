@@ -16,7 +16,7 @@
         <mat-icon style="font-size:16px;width:16px;height:16px;">download</mat-icon>
         Exportar PDF
       </button>
-      <button class="btn-primary" (click)="addHospital()">
+      <button class="btn-primary" (click)="addHospital()" *appHasRole="['admin']">
         <mat-icon style="font-size:16px;width:16px;height:16px;">add</mat-icon>
         Nuevo Hospital
       </button>
@@ -192,7 +192,7 @@
             <option value="inactive">Inactivos</option>
           </select>
 
-          <button class="btn-primary btn-sm flex-shrink-0" (click)="openInviteDoctor()">
+          <button class="btn-primary btn-sm flex-shrink-0" (click)="openInviteDoctor()" *appHasRole="['admin']">
             <mat-icon style="font-size:14px;width:14px;height:14px;">person_add</mat-icon>
             Invitar doctor
           </button>

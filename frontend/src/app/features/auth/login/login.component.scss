@@ -1,34 +1,16 @@
 /* ── Login — Apple HIG Clinical ── */
 
-/* ── Keyframes ── */
-@keyframes fadeInUp       { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes horizontalShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+/* ── Keyframes (auth-agnostic shared in styles.scss) ── */
 @keyframes shakeInput     { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 @keyframes breathingPulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
 @keyframes breathe        { 0%, 100% { opacity: 1; filter: brightness(1); } 50% { opacity: 0.9; filter: brightness(1.1); } }
 @keyframes spin           { to { transform: rotate(360deg); } }
 
-/* ── Utility Animations ── */
-.animate-fade-in-up  { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.shake-card          { animation: horizontalShake 0.4s cubic-bezier(.36, .07, .19, .97) both; }
+/* ── Login-only Utility Animations ── */
 .input-error-shake   { animation: shakeInput 0.3s cubic-bezier(.36, .07, .19, .97) both; }
 .breathing-icon      { animation: breathingPulse 2.5s ease-in-out infinite; }
 
-/* ── Login Card — Frosted Glass ── */
-.glass-login-card {
-    background: rgba(255, 255, 255, 0.78) !important;
-    backdrop-filter: blur(28px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.85) !important;
-    box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.02),
-        0 12px 40px rgba(0, 0, 0, 0.06),
-        0 40px 80px rgba(0, 0, 0, 0.04) !important;
-    border-radius: 36px !important;
-    transition: box-shadow 0.4s ease;
-}
-
-/* ── Primary Button — Apple Blue ── */
+/* ── Primary Button — Clinical Brand Blue ── */
 .btn-clinical-pro {
     position: relative;
     width: 100%;
@@ -37,16 +19,16 @@
     font-weight: 600 !important;
     font-size: 1rem !important;
     letter-spacing: -0.01em !important;
-    background: #007AFF !important;
+    background: var(--brand-primary) !important;
     color: #ffffff !important;
     border: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2) !important;
+    box-shadow: 0 1px 3px var(--brand-primary-shadow) !important;
 
     &.loading {
         animation: breathe 1.5s infinite ease-in-out;
         pointer-events: none;
-        background: #0062CC !important;
+        background: var(--brand-primary-hover) !important;
 
         .button-content {
             display: flex;
@@ -68,14 +50,14 @@
     }
 
     &:not(.loading):not(:disabled):hover {
-        background: #0062CC !important;
+        background: var(--brand-primary-hover) !important;
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.32) !important;
+        box-shadow: 0 6px 20px var(--brand-primary-shadow) !important;
     }
 
     &:not(.loading):not(:disabled):active {
         transform: scale(0.98);
-        box-shadow: 0 1px 4px rgba(0, 122, 255, 0.15) !important;
+        box-shadow: 0 1px 4px var(--brand-primary-shadow) !important;
     }
 
     &:disabled:not(.loading) {
@@ -114,8 +96,8 @@
 
         &:focus {
             background: #ffffff !important;
-            border-color: #007AFF !important;
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12) !important;
+            border-color: var(--brand-primary) !important;
+            box-shadow: 0 0 0 4px var(--brand-primary-light) !important;
         }
 
         &.invalid-input {
@@ -140,7 +122,7 @@
     }
 
     &:focus-within .input-icon {
-        color: #007AFF;
+        color: var(--brand-primary);
     }
 }
 
@@ -159,15 +141,15 @@
 
     &:focus {
         outline: none;
-        border-color: #007AFF;
+        border-color: var(--brand-primary);
         background: #ffffff;
-        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+        box-shadow: 0 0 0 4px var(--brand-primary-light);
         transform: translateY(-2px) scale(1.03);
     }
 
     &:not(:placeholder-shown) {
-        border-color: rgba(0, 122, 255, 0.5);
-        background: rgba(0, 122, 255, 0.04);
+        border-color: var(--brand-primary-border);
+        background: var(--brand-primary-light);
     }
 }
 
@@ -187,11 +169,48 @@
     mat-icon { font-size: 16px; width: 16px; height: 16px; }
 }
 
-/* ── Responsive ── */
-@media (max-width: 640px) {
-    .glass-login-card { border-radius: 28px !important; }
+/* ── Dark Mode — Login overrides ── */
+:host-context(body.dark) {
+    .btn-clinical-pro {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .clinical-input-group {
+        input {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #F1F5F9;
+
+            &::placeholder { color: #64748B; }
+
+            &:hover:not(:focus) {
+                background: rgba(255, 255, 255, 0.08) !important;
+                border-color: rgba(255, 255, 255, 0.16);
+            }
+
+            &:focus {
+                background: rgba(15, 23, 42, 0.9) !important;
+                border-color: var(--brand-primary) !important;
+                box-shadow: 0 0 0 4px rgba(26, 111, 232, 0.25) !important;
+            }
+        }
+
+        .input-icon { color: #64748B; }
+    }
+
+    .otp-digit-box-small {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: #F1F5F9;
+
+        &:focus {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: var(--brand-primary);
+        }
+    }
 }
 
+/* ── Responsive ── */
 @media (max-width: 400px) {
     .otp-digit-box-small { width: 38px; height: 46px; font-size: 18px; }
 }

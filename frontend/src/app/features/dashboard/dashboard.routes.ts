@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { DashboardLayoutComponent } from './dashboard-layout/dashboard-layout.component';
 import { pendingChangesGuard } from '../../core/guards/pending-changes.guard';
+import { roleGuard } from '../../core/guards/role.guard';
 
 export const DASHBOARD_ROUTES: Routes = [
     {
@@ -63,6 +64,7 @@ export const DASHBOARD_ROUTES: Routes = [
             {
                 path: 'reports',
                 data: { breadcrumb: 'Reportes' },
+                canActivate: [roleGuard(['admin', 'doctor', 'nurse'])],
                 loadComponent: () => import('../reports/report-generator/report-generator.component').then(m => m.ReportGeneratorComponent)
             },
             {

@@ -97,7 +97,8 @@ export class PatientService {
             lastUpdate: b.updated_at || b.last_prediction_at || new Date().toISOString(),
             lastCrisis: b.last_crisis_date || null,
             adherence: b.adherence ?? null,
-            status: b.risk_level === 'high' ? 'Crítico' : b.risk_level === 'moderate' ? 'Moderado' : 'Estable',
+            status: mappedRisk === 'high' ? 'Crítico' : mappedRisk === 'moderate' ? 'Moderado' : 'Estable',
+
             probability: b.probability || null,
             profilePicture: b.avatar_seed
                 ? `https://api.dicebear.com/7.x/micah/svg?seed=${b.avatar_seed}`

@@ -110,7 +110,7 @@ export class SupabaseService {
         const origin = isPlatformBrowser(this.platformId) ? window.location.origin : 'http://localhost:4200';
         return from(
             this.supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${origin}/auth/reset-password`
+                redirectTo: `${origin}/auth/change-password`
             })
         );
     }

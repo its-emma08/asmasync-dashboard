@@ -95,6 +95,7 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
     pefTrend: PEFTrend[] = [];
 
     isLoadingPatients = false;
+    isLoadingPatient = false;
     isGenerating = false;
     isExportingWeekly = false;
     institutionLogo: string | null = null;
@@ -234,6 +235,7 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
             this.selectedPatient = null;
             this.editedPatient = {};
             this.pefTrend = [];
+            this.isLoadingPatient = true;
             this.config.patientId = id;
             if (this.chartInstance) {
                 this.chartInstance.destroy();
@@ -244,6 +246,7 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
             this.patientService.getPatientById(id).pipe(takeUntil(this.destroy$)).subscribe(p => {
                 Promise.resolve().then(() => {
                     this.selectedPatient = p;
+                    this.isLoadingPatient = false;
                     this.editedPatient = JSON.parse(JSON.stringify(p));
 
                     // --- Parse allergies: prefer structured array, fall back to comma-separated string ---
@@ -275,6 +278,12 @@ export class ReportGeneratorComponent implements OnInit, OnDestroy {
                     this.cd.detectChanges();
                     // Render chart after DOM settles
                     setTimeout(() => { this.renderChart(); }, 100);
+                });
+            }, error => {
+                Promise.resolve().then(() => {
+                    this.isLoadingPatient = false;
+                    this.cd.detectChanges();
+                    this.snackBar.open('No se pudo cargar el paciente.', 'Cerrar', { duration: 3000 });
                 });
             });
             this.patientService.getPEFTrend(id).pipe(takeUntil(this.destroy$)).subscribe(t => {

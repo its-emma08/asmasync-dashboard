@@ -68,7 +68,18 @@ export class AuthInterceptor implements HttpInterceptor {
 
         return next.handle(request.clone({ headers })).pipe(
             catchError((error: HttpErrorResponse) => {
-                if (error.status === 401 && isOurApi && !url.includes('/auth/register')) {
+                // No cerrar sesión en 401 de flujos de autenticación: ahí un 401 es
+                // un "credenciales incorrectas" o "código inválido", no sesión expirada.
+                const isAuthEndpoint =
+                    url.includes('/auth/register') ||
+                    url.includes('/auth/login') ||
+                    url.includes('/auth/login/2fa') ||
+                    url.includes('/auth/refresh') ||
+                    url.includes('/auth/verify') ||
+                    url.includes('/auth/forgot-password') ||
+                    url.includes('/auth/reset-password');
+
+                if (error.status === 401 && isOurApi && !isAuthEndpoint) {
                     this.authService.logout();
                     this.toastService.showError('Sesión expirada. Por favor, ingresa de nuevo.');
                 }

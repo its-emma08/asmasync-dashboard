@@ -25,7 +25,7 @@ import { Subject, takeUntil, catchError, of } from 'rxjs';
                     <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-1">Distribución de riesgo</p>
                 </div>
             </div>
-            <button mat-icon-button class="scale-75 text-slate-450 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors" matTooltip="Ver pacientes"
+            <button mat-icon-button class="scale-75 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors" matTooltip="Ver pacientes"
               routerLink="/dashboard/patients">
                <mat-icon class="!text-lg">open_in_new</mat-icon>
             </button>

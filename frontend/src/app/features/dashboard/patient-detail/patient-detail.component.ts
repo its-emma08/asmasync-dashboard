@@ -685,62 +685,22 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
         return labels[type] ?? type;
     }
 
-    getMetricColorClass(_value: number, _type: 'pef' | 'spo2'): string {
-        return '';
+    getMetricColorClass(value: number, type: 'pef' | 'spo2'): string {
+        if (!value || isNaN(value)) return '';
+        // pef recibe el % del mejor personal (0-100); spo2 recibe saturación (0-100)
+        if (type === 'pef') {
+            if (value >= 80) return 'text-emerald-600';
+            if (value >= 50) return 'text-amber-600';
+            return 'text-red-600';
+        }
+        if (value >= 95) return 'text-emerald-600';
+        if (value >= 90) return 'text-amber-600';
+        return 'text-red-600';
     }
 
     getPefPercentage(current: number, best: number | undefined): number {
         if (!best) return 0;
         return Math.round((current / best) * 100);
-    }
-
-    setupChart(trends: PEFTrend[], personalBest: number): void {
-        const dates = trends.map(t => new Date(t.date).toLocaleDateString());
-        const values = trends.map(t => t.pefValue);
-
-        this.pefChartData = {
-            labels: dates,
-            datasets: [{
-                data: values,
-                label: 'FEM Medido',
-                borderColor: '#00B5AD', // Brand Primary
-                backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                    gradient.addColorStop(0, 'rgba(0, 181, 173, 0.4)');
-                    gradient.addColorStop(1, 'rgba(0, 181, 173, 0.0)');
-                    return gradient;
-                },
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4, // Smooth curve
-                pointRadius: 0, // Hidden points
-                pointHoverRadius: 6,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#00B5AD',
-                pointBorderWidth: 2
-            }]
-        };
-
-        const greenZone = personalBest * 0.8;
-        const yellowZone = personalBest * 0.5;
-
-        if (this.pefChartOptions?.plugins?.annotation?.annotations) {
-            const annotations = this.pefChartOptions.plugins.annotation.annotations as any;
-            if (annotations) {
-                if (annotations.boxGreen) {
-                    annotations.boxGreen.yMin = greenZone;
-                }
-                if (annotations.boxYellow) {
-                    annotations.boxYellow.yMin = yellowZone;
-                    annotations.boxYellow.yMax = greenZone;
-                }
-                if (annotations.boxRed) {
-                    annotations.boxRed.yMin = 0;
-                    annotations.boxRed.yMax = yellowZone;
-                }
-            }
-        }
     }
 
     async exportPDF(): Promise<void> {

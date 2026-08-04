@@ -538,9 +538,9 @@
     }
 
     &.view {
-        background: rgba(0, 122, 255, 0.08);
-        color: #007AFF;
-        &:hover { background: rgba(0, 122, 255, 0.15); }
+        background: var(--brand-primary-light);
+        color: var(--brand-primary);
+        &:hover { background: rgba(26, 111, 232, 0.15); }
     }
 
     &.resolve {

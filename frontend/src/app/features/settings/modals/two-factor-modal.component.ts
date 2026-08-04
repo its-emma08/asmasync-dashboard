@@ -136,7 +136,7 @@ import { OtpInputComponent } from '../../../shared/components/otp-input/otp-inpu
       width: 60px;
       height: 60px;
       border-radius: 18px;
-      background: linear-gradient(135deg, #007AFF, #00C7BE);
+      background: var(--gradient-primary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -193,9 +193,9 @@ import { OtpInputComponent } from '../../../shared/components/otp-input/otp-inpu
       color: #1d1d1f;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       &:focus {
-        border-color: #007AFF;
+        border-color: var(--brand-primary);
         background: white;
-        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+        box-shadow: 0 0 0 4px var(--brand-primary-light);
         transform: translateY(-4px) scale(1.05);
         outline: none;
       }
@@ -259,7 +259,7 @@ import { OtpInputComponent } from '../../../shared/components/otp-input/otp-inpu
     }
 
     .confirm-btn-elite {
-      background: linear-gradient(135deg, #007AFF, #0071e3);
+      background: var(--gradient-primary);
       padding: 12px 32px;
       border: none;
       border-radius: 14px;

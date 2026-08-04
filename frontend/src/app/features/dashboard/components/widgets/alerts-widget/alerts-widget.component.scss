@@ -264,7 +264,7 @@
 }
 
 /* ─── Dark Mode Overrides ─── */
-:host-context(.dark), .dark {
+:host-context(body.dark) {
     .icon-bubble { background: rgba(255, 255, 255, 0.05); }
     .segmented-control { background: rgba(255, 255, 255, 0.05); button.active { background: #334155; } }
     .data-box { background: rgba(255, 255, 255, 0.03); }

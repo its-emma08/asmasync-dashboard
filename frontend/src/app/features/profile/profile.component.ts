@@ -13,6 +13,7 @@ import { catchError, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { PatientService } from '../../core/services/patient.service';
 import { PdfExportService } from '../../core/services/pdf-export.service';
+import { roleLabel } from '../../core/models/role.model';
 import { EditProfileModalComponent } from '../settings/modals/edit-profile-modal.component';
 import { environment } from '../../../environments/environment';
 
@@ -44,10 +45,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const parts = [this.currentUser()?.specialty, this.currentUser()?.hospital_name].filter(Boolean);
     return parts.join(' • ');
   });
-  userRoleLabel = computed(() => {
-    const role = this.currentUser()?.role;
-    return role === 'admin' ? 'Administrador' : role === 'doctor' ? 'Médico' : 'Usuario';
-  });
+  userRoleLabel = computed(() => roleLabel(this.currentUser()?.role));
   doctorCode = computed(() => this.currentUser()?.doctor_code || null);
   isDoctor = computed(() => this.currentUser()?.role === 'doctor');
   userHospital = computed(() => this.currentUser()?.hospital_name || null);

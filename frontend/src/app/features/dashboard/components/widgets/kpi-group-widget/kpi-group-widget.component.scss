@@ -129,7 +129,7 @@
 }
 
 /* ─── Dark Mode ─── */
-:host-context(.dark), .dark {
+:host-context(body.dark) {
     .kpi-card {
         background: rgba(18, 28, 48, 0.95);
         border-color: rgba(255, 255, 255, 0.06);

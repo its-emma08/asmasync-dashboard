@@ -147,3 +147,12 @@ __pycache__/
 .venv/
 venv/
 
+# Build & Audit Logs
+frontend_out*.txt
+build_output*.log
+build_error*.log
+nul
+.vscode/
+frontend/.vscode/
+
+

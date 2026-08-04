@@ -9,6 +9,7 @@ import { StorageService } from './storage.service';
 
 import { User, AuditLog } from '../models/settings.types';
 import { SupabaseService } from './supabase.service';
+import { normalizeRole } from '../models/role.model';
 
 export type { User, AuditLog };
 
@@ -434,29 +435,22 @@ export class AuthService implements OnDestroy {
                             id: sbUser.id as any,
                             email: sbUser.email || existing?.email || '',
                             full_name: sbUser.user_metadata?.['full_name'] || existing?.full_name || '',
-                            role: sbUser.user_metadata?.['role'] || existing?.role || 'doctor',
+                            role: normalizeRole(sbUser.user_metadata?.['role'] || existing?.role || 'patient'),
                             is_2fa_enabled: sbUser.user_metadata?.['is_2fa_enabled'] ?? existing?.is_2fa_enabled ?? false,
                             created_at: sbUser.created_at || existing?.created_at
                         } as User;
                     })
                 );
             }),
-            switchMap(user => {
-                return this.supabaseService.getCurrentUser().pipe(
-                    map(sbUser => {
-                        // Merge con el usuario existente para preservar campos no retornados
-                        const existing = this.currentUserSubject.value;
-                        const merged: User = { ...(existing || {}), ...user };
-                        if (sbUser && sbUser.user_metadata?.['is_2fa_enabled'] !== undefined) {
-                            merged.is_2fa_enabled = sbUser.user_metadata['is_2fa_enabled'];
-                        }
-                        this.currentUserSubject.next(merged);
-                        if (this.isBrowser) {
-                            this.storageService.setItem('user', merged);
-                        }
-                        return merged;
-                    })
-                );
+            map(user => {
+                // Merge con el usuario existente para preservar campos no retornados
+                const existing = this.currentUserSubject.value;
+                const merged: User = { ...(existing || {}), ...user };
+                this.currentUserSubject.next(merged);
+                if (this.isBrowser) {
+                    this.storageService.setItem('user', merged);
+                }
+                return merged;
             })
         );
     }
@@ -473,7 +467,10 @@ export class AuthService implements OnDestroy {
                 user_agent: log.user_agent || 'Browser Client',
                 created_at: log.created_at ? new Date(log.created_at).toISOString() : new Date().toISOString()
             }))),
-            catchError(() => of([]))
+            catchError(err => {
+                console.error('Error al obtener audit logs:', err);
+                return throwError(() => err);
+            })
         );
     }
 

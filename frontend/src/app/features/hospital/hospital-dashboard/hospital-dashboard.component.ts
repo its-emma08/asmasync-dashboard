@@ -20,6 +20,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { BaseChartDirective } from 'ng2-charts';
 import { PdfExportService } from '../../../core/services/pdf-export.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { HasRoleDirective } from '../../../shared/directives/has-role.directive';
 
 @Component({
   selector: 'app-hospital-dashboard',
@@ -32,7 +33,8 @@ import { NotificationService } from '../../../core/services/notification.service
     MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    BaseChartDirective
+    BaseChartDirective,
+    HasRoleDirective
   ],
   providers: [provideCharts(withDefaultRegisterables())],
   templateUrl: './hospital-dashboard.component.html',

@@ -147,7 +147,7 @@
 }
 
 /* ─── Dark Mode Support ─── */
-:host-context(.dark), .dark {
+:host-context(body.dark) {
     .table-row-item:hover {
         background: rgba(30, 41, 59, 0.45) !important;
         border-color: rgba(255, 255, 255, 0.06) !important;

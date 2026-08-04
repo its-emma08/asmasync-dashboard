@@ -29,8 +29,8 @@ function passwordMatchValidator(g: AbstractControl) {
         MatIconModule, MatSelectModule, MatProgressSpinnerModule
     ],
     template: `
-    <div class="ic-root">
-        <div class="ic-card">
+    <div class="w-full flex justify-center">
+        <div class="ic-card glass-login-card animate-fade-in-up">
 
             <!-- Logo -->
             <div class="ic-logo">
@@ -163,60 +163,47 @@ function passwordMatchValidator(g: AbstractControl) {
     </div>
     `,
     styles: [`
-        .ic-root {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 50%, #f5f0ff 100%);
-            padding: 24px;
-        }
         .ic-card {
             width: 100%;
             max-width: 480px;
-            background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: 24px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,122,255,0.06);
         }
         .ic-logo {
             display: flex; align-items: center; gap: 12px; margin-bottom: 32px;
         }
         .ic-logo-icon {
             width: 44px; height: 44px; border-radius: 14px;
-            background: linear-gradient(135deg, #007aff, #0055cc);
+            background: var(--gradient-primary);
             display: flex; align-items: center; justify-content: center;
             mat-icon { color: white; }
         }
-        .ic-logo h1 { font-size: 20px; font-weight: 800; color: #1d1d1f; margin: 0; }
-        .ic-logo p { font-size: 12px; color: #86868b; margin: 0; }
+        .ic-logo h1 { font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0; }
+        .ic-logo p { font-size: 12px; color: var(--text-muted); margin: 0; }
 
         .ic-loading {
             text-align: center; padding: 40px 0;
-            p { margin-top: 16px; color: #86868b; font-size: 14px; }
+            p { margin-top: 16px; color: var(--text-muted); font-size: 14px; }
         }
         .ic-error {
             text-align: center; padding: 20px 0;
-            h2 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 12px 0 8px; }
-            p { font-size: 14px; color: #86868b; line-height: 1.5; margin-bottom: 20px; }
+            h2 { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 12px 0 8px; }
+            p { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; }
         }
         .ic-error-icon { font-size: 48px; width: 48px; height: 48px; color: #ff3b30; }
 
         .ic-welcome {
             margin-bottom: 24px;
-            h2 { font-size: 22px; font-weight: 700; color: #1d1d1f; margin: 0 0 6px; letter-spacing: -0.03em; }
-            p { font-size: 14px; color: #86868b; margin: 0; }
+            h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; letter-spacing: -0.03em; }
+            p { font-size: 14px; color: var(--text-muted); margin: 0; }
         }
         .ic-form { display: flex; flex-direction: column; gap: 4px; }
         .ic-pw-group { display: flex; flex-direction: column; gap: 4px; }
 
         .ic-error-msg {
             display: flex; align-items: center; gap: 8px;
-            background: #fff0f0; border: 1px solid #ffd0d0;
+            background: rgba(255, 59, 48, 0.08); border: 1px solid rgba(255, 59, 48, 0.25);
             border-radius: 12px; padding: 12px 16px;
-            font-size: 13px; color: #c0392b;
+            font-size: 13px; color: #e5484d;
             mat-icon { font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
         }
         .ic-submit-btn {
@@ -227,12 +214,12 @@ function passwordMatchValidator(g: AbstractControl) {
         }
         .ic-success {
             text-align: center; padding: 20px 0;
-            h2 { font-size: 22px; font-weight: 700; color: #1d1d1f; margin: 16px 0 8px; }
-            p { font-size: 14px; color: #86868b; }
+            h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 16px 0 8px; }
+            p { font-size: 14px; color: var(--text-muted); }
         }
         .ic-success-icon {
             width: 72px; height: 72px; border-radius: 50%;
-            background: linear-gradient(135deg, #34c759, #1a9e40);
+            background: var(--gradient-success);
             display: flex; align-items: center; justify-content: center; margin: 0 auto;
             mat-icon { font-size: 40px; width: 40px; height: 40px; color: white; }
         }

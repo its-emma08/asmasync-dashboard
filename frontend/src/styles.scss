@@ -34,6 +34,59 @@
 
 .animate-fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
+/* ============================================
+   Auth — Shared Glass Card & Animations
+   ============================================ */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes horizontalShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.shake-card {
+    animation: horizontalShake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+.glass-login-card,
+.glass-register-card {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.02),
+        0 12px 40px rgba(0, 0, 0, 0.06),
+        0 40px 80px rgba(0, 0, 0, 0.04);
+    border-radius: 36px;
+    transition: box-shadow 0.4s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark .glass-login-card,
+body.dark .glass-register-card {
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        0 40px 80px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 640px) {
+    .glass-login-card,
+    .glass-register-card { border-radius: 28px; }
+}
+
 
 /* ============================================
    Layout Utilities
@@ -143,6 +196,10 @@ input[type=number]::-webkit-outer-spin-button {
     --radius-lg: 20px;
     --radius-xl: 24px;
     --radius-2xl: 32px;
+    --radius: 20px;
+
+    /* ── Motion — Apple-style easing ── */
+    --apple-easing: cubic-bezier(0.22, 1, 0.36, 1);
 
     /* ── Sidebar ── */
     --sidebar: transparent;
@@ -197,6 +254,17 @@ body.dark .glass-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
         color: var(--text-primary);
         transition: background-color 0.4s ease, color 0.4s ease;
     }
+}
+
+/* ============================================
+   Utilities — Scrollbar Hide
+   ============================================ */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
 }
 
 /* ============================================
@@ -1247,9 +1315,10 @@ body.dark {
         border-color: #334155 !important;
     }
 
-    /* Hardcoded white KPI & widget containers */
-    .widget-card,
-    [class*="bg-white"] {
+    /* Widget & KPI containers handle their own dark variants per-component
+       (.shell-inner, .kpi-card, dark: utilities). A global [class*="bg-white"]
+       override now BUSTS translucent glass (bg-white/40..80), so it was removed. */
+    .widget-card {
         background-color: #1e293b !important;
         color: #f1f5f9 !important;
     }
@@ -1686,7 +1755,7 @@ app-dashboard-widget {
     letter-spacing: -0.01em;
     flex-shrink: 0;
 
-    &.blue { background: rgba(0, 122, 255, 0.1); color: #007AFF; }
+    &.blue { background: var(--brand-primary-light); color: var(--brand-primary); }
     &.primary { background: var(--brand-primary-light); color: var(--brand-primary); }
     &.green { background: rgba(52, 199, 89, 0.1); color: #34C759; }
     &.red { background: rgba(255, 59, 48, 0.1); color: #FF3B30; }
@@ -2094,7 +2163,7 @@ body.dark .apple-search-bar { background: rgba(255,255,255,0.06); }
     &.red::before { background: #FF3B30; box-shadow: 0 0 8px rgba(255,59,48,0.4); }
     &.orange::before { background: #FF9500; box-shadow: 0 0 8px rgba(255,149,0,0.4); }
     &.gray::before { background: #8E8E93; }
-    &.blue::before { background: #007AFF; box-shadow: 0 0 8px rgba(0,122,255,0.4); }
+    &.blue::before { background: var(--brand-primary); box-shadow: 0 0 8px var(--brand-primary-shadow); }
 }
 
 /* ─── Apple Filter Pills ─── */

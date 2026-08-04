@@ -41,9 +41,9 @@ import { FormsModule } from '@angular/forms';
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       
       &:focus {
-        border-color: #007AFF;
+        border-color: var(--brand-primary);
         background: white;
-        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+        box-shadow: 0 0 0 4px var(--brand-primary-light);
         transform: translateY(-2px);
         outline: none;
       }

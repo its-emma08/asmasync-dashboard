@@ -80,7 +80,8 @@ export class NotificationService implements OnDestroy {
     this.wsService.messages$.pipe(takeUntil(this.destroy$)).subscribe(msg => {
       if (!msg) return;
       const type = msg.type ?? msg.event ?? '';
-      const isEmergency = type === 'emergency_alert' || msg.risk_level === 'red' || msg.risk === 'red';
+      const rawRisk = ((msg.risk_level || msg.risk || msg.riskLevel || '').toString()).toLowerCase();
+      const isEmergency = type === 'emergency_alert' || rawRisk === 'red' || rawRisk === 'high';
 
       if (isEmergency) {
         this.playAlertChime();
@@ -115,7 +116,8 @@ export class NotificationService implements OnDestroy {
   }
 
   private handleIncomingAlert(msg: any): void {
-    const isCritical = msg.risk === 'red' || msg.risk_level === 'red' || msg.type === 'emergency_alert';
+    const rawRisk = ((msg.risk_level || msg.risk || msg.riskLevel || '').toString()).toLowerCase();
+    const isCritical = rawRisk === 'red' || rawRisk === 'high' || msg.type === 'emergency_alert';
     const newAlert: Alert = {
       id: Date.now(),
       patient_id: msg.patientId ?? msg.patient_id ?? 0,
@@ -123,6 +125,7 @@ export class NotificationService implements OnDestroy {
       message: msg.message || `Nueva actualización clínica para el paciente ${msg.patientName || msg.patientId}`,
       created_at: new Date().toISOString(),
       is_viewed: false,
+
       patient: { id: msg.patientId ?? 0, full_name: msg.patientName || 'Paciente', risk_level: msg.risk || 'yellow' }
     };
     const current = this.notificationsSubject.value;

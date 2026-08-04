@@ -1,8 +1,10 @@
+import { RoleType } from './role.model';
+
 export interface User {
   id: string | number;
   email: string;
   full_name: string;
-  role: 'admin' | 'doctor' | 'patient';
+  role: RoleType;
   is_2fa_enabled: boolean;
   doctor_code?: string;
   specialty?: string;

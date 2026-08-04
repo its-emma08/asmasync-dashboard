@@ -88,10 +88,9 @@ import { environment } from '../../../../environments/environment';
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Rol en el sistema</mat-label>
             <mat-select formControlName="role">
-              <mat-option value="doctor">Doctor</mat-option>
+              <mat-option value="doctor">Médico</mat-option>
               <mat-option value="admin">Administrador</mat-option>
               <mat-option value="nurse">Enfermero/a</mat-option>
-              <mat-option value="viewer">Solo lectura</mat-option>
             </mat-select>
             <mat-icon matPrefix>badge</mat-icon>
           </mat-form-field>
@@ -171,7 +170,7 @@ import { environment } from '../../../../environments/environment';
       width: 56px;
       height: 56px;
       border-radius: 16px;
-      background: linear-gradient(135deg, #007AFF, #00C7BE);
+      background: var(--gradient-primary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -193,7 +192,7 @@ import { environment } from '../../../../environments/environment';
       z-index: 1;
       position: relative;
 
-      .info-icon { color: #007AFF; font-size: 22px; width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+      .info-icon { color: var(--brand-primary); font-size: 22px; width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
 
       strong { font-size: 14px; font-weight: 700; color: #1d1d1f; display: block; margin-bottom: 4px; }
       p { font-size: 13px; color: #48484a; margin: 0; line-height: 1.5; }
@@ -254,7 +253,7 @@ import { environment } from '../../../../environments/environment';
     }
 
     .send-btn {
-      background: linear-gradient(135deg, #007AFF, #0071e3) !important;
+      background: var(--gradient-primary) !important;
       display: flex !important;
       align-items: center;
       gap: 10px;

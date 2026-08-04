@@ -1,11 +1,12 @@
 // frontend/src/app/core/models/auth.interfaces.ts
 import { RiskLevel } from './patient.model';
+import { RoleType } from './role.model';
 
 export interface RenderUser {
     id: number;
     email: string;
     full_name: string;
-    role: 'doctor' | 'admin' | 'patient';
+    role: RoleType;
     specialty?: string;
     is_active: boolean;
     created_at: string;

@@ -80,7 +80,7 @@
     }
 
     .mdc-tab--active .mdc-tab__text-label {
-        color: #007AFF;
+        color: var(--brand-primary);
         font-weight: 600;
     }
 
@@ -94,7 +94,7 @@
         .mat-mdc-tab-header { background: rgba(255, 255, 255, 0.06); }
         .mat-mdc-tab.mdc-tab--active { background: rgba(255, 255, 255, 0.12); box-shadow: none; }
         .mdc-tab__text-label { color: rgba(255, 255, 255, 0.5); }
-        .mdc-tab--active .mdc-tab__text-label { color: #5AC8FA; }
+        .mdc-tab--active .mdc-tab__text-label { color: var(--brand-cyan); }
     }
 }
 
@@ -146,7 +146,7 @@
     &.first { margin-top: 0; }
 
     mat-icon {
-        color: #007AFF;
+        color: var(--brand-primary);
         font-size: 18px;
         width: 18px;
         height: 18px;
@@ -163,7 +163,7 @@
 
 :host-context(body.dark) .section-divider {
     border-color: rgba(255, 255, 255, 0.06);
-    mat-icon { color: #5AC8FA; }
+    mat-icon { color: var(--brand-cyan); }
 }
 
 /* ── Photo Upload — Apple Rounded Square ── */
@@ -192,7 +192,7 @@
     font-size: 52px;
     width: 52px;
     height: 52px;
-    color: #AEAEB2;
+    color: var(--text-muted);
 }
 
 .upload-btn {
@@ -354,7 +354,7 @@
         margin-bottom: 14px;
         font-size: 12px;
         font-weight: 700;
-        color: #007AFF;
+        color: var(--brand-primary);
         letter-spacing: -0.01em;
         text-transform: uppercase;
 
@@ -397,6 +397,6 @@
     background: linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(90, 200, 250, 0.05) 100%);
     border-color: rgba(90, 200, 250, 0.15);
 
-    .summary-header { color: #5AC8FA; }
+    .summary-header { color: var(--brand-cyan); }
     .summary-value { color: rgba(255, 255, 255, 0.88); }
 }

@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { SecurityService } from '../../../core/services/security.service';
+import { StorageService } from '../../../core/services/storage.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FocusInvalidInputDirective } from '../../../shared/directives/focus-invalid-input.directive';
 import { OtpInputComponent } from '../../../shared/components/otp-input/otp-input.component';
@@ -53,7 +54,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         private supabaseService: SupabaseService,
         private router: Router,
         private toastService: ToastService,
-        private securityService: SecurityService
+        private securityService: SecurityService,
+        private storageService: StorageService
     ) {
         this.loginForm = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
@@ -161,7 +163,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         const existingSession = localStorage.getItem(sessionKey);
         if (!existingSession) {
             // Solo si Supabase no lo guardó aún, lo guardamos manualmente
-            localStorage.setItem('access_token', supabaseJwt);
+            this.storageService.setItem('access_token', supabaseJwt);
         }
 
         this.authService.verifySupabaseToken(supabaseJwt).pipe(take(1)).subscribe({
