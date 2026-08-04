@@ -243,6 +243,36 @@
                                     </span>
                                 </div>
                             </div>
+
+                            <!-- Frecuencia Respiratoria Minimal Card -->
+                            <div class="vital-card-apple fr">
+                                <div class="icon-wrap"><mat-icon>monitor_heart</mat-icon></div>
+                                <div class="content">
+                                    <span class="label">FREC. RESPIRATORIA</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="value">{{ patient.respiratoryRate || '--' }}</span>
+                                        <span class="unit">rpm</span>
+                                    </div>
+                                    <span class="status-tag" [class.low]="(patient.respiratoryRate ?? 0) > 25">
+                                        {{ patient.respiratoryRate && patient.respiratoryRate <= 20 ? 'Normal' : patient.respiratoryRate ? 'Elevada' : '—' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Frecuencia Cardíaca Minimal Card -->
+                            <div class="vital-card-apple hr">
+                                <div class="icon-wrap"><mat-icon>favorite_border</mat-icon></div>
+                                <div class="content">
+                                    <span class="label">FREC. CARDÍACA</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="value">{{ patient.heart_rate || '--' }}</span>
+                                        <span class="unit">bpm</span>
+                                    </div>
+                                    <span class="status-tag" [class.low]="(patient.heart_rate ?? 0) > 100 || ((patient.heart_rate ?? 0) < 60 && (patient.heart_rate ?? 0) > 0)">
+                                        {{ patient.heart_rate && patient.heart_rate >= 60 && patient.heart_rate <= 100 ? 'Normal' : patient.heart_rate ? 'Alerta' : '—' }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Next Appointment Card -->
@@ -483,7 +513,7 @@
                                     <th mat-header-cell *matHeaderCellDef>TIPO</th>
                                     <td mat-cell *matCellDef="let e">
                                         <span class="type-pill" [class]="e.type">
-                                            {{ e.type === 'pef' ? 'FEM' : e.type }}
+                                            {{ e.type === 'pef' ? 'FEM' : e.type === 'spo2' ? 'SpO2' : e.type === 'heart_rate' ? 'FC' : e.type === 'symptom' ? 'Síntoma' : e.type === 'crisis' ? 'Crisis' : e.type }}
                                         </span>
                                     </td>
                                 </ng-container>
@@ -500,7 +530,7 @@
                                         <div class="flex flex-col items-end">
                                             <span *ngIf="e.pef" class="font-black text-gray-900 dark:text-white text-sm">{{e.pef}} L/m</span>
                                             <span *ngIf="e.spo2" class="text-[11px] font-bold text-green-500">{{e.spo2}}% SpO₂</span>
-                                        </div>
+                                            <span *ngIf="e.symptoms && !e.pef && !e.spo2" class="text-[11px] font-bold text-red-500">{{ e.symptoms | slice:0:24 }}{{ e.symptoms.length > 24 ? '…' : '' }}</span>                                        </div>
                                     </td>
                                 </ng-container>
                                 <tr mat-header-row *matHeaderRowDef="['date', 'type', 'description', 'value']"></tr>

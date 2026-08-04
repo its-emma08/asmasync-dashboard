@@ -5,6 +5,7 @@ $blue: #1A6FE8;
 $teal: #00B5AD;
 $green: #10B981;
 $amber: #F59E0B;
+$yellow: #FACC15;
 $red: #EF4444;
 $indigo: #6366F1;
 $purple: #8B5CF6;
@@ -542,6 +543,16 @@ $gray-900: #111827;
     .icon-wrap { background: rgba($red,0.1); mat-icon { color: $red; } }
     .value { color: $red; }
   }
+
+  &.fr {
+    .icon-wrap { background: rgba($teal,0.1); mat-icon { color: $teal; } }
+    .value { color: $teal; }
+  }
+
+  &.hr {
+    .icon-wrap { background: rgba($purple,0.1); mat-icon { color: $purple; } }
+    .value { color: $purple; }
+  }
 }
 
 // ─── Calendar Tile ────────────────────────────────────────────────────────────
@@ -822,6 +833,10 @@ $gray-900: #111827;
   color: $blue;
 
   &.pef { background: rgba($teal,0.1); color: $teal; }
+  &.spo2 { background: rgba($blue,0.1); color: $blue; }
+  &.heart_rate { background: rgba($purple,0.1); color: $purple; }
+  &.symptom { background: rgba($yellow,0.14); color: color.adjust($yellow, $lightness: -22%); }
+  &.crisis { background: rgba($red,0.12); color: $red; }
   &.alert { background: rgba($red,0.1); color: $red; }
   &.medication { background: rgba($purple,0.1); color: $purple; }
 }

@@ -65,13 +65,14 @@ interface HistoryEntry {
     date: string;
     measured_at: string;
     value: number;
-    type: 'pef' | 'spo2' | 'heart_rate' | 'evolution' | 'crisis';
+    type: 'pef' | 'spo2' | 'heart_rate' | 'evolution' | 'crisis' | 'symptom';
     description?: string | null;
     pef?: number;
     spo2?: number;
     heart_rate?: number;
     notes?: string;
-    symptoms?: string[];
+    symptoms?: string[] | string;
+    symptom_intensity?: string;
     doctor?: string;
 }
 
@@ -492,16 +493,26 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
 
     /** Converts raw recent_measurements to the history timeline format */
     private buildHistoryFromMeasurements(measurements: HistoryEntry[]): HistoryEntry[] {
+        const personalBest = this.patient?.personal_best_pef || 500;
         return (measurements || []).map(m => {
             let symptomsText: string | null = null;
             if (m.symptoms) {
                 symptomsText = Array.isArray(m.symptoms) ? m.symptoms.join(', ') : String(m.symptoms);
             }
+
+            // Coherencia app móvil: `symptoms` + `symptom_intensity` generan eventos de crisis/síntoma
+            const hasSymptoms = symptomsText && symptomsText.trim().length > 0;
+            const isCrisis = hasSymptoms && (
+                m.symptom_intensity === 'high' ||
+                (m.spo2 && m.spo2 < 92) ||
+                (m.pef && personalBest > 0 && m.pef < personalBest * 0.5)
+            );
+
             return {
                 ...m,
                 date: m.measured_at,
                 value: m.pef || m.spo2 || m.heart_rate || 0,
-                type: m.pef ? 'pef' : m.spo2 ? 'spo2' : 'heart_rate',
+                type: isCrisis ? 'crisis' : hasSymptoms ? 'symptom' : m.pef ? 'pef' : m.spo2 ? 'spo2' : 'heart_rate',
                 description: m.notes || symptomsText || null
             };
         });
