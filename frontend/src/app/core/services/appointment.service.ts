@@ -60,7 +60,9 @@ export class AppointmentService {
 
     deleteAppointment(id: number | string): Observable<void> {
         if (environment.mockMode) return of(void 0);
-        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(catchError(() => of(void 0)));
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+            catchError((err: HttpErrorResponse) => throwError(() => err))
+        );
     }
 
     private mapApiToModel(app: any): Appointment {
@@ -81,7 +83,8 @@ export class AppointmentService {
     updateStatus(id: number, status: string): Observable<void> {
         if (environment.mockMode) return of(void 0);
         return this.http.patch<Appointment>(`${this.apiUrl}/${id}`, { status }).pipe(
-            map(() => void 0), catchError(() => of(void 0))
+            map(() => void 0),
+            catchError((err: HttpErrorResponse) => throwError(() => err))
         );
     }
 }

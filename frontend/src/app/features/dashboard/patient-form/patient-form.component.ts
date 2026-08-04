@@ -187,7 +187,11 @@ export class PatientFormComponent implements OnInit, ComponentCanDeactivate {
             photo_url: [''],
             // Devices
             spirometer_id: [''],
-            inhaler_id: ['']
+            inhaler_id: [''],
+            // Tutor / guardian (coherencia app móvil)
+            guardian_name: [''],
+            guardian_phone: [''],
+            guardian_relation: ['']
         });
 
         // Step form groups for linear stepper validation
@@ -264,6 +268,9 @@ export class PatientFormComponent implements OnInit, ComponentCanDeactivate {
                         photo_url: p.photo_url || '',
                         spirometer_id: p.spirometer_id || '',
                         inhaler_id: p.inhaler_id || '',
+                        guardian_name: p.guardian_name || '',
+                        guardian_phone: p.guardian_phone || '',
+                        guardian_relation: p.guardian_relation || '',
                     });
                     this.cd.markForCheck();
                 }

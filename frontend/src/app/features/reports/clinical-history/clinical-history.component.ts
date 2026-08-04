@@ -48,11 +48,16 @@ export class ClinicalHistoryComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            if (id.startsWith('P-')) {
-                this.patientService.getPatientById(id).pipe(takeUntil(this.destroy$)).subscribe(p => this.patient = p);
-            } else {
-                this.patientService.getPatientById(Number(id)).pipe(takeUntil(this.destroy$)).subscribe(p => this.patient = p);
-            }
+            const request$ = id.startsWith('P-')
+                ? this.patientService.getPatientById(id)
+                : this.patientService.getPatientById(Number(id));
+            request$.pipe(takeUntil(this.destroy$)).subscribe({
+                next: p => this.patient = p,
+                error: () => {
+                    console.error('Error al cargar el paciente para la historia clínica');
+                    this.patient = null;
+                }
+            });
         }
 
         this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {

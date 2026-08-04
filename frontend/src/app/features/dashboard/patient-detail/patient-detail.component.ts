@@ -879,8 +879,8 @@ FEM Actual: ${this.patient.latest_pef} L/min
             { key: 'gender', weight: 5 },
             { key: 'asthma_type', weight: 10 },
             { key: 'personal_best_pef', weight: 15 },
-            { key: 'vaccination_history', weight: 10 },
-            { key: 'allergies', weight: 15 }
+            { key: 'guardian_name', weight: 10 },
+            { key: 'known_allergies', weight: 15 }
         ];
 
         fields.forEach(f => {
@@ -902,8 +902,8 @@ FEM Actual: ${this.patient.latest_pef} L/min
             { key: 'phone', label: 'teléfono' },
             { key: 'emergencyContact', label: 'contacto emerg.' },
             { key: 'personal_best_pef', label: 'FEM mejor' },
-            { key: 'vaccination_history', label: 'vacunas' },
-            { key: 'allergies', label: 'alergias' }
+            { key: 'guardian_name', label: 'tutor' },
+            { key: 'known_allergies', label: 'alergias' }
         ];
 
         criticalFields.forEach(f => {

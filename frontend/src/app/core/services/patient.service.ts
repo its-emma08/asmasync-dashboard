@@ -126,6 +126,16 @@ export class PatientService {
                 phone: b.emergency_contact_phone || '',
                 relation: b.emergency_contact_relation || ''
             } : undefined,
+            // Tutor / guardian (coherente con la app móvil: guardian_patient)
+            guardian_name: b.guardian_name ?? b.guardian?.name ?? null,
+            guardian_phone: b.guardian_phone ?? b.guardian?.phone ?? null,
+            guardian_relation: b.guardian_relation ?? b.guardian?.relation ?? null,
+            // App móvil / FCM (asthma-predictor-api user.fcm_token)
+            app_registered: b.app_registered ?? (b.fcm_token ? true : null),
+            fcm_token: b.fcm_token || null,
+            last_app_sync: b.last_app_sync || null,
+            app_version: b.app_version || null,
+            device_model: b.device_model || null,
             background: b.background || { diagnosis: 'Asma', allergies: [], hereditary: [], smoking: false },
             medications: b.medications || [],
             interventions: b.interventions || [],
@@ -179,6 +189,10 @@ export class PatientService {
             emergency_contact_name: f.emergency_contact_name ?? f.emergencyContact?.name ?? null,
             emergency_contact_phone: f.emergency_contact_phone ?? f.emergencyContact?.phone ?? null,
             emergency_contact_relation: f.emergency_contact_relation ?? f.emergencyContact?.relation ?? null,
+            // Tutor / guardian (coherencia app móvil: guardian_patient)
+            guardian_name: f.guardian_name ?? null,
+            guardian_phone: f.guardian_phone ?? null,
+            guardian_relation: f.guardian_relation ?? null,
             blood_type: f.blood_type || null,
             known_allergies: f.known_allergies ?? f.allergies ?? null,
             current_medications: f.current_medications || null,
@@ -236,8 +250,8 @@ export class PatientService {
     // GET /api/patients/{id}
     getPatientById(id: string | number): Observable<Patient> {
         return this.http.get<any>(`${this.PATIENTS_URL}/${id}`).pipe(
-            map(p => this.mapToFrontend(p)),
-            catchError(() => of({} as Patient))
+            map(p => this.mapToFrontend(p))
+            // Sin catchError: los errores deben propagarse al componente
         );
     }
 
@@ -271,8 +285,8 @@ export class PatientService {
                 const idx = list.findIndex(p => String(p.id) === String(id));
                 if (idx !== -1) { list[idx] = updated; this.patientsSubject.next(list); }
                 this.invalidatePatientCache();
-            }),
-            catchError(() => of({} as Patient))
+            })
+            // Sin catchError: los errores de guardado deben propagarse al componente
         );
     }
 

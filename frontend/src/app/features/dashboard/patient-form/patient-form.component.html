@@ -157,6 +157,32 @@
                                 </div>
                             </div>
 
+                            <!-- Tutor / Guardian (coherencia app móvil) -->
+                            <div class="section-divider">
+                                <mat-icon>shield_person</mat-icon>
+                                <span>Tutor / Responsable</span>
+                                <small>Sincroniza con la app móvil del paciente</small>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1">
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Nombre del Tutor</mat-label>
+                                    <input matInput formControlName="guardian_name"
+                                        placeholder="Nombre completo">
+                                    <mat-icon matPrefix class="text-gray-400">person</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Tel. Tutor</mat-label>
+                                    <input matInput formControlName="guardian_phone">
+                                    <mat-icon matPrefix class="text-gray-400">phone</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Parentesco</mat-label>
+                                    <input matInput formControlName="guardian_relation"
+                                        placeholder="Ej. Padre, Madre">
+                                    <mat-icon matPrefix class="text-gray-400">family_restroom</mat-icon>
+                                </mat-form-field>
+                            </div>
+
                         </div>
                     </div>
                 </mat-tab>
@@ -303,6 +329,32 @@
                                     placeholder="Ej. Negados, Apendicectomía 2020">
                                 <mat-icon matPrefix class="text-gray-400">healing</mat-icon>
                             </mat-form-field>
+
+                            <!-- Dispositivos & Foto -->
+                            <div class="section-divider">
+                                <mat-icon>watch</mat-icon>
+                                <span>Dispositivos y Foto</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1">
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Espirométro (ID)</mat-label>
+                                    <input matInput formControlName="spirometer_id"
+                                        placeholder="Ej. 3">
+                                    <mat-icon matPrefix class="text-gray-400">show_chart</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Inhalador (ID)</mat-label>
+                                    <input matInput formControlName="inhaler_id"
+                                        placeholder="Ej. 7">
+                                    <mat-icon matPrefix class="text-gray-400">cloud</mat-icon>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-full">
+                                    <mat-label>Foto (URL)</mat-label>
+                                    <input matInput formControlName="photo_url"
+                                        placeholder="https://...">
+                                    <mat-icon matPrefix class="text-gray-400">photo_camera</mat-icon>
+                                </mat-form-field>
+                            </div>
 
                             <!-- Summary Preview Card -->
                             <div class="summary-card" *ngIf="!isEditMode">
