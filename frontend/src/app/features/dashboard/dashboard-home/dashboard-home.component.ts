@@ -337,6 +337,45 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                 this.openEmergencyModal(emergencyData);
             }
         });
+
+        // ── WebSocket: Actualiza el home (KPIs, prioridad y alertas) con cada medición en vivo ──
+        this.wsService.messages$.pipe(takeUntil(this.destroy$)).subscribe((msg: any) => {
+            if (!msg) return;
+            const types = ['pef_update', 'vital_signs', 'new_symptom', 'risk_update'];
+            if (types.includes(msg.type) || msg.event === 'NEW_MEASUREMENT_READY') {
+                this.handleRealtimeMeasurement(msg);
+            }
+        });
+    }
+
+    private refreshTimer: any = null;
+
+    /** Actualiza al instante la medición del paciente en las listas y re-sincroniza el panel */
+    private handleRealtimeMeasurement(msg: any): void {
+        const pid = msg.patientId;
+        const m = msg.measurement;
+
+        // Actualización optimista: pintar los valores al momento en las listas visibles
+        if (pid != null && m) {
+            const touch = (p: Patient) => {
+                if (m.pef != null) p.latest_pef = m.pef;
+                if (m.spo2 != null) p.currentSpO2 = m.spo2;
+            };
+            this.urgentPatients.forEach(p => { if (Number(p.id) === Number(pid)) touch(p); });
+            this.recentPatients.forEach(p => { if (Number(p.id) === Number(pid)) touch(p); });
+            this.cd.markForCheck();
+        }
+
+        // Re-sincronización silenciosa (riesgo, KPIs y posición en prioridad)
+        this.scheduleDashboardRefresh();
+    }
+
+    private scheduleDashboardRefresh(): void {
+        if (this.refreshTimer) clearTimeout(this.refreshTimer);
+        this.refreshTimer = setTimeout(() => {
+            this.refreshTimer = null;
+            this.loadDashboardData(true);
+        }, 1500);
     }
 
     private openEmergencyModal(data: EmergencyProtocolData): void {
@@ -457,8 +496,8 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
         this.cd.markForCheck();
     }
 
-    public async loadDashboardData(): Promise<void> {
-        this.loadingService.updateProgress('Cargando métricas...', 10);
+    public async loadDashboardData(silent: boolean = false): Promise<void> {
+        if (!silent) this.loadingService.updateProgress('Cargando métricas...', 10);
 
         // Single consolidated forkJoin — getAllPatients is called once and reused
         forkJoin({
@@ -581,16 +620,20 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
                 // Dashboard visible now
                 this.isLoading = false;
                 this.dataReady = true;
-                this.loadingService.updateProgress('Listo!', 100);
-                this.cd.markForCheck();
-                setTimeout(() => this.loadingService.hideLoading(), 300);
+                if (!silent) {
+                    this.loadingService.updateProgress('Listo!', 100);
+                    this.cd.markForCheck();
+                    setTimeout(() => this.loadingService.hideLoading(), 300);
+                } else {
+                    this.cd.markForCheck();
+                }
             },
             error: (err) => {
                 console.error('Error loading dashboard', err);
                 this.isLoading = false;
                 this.dataReady = true;
                 this.cd.markForCheck();
-                this.loadingService.hideLoading();
+                if (!silent) this.loadingService.hideLoading();
             }
         });
     }
@@ -658,6 +701,10 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         if (this.emergencyEffectRef) {
             this.emergencyEffectRef.destroy();
+        }
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+            this.refreshTimer = null;
         }
         this.destroy$.next();
         this.destroy$.complete();
