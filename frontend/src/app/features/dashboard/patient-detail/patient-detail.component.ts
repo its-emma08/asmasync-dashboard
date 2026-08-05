@@ -277,8 +277,22 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                 if ((msg.type === 'pef_update' || msg.type === 'new_symptom' || msg.type === 'risk_update' || msg.type === 'vital_signs') && 
                     msg.patientId && Number(msg.patientId) === Number(patientId)) {
                     this.loadPatientData(patientId);
+                    this.notifyNewMeasurement(msg);
                 }
             });
+    }
+
+    private notifyNewMeasurement(msg: any): void {
+        const m = msg.measurement;
+        const parts: string[] = [];
+        if (m && m.pef != null) parts.push(`FEM ${m.pef} L/min`);
+        if (m && m.spo2 != null) parts.push(`SpO₂ ${m.spo2}%`);
+        if (m && m.heart_rate != null) parts.push(`FC ${m.heart_rate} bpm`);
+        const detail = parts.length ? ` · ${parts.join(' · ')}` : '';
+        const label = msg.type === 'new_symptom' ? 'Nuevos síntomas registrados'
+            : msg.type === 'vital_signs' ? 'Nuevos signos vitales'
+            : 'Nueva medición del espirómetro';
+        this.snackBar.open(`${label}${detail}`, 'Ver', { duration: 6000, panelClass: ['measurement-toast'] });
     }
 
     openAddMeasurementDialog(): void {

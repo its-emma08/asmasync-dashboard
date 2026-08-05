@@ -990,6 +990,35 @@ body.dark {
 }
 
 /* ============================================
+   Measurement Toast (medición en tiempo real)
+   ============================================ */
+.mat-mdc-snack-bar-container.measurement-toast {
+  --mdc-snackbar-container-color: transparent !important;
+}
+
+.measurement-toast .mdc-snackbar__surface {
+  background: rgba(16, 185, 129, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.35) !important;
+}
+
+.measurement-toast .mdc-snackbar__label,
+.measurement-toast .mat-mdc-snack-bar-label {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.measurement-toast .mat-mdc-snack-bar-action {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  text-transform: none !important;
+}
+
+/* ============================================
    CDK Drag & Drop Fixes (CRITICAL)
    ============================================ */
 /* PREVIEW: The element that follows the cursor */
