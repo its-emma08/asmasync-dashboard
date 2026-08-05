@@ -36,7 +36,7 @@ export interface Patient {
     lastCrisis: Date | null;
     profilePicture?: string; // avatar_seed generator
     adherence?: number;
-    status?: 'Crítico' | 'Moderado' | 'Estable';
+    status?: 'Crítico' | 'Moderado' | 'Estable' | 'Sin datos';
     probability?: number;
     email?: string;
     phone?: string;

@@ -121,14 +121,16 @@ export class SupabaseService {
         ).pipe(map(res => ({ error: res.error })));
     }
 
-    updateUserProfile(data: { email?: string; full_name?: string; specialty?: string; phone?: string }): Observable<{ data: any; error: any }> {
+    updateUserProfile(data: { email?: string; full_name?: string; specialty?: string; phone?: string; license_number?: string; hospital_name?: string }): Observable<{ data: any; error: any }> {
         return from(
             this.supabase.auth.updateUser({
                 email: data.email,
                 data: {
                     full_name: data.full_name,
                     specialty: data.specialty,
-                    phone: data.phone
+                    phone: data.phone,
+                    license_number: data.license_number,
+                    hospital_name: data.hospital_name
                 }
             })
         ).pipe(map(res => ({ data: res.data, error: res.error })));

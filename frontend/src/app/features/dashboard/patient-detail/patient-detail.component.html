@@ -47,6 +47,9 @@
                                   }">
                                 GINA: {{ ginaControlStatus === 'controlled' ? 'Controlado' : ginaControlStatus === 'partially_controlled' ? 'Parcial' : 'No Controlado' }}
                             </span>
+                            <span class="hero-chip live-chip" matTooltip="Actualización automática cada 5 s">
+                                <mat-icon>radar</mat-icon> En vivo · {{ lastLiveSync }}
+                            </span>
                         </div>
                         <h1 class="hero-name">{{ patient.full_name }}</h1>
 
@@ -177,7 +180,7 @@
                                         'text-yellow-600': (latestPrediction?.risk_level || patient.riskLevel) === 'moderate',
                                         'text-red-600': (latestPrediction?.risk_level || patient.riskLevel) === 'high'
                                       }">
-                                    {{ latestPrediction ? ((latestPrediction.probability || 0) * 100).toFixed(0) : ((patient.probability || 0.15) * 100).toFixed(0) }}%
+                                    {{ latestPrediction ? ((latestPrediction.probability || 0) * 100).toFixed(0) : (patient.probability != null ? (patient.probability * 100).toFixed(0) : '—') }}%
                                 </span>
                                 <span class="text-xs text-gray-500 font-medium">Probabilidad de Crisis</span>
                             </div>
@@ -238,8 +241,8 @@
                                         <span class="value">{{ patient.currentSpO2 || '--' }}</span>
                                         <span class="unit">%</span>
                                     </div>
-                                    <span class="status-tag" [class.low]="patient.currentSpO2 < 95">
-                                        {{ patient.currentSpO2 >= 95 ? 'Normal' : 'Crítico' }}
+                                    <span class="status-tag" [class.low]="patient.currentSpO2 > 0 && patient.currentSpO2 < 95">
+                                        {{ patient.currentSpO2 >= 95 ? 'Normal' : (patient.currentSpO2 > 0 ? 'Crítico' : '—') }}
                                     </span>
                                 </div>
                             </div>

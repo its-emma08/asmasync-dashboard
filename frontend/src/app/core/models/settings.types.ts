@@ -8,7 +8,12 @@ export interface User {
   is_2fa_enabled: boolean;
   doctor_code?: string;
   specialty?: string;
+  license_number?: string;
+  hospital_name?: string;
+  bio?: string;
+  is_verified?: boolean;
   phone?: string;
+  phone_number?: string;
   certifications?: any[];
   created_at: string;
   settings?: UserSettings;

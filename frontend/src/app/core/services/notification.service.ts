@@ -2,6 +2,7 @@ import { Injectable, signal, inject, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SwPush } from '@angular/service-worker';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from './toast.service';
 import { environment } from '../../../environments/environment';
 import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
 import { catchError, take, takeUntil, tap } from 'rxjs/operators';
@@ -24,6 +25,7 @@ export class NotificationService implements OnDestroy {
   private http = inject(HttpClient);
   private swPush = inject(SwPush);
   private snackBar = inject(MatSnackBar);
+  private toast = inject(ToastService);
   private wsService = inject(WebSocketService);
 
   private readonly BASE = `${environment.apiUrl}/notifications`;
@@ -131,7 +133,7 @@ export class NotificationService implements OnDestroy {
     const current = this.notificationsSubject.value;
     this.notificationsSubject.next([newAlert, ...current]);
     this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
-    this.snackBar.open(`Nueva Alerta: ${newAlert.message}`, 'Ver', { duration: 5000 });
+    this.toast.showWarning(`Nueva Alerta: ${newAlert.message}`);
   }
 
   public markAsRead(id: number): Observable<any> {
@@ -155,19 +157,44 @@ export class NotificationService implements OnDestroy {
   }
 
   public async requestPermission(): Promise<void> {
-    if (!this.swPush.isEnabled) return;
+    const canUsePush = this.swPush.isEnabled
+      && typeof environment.vapidPublicKey === 'string'
+      && environment.vapidPublicKey.startsWith('B');
+
+    // Fallback: native browser notifications when the Service Worker / VAPID
+    // is not configured (e.g. dev server, placeholder key). Avoids a silent no-op.
+    if (!canUsePush) {
+      if (!('Notification' in window)) {
+        this.toast.showInfo('Las notificaciones no son compatibles con este navegador.');
+        return;
+      }
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          this.notificationsEnabled.set(true);
+          this.toast.showSuccess('¡Notificaciones activadas! (nativas del navegador)');
+        } else {
+          this.toast.showInfo('Has desactivado las notificaciones.');
+        }
+      } catch {
+        this.toast.showError('Error al activar las notificaciones.');
+      }
+      return;
+    }
+
     const ref = this.snackBar.open(
       '¿Deseas recibir alertas críticas de AsmaSync?',
       'Activar',
-      { duration: 10000, horizontalPosition: 'center', verticalPosition: 'top' }
+      { duration: 10000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['glass-toast', 'toast-info'] }
     );
     ref.onAction().subscribe(async () => {
       try {
         const sub = await this.swPush.requestSubscription({ serverPublicKey: environment.vapidPublicKey || '' });
         this.subscription.set(sub);
-        this.snackBar.open('¡Notificaciones activadas!', 'Cerrar', { duration: 3000 });
+        this.notificationsEnabled.set(true);
+        this.toast.showSuccess('¡Notificaciones activadas!');
       } catch {
-        this.snackBar.open('Error al activar notificaciones', 'Cerrar', { duration: 3000 });
+        this.toast.showError('Error al activar las notificaciones.');
       }
     });
   }

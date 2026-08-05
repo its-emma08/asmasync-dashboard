@@ -136,6 +136,23 @@
     height: 40px !important;
     border-radius: 12px !important;
     color: var(--text-secondary) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    /* The Material 48px touch-target offsets the icon inside a 40px
+       button; neutralize it so icons stay perfectly centered. */
+    .mat-mdc-button-touch-target {
+        position: static !important;
+    }
+
+    mat-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1 !important;
+        margin: 0 !important;
+    }
 
     &:hover {
         background: rgba(0, 0, 0, 0.04) !important;

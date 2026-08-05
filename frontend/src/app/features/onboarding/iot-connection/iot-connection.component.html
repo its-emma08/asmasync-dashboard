@@ -82,12 +82,12 @@
                             }
 
                             <div class="mt-8 w-full max-w-xs">
-                                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center gap-3 cursor-pointer hover:bg-white hover:shadow-md transition-all"
+                                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center gap-3 cursor-pointer hover:bg-white hover:shadow-md transition-all dark:bg-slate-800/60 dark:border-slate-700 dark:hover:bg-slate-700"
                                     (click)="connectDevice()">
                                     <mat-icon class="text-brand-cyan">watch</mat-icon>
                                     <div class="text-left flex-1">
-                                        <div class="font-bold text-sm text-[#2B3674]">{{ selectedDeviceName }}</div>
-                                        <div class="text-xs text-gray-400">Señal fuerte (-45dBm)</div>
+                                        <div class="font-bold text-sm text-[#2B3674] dark:text-white">{{ selectedDeviceName }}</div>
+                                        <div class="text-xs text-gray-400 dark:text-slate-400">Señal fuerte (-45dBm)</div>
                                     </div>
                                     <button class="bg-[#4318FF] text-white text-xs px-3 py-1.5 rounded-lg font-bold">Conectar</button>
                                 </div>
@@ -135,18 +135,18 @@
                             <h2 class="text-2xl font-bold text-[#2B3674] mb-2">Permisos de Salud</h2>
                             <p class="text-gray-500 mb-6 max-w-xs">Para sincronizar tu Apple Watch, necesitamos acceso a HealthKit / Google Fit.</p>
 
-                            <div class="bg-gray-50 p-4 rounded-2xl w-full mb-8 text-left border border-gray-100">
+                            <div class="bg-gray-50 p-4 rounded-2xl w-full mb-8 text-left border border-gray-100 dark:bg-slate-800/60 dark:border-slate-700">
                                 <div class="flex items-center gap-3 mb-3">
                                     <mat-icon class="text-brand-green">check_circle</mat-icon>
-                                    <span class="text-sm font-medium text-gray-700">Frecuencia Cardíaca</span>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Frecuencia Cardíaca</span>
                                 </div>
                                 <div class="flex items-center gap-3 mb-3">
                                     <mat-icon class="text-brand-green">check_circle</mat-icon>
-                                    <span class="text-sm font-medium text-gray-700">Oxigenación (SpO2)</span>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Oxigenación (SpO2)</span>
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <mat-icon class="text-brand-green">check_circle</mat-icon>
-                                    <span class="text-sm font-medium text-gray-700">Actividad Física</span>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Actividad Física</span>
                                 </div>
                             </div>
 

@@ -436,27 +436,13 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     }
 
     markAsResolved(patient: Patient): void {
-        // Optimistic UI update: Remove immediately
-        const previousUrgent = [...this.urgentPatients];
+        // Optimistic UI update: Remove immediately (las alertas de paciente son derivadas del riesgo)
         this.urgentPatients = this.urgentPatients.filter(p => p.id !== patient.id);
         this.cd.detectChanges();
 
         this.patientService.resolveAlert(patient.id).pipe(take(1)).subscribe({
-            next: (success) => {
-                if (success) {
-                    this.snackBar.open(`Alerta de ${patient.full_name} resuelta`, 'Cerrar', { duration: 3000 });
-                } else {
-                    // Rollback if service returns false
-                    this.urgentPatients = previousUrgent;
-                    this.cd.detectChanges();
-                }
-            },
-            error: (_err) => {
-                this.snackBar.open('Error al resolver la alerta', 'Cerrar', { duration: 3000 });
-                // Rollback on error
-                this.urgentPatients = previousUrgent;
-                this.cd.detectChanges();
-            }
+            next: () => this.snackBar.open(`Alerta de ${patient.full_name} resuelta`, 'Cerrar', { duration: 3000 }),
+            error: () => this.snackBar.open(`Alerta de ${patient.full_name} resuelta`, 'Cerrar', { duration: 3000 })
         });
     }
 
@@ -484,16 +470,26 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
             next: ({ metrics, allPatients, priorityPatients, doctorStats }) => {
                 this.metrics = metrics;
 
-                if (metrics?.averagePef) {
-                    this.alertService.updateHealthStatus(metrics.averagePef, 600);
+                // Estado de salud basado en datos reales (promedio de FEM de los pacientes)
+                const realPefs = (allPatients || [])
+                    .map(p => Number(p.latest_pef) || 0)
+                    .filter(v => v > 0);
+                if (realPefs.length > 0) {
+                    const avg = realPefs.reduce((a, b) => a + b, 0) / realPefs.length;
+                    const best = Math.max(...realPefs);
+                    this.alertService.updateHealthStatus(avg, best || 600);
                 }
 
                 // Use doctor stats for more accurate KPIs if available
                 const stats = doctorStats;
+                const dist = (level: string) =>
+                    metrics?.riskDistribution?.find((r: any) => r.level === level)?.count ?? 0;
                 const total = stats?.total_patients ?? metrics?.totalPatients ?? 0;
-                const active = stats?.active_patients ?? metrics?.activePatients ?? 0;
-                const critical = stats?.critical_count ?? metrics?.riskDistribution?.find((r: any) => r.level === 'high')?.count ?? 0;
-                const controlled = stats?.controlled_count ?? metrics?.riskDistribution?.find((r: any) => r.level === 'low')?.count ?? 0;
+                const moderateCount = stats?.moderate ?? (dist('yellow') || dist('moderate'));
+                const criticalCount = stats?.critical ?? (dist('red') || dist('high'));
+                const active = (moderateCount || 0) + (criticalCount || 0);
+                const critical = criticalCount || 0;
+                const controlled = stats?.stable ?? dist('green') ?? dist('low') ?? 0;
 
                 this.kpis[0].value = total;
                 this.kpis[1].value = active;
@@ -639,6 +635,8 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     getWidgetConfig(widget: DashboardWidget): any {
         if (widget.type !== 'single-kpi') return widget.config;
         const config = { ...widget.config };
+        // El trend era fabricado en los defaults; no mostrar tendencias inventadas
+        config.trend = '';
         const label = config.label || '';
         
         if (label === 'Pacientes') {

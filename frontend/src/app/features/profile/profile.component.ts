@@ -60,6 +60,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     { label: 'Email', value: this.currentUser()?.email || '—' },
     { label: 'Rol', value: this.userRoleLabel() },
     { label: 'Especialidad', value: this.currentUser()?.specialty || '—' },
+    { label: 'Cédula Profesional', value: this.currentUser()?.license_number || '—' },
     { label: 'Institución', value: this.currentUser()?.hospital_name || '—' },
     { label: 'Activo desde', value: this.currentUser()?.created_at ? new Date(this.currentUser().created_at).toLocaleDateString('es-MX') : '—' },
     { label: 'Pacientes activos', value: String(this.patientCount()) }
@@ -111,7 +112,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           return;
         }
         // Si el doctor no tiene código cargado, pedirlo al backend
-        if (user?.role === 'doctor' && !user?.doctor_code) {
+        if (user?.role === 'doctor' && !this.doctorProfileFetched) {
           this.fetchDoctorProfile();
         }
       });
@@ -127,21 +128,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private fetchDoctorProfile(): void {
-    // GET /doctor/profile — POST returns 405 (backend not yet deployed with upsert endpoint)
+    this.doctorProfileFetched = true;
     this.http.get<any>(`${environment.apiUrl}/doctor/profile`).pipe(
       catchError(() => of(null)),
       takeUntil(this.destroy$)
     ).subscribe(profile => {
-      this.doctorProfileFetched = true;
-      if (profile?.doctor_code) {
-        const enriched = {
-          ...this.currentUser(),
-          doctor_code: profile.doctor_code,
-          specialty: profile.specialty || this.currentUser()?.specialty
-        };
-        this.currentUser.set(enriched);
-        this.authService.updateStoredUser(enriched);
-      }
+      if (!profile?.doctor_code) return;
+      const enriched = {
+        ...this.currentUser(),
+        doctor_code: profile.doctor_code,
+        specialty: profile.specialty || this.currentUser()?.specialty,
+        license_number: profile.license_number || this.currentUser()?.license_number,
+        hospital_name: profile.hospital_name || this.currentUser()?.hospital_name,
+        bio: profile.bio || this.currentUser()?.bio,
+        is_verified: profile.is_verified ?? this.currentUser()?.is_verified,
+        certifications: Array.isArray(profile.certifications) ? profile.certifications : this.currentUser()?.certifications || []
+      };
+      this.certifications = Array.isArray(profile.certifications) ? profile.certifications : this.certifications;
+      this.currentUser.set(enriched);
+      this.authService.updateStoredUser(enriched);
     });
   }
 

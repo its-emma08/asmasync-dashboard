@@ -3,6 +3,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { GlobalErrorHandler } from './core/services/global-error-handler.service';
 import { provideRouter } from '@angular/router';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
@@ -29,6 +30,12 @@ export const appConfig: ApplicationConfig = {
     provideServiceWorker('ngsw-worker.js', {
         enabled: !isDevMode(),
         registrationStrategy: 'registerWhenStable:30000'
-    })
+    }),
+    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: {
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        duration: 4000,
+        panelClass: ['glass-toast']
+    } }
   ]
 };

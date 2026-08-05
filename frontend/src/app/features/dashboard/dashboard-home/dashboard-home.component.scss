@@ -63,10 +63,12 @@
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: minmax(160px, auto);
+    /* Fixed row height keeps span sizes predictable (span 2 = 320px + gap)
+       and gives widgets a definite height so their internal scroll works.
+       Auto rows made the layout break when resizing. */
+    grid-auto-rows: 160px;
     grid-auto-flow: row dense;
     gap: 20px;
-    align-items: start;
     /* Extra top padding so size-pill controls don't clip at top */
     padding-top: 16px;
 
@@ -89,7 +91,7 @@ app-widget-shell {
 @media (max-width: 1024px) {
     .bento-grid {
         grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: minmax(160px, auto);
+        grid-auto-rows: 160px;
         gap: 16px;
     }
     
@@ -105,7 +107,7 @@ app-widget-shell {
 @media (max-width: 640px) {
     .bento-grid {
         grid-template-columns: 1fr;
-        grid-auto-rows: minmax(160px, auto);
+        grid-auto-rows: 160px;
         gap: 12px;
     }
     

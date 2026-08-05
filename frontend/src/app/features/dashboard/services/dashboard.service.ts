@@ -78,16 +78,16 @@ export class DashboardService {
                 defaultSize = 'small';
                 if (subType === 'total') {
                     title = 'Total Pacientes';
-                    config = { icon: 'groups', color: 'blue', value: 20, label: 'Pacientes', trend: '+12%' };
+                    config = { icon: 'groups', color: 'blue', label: 'Pacientes' };
                 } else if (subType === 'active') {
                     title = 'Pacientes Activos';
-                    config = { icon: 'person_check', color: 'green', value: 18, label: 'Activos', trend: '+5%' };
+                    config = { icon: 'person_check', color: 'green', label: 'Activos' };
                 } else if (subType === 'risk') {
                     title = 'Alto Riesgo';
-                    config = { icon: 'warning', color: 'red', value: 3, label: 'Riesgo', trend: '-2%' };
+                    config = { icon: 'warning', color: 'red', label: 'Riesgo' };
                 } else if (subType === 'controlled') {
                     title = 'Controlados';
-                    config = { icon: 'thumb_up', color: 'cyan', value: 15, label: 'Controlados', trend: '+8%' };
+                    config = { icon: 'thumb_up', color: 'cyan', label: 'Controlados' };
                 }
                 break;
             case 'birthdays': defaultSize = 'small'; break;

@@ -9,13 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
   template: `
     <div class="flex flex-col items-center justify-center p-8 text-center h-full w-full">
       <div class="relative mb-6">
-        <div class="absolute inset-0 bg-slate-100 rounded-full scale-150 opacity-20 animate-pulse"></div>
-        <div class="relative w-20 h-20 bg-white rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center">
-            <mat-icon class="scale-[2] text-slate-300">{{ icon }}</mat-icon>
+        <div class="absolute inset-0 bg-slate-100 dark:bg-slate-700 rounded-full scale-150 opacity-20 animate-pulse"></div>
+        <div class="relative w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center">
+            <mat-icon class="scale-[2] text-slate-300 dark:text-slate-600">{{ icon }}</mat-icon>
         </div>
       </div>
-      <h3 class="text-lg font-bold text-slate-700 mb-2">{{ title }}</h3>
-      <p class="text-sm text-slate-500 max-w-[200px] mx-auto leading-relaxed">{{ message }}</p>
+      <h3 class="text-lg font-bold text-slate-700 dark:text-white mb-2">{{ title }}</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400 max-w-[200px] mx-auto leading-relaxed">{{ message }}</p>
     </div>
   `
 })

@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription, Observable } from 'rxjs';
+import { skip } from 'rxjs/operators';
 import { SidebarComponent } from '../../../shared/components/sidebar/sidebar.component';
 import { DashboardHeaderComponent } from '../components/dashboard-header/dashboard-header.component';
 import { LayoutService } from '../../../core/services/layout.service';
@@ -43,6 +44,18 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        // On desktop, the header hamburger toggles sidebarOpen$ (used by the
+        // mobile slide-over). Mirror those toggles into the desktop collapse
+        // state so the hamburger works on desktop too. skip(1) preserves the
+        // initial load state (localStorage) instead of collapsing on mount.
+        this.layoutService.sidebarOpen$.pipe(skip(1)).subscribe(open => {
+            if (!this.isMobile) {
+                this.sidebarCollapsed = !open;
+                localStorage.setItem('sidebar_collapsed', String(this.sidebarCollapsed));
+                this.cdRef.detectChanges();
+            }
+        });
+
         this.breakpointSubscription = this.breakpointObserver
             .observe([Breakpoints.Handset, Breakpoints.TabletPortrait])
             .subscribe(result => {
@@ -56,6 +69,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
 
     onSidebarCollapsedChange(collapsed: boolean): void {
         this.sidebarCollapsed = collapsed;
+        localStorage.setItem('sidebar_collapsed', String(collapsed));
         this.cdRef.detectChanges();
     }
 

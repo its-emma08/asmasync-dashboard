@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AgePipe } from '../../../shared/pipes/age-pipe';
@@ -40,7 +40,6 @@ export class AlertPanelComponent implements OnInit, OnDestroy {
     constructor(
         private patientService: PatientService,
         private router: Router,
-        private snackBar: MatSnackBar,
         private cd: ChangeDetectorRef
     ) { }
 
@@ -106,13 +105,9 @@ export class AlertPanelComponent implements OnInit, OnDestroy {
     }
 
     markAsResolved(patient: Patient): void {
-        this.patientService.resolveAlert(patient.id).pipe(take(1)).subscribe(success => {
-            if (success) {
-                this.snackBar.open('Alerta marcada como atendida', 'OK', { duration: 3000 });
-                this.allPatients = this.allPatients.filter(p => p.id !== patient.id);
-                this.applySearch();
-            }
-        });
+        this.allPatients = this.allPatients.filter(p => p.id !== patient.id);
+        this.applySearch();
+        this.patientService.resolveAlert(patient.id).pipe(take(1)).subscribe();
     }
 
     getRiskLabel(level: string): string {

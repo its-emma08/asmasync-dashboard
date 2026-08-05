@@ -197,6 +197,8 @@ export class AuthService implements OnDestroy {
                     email: data.email,
                     full_name: data.full_name,
                     specialty: data.specialty,
+                    license_number: data.license_number,
+                    hospital_name: data.hospital_name,
                     phone: data.phone
                 }).pipe(
                     switchMap((res) => {

@@ -66,6 +66,20 @@ import { ToastService } from '../../../core/services/toast.service';
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Cédula Profesional</mat-label>
+              <input matInput formControlName="license_number" placeholder="12345678">
+              <mat-icon matPrefix class="text-slate-400 mr-2">badge</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Hospital / Institución</mat-label>
+              <input matInput formControlName="hospital_name" placeholder="Hospital General">
+              <mat-icon matPrefix class="text-slate-400 mr-2">domain</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
               <mat-label>Teléfono</mat-label>
               <input matInput formControlName="phone" placeholder="555-123-4567">
               <mat-icon matPrefix class="text-slate-400 mr-2">phone</mat-icon>
@@ -112,7 +126,9 @@ export class EditProfileModalComponent {
       full_name: [data.user?.full_name || '', Validators.required],
       email: [data.user?.email || '', [Validators.required, Validators.email]],
       specialty: [data.user?.specialty || ''],
-      phone: [data.user?.phone || '']
+      license_number: [data.user?.license_number || ''],
+      hospital_name: [data.user?.hospital_name || ''],
+      phone: [data.user?.phone || data.user?.phone_number || '']
     });
   }
 

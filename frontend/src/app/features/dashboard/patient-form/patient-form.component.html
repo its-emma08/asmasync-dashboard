@@ -97,7 +97,7 @@
                                             1kg</mat-error>
                                     </mat-form-field>
 
-                                    <mat-form-field appearance="outline" class="w-full">
+                                    <mat-form-field appearance="outline" class="w-full md:col-span-2 xl:col-span-2">
                                         <mat-label>Altura (cm) *</mat-label>
                                         <input matInput type="number" formControlName="height" placeholder="175">
                                         <mat-icon matPrefix class="text-gray-400">height</mat-icon>
@@ -163,7 +163,7 @@
                                 <span>Tutor / Responsable</span>
                                 <small>Sincroniza con la app móvil del paciente</small>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-4">
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Nombre del Tutor</mat-label>
                                     <input matInput formControlName="guardian_name"
@@ -196,7 +196,7 @@
                                 <mat-icon>healing</mat-icon>
                                 <span>Información del Asma</span>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-4">
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Tipo de Asma *</mat-label>
                                     <mat-select formControlName="asthma_type">
@@ -223,7 +223,7 @@
                                 </mat-form-field>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Alergias</mat-label>
                                     <input matInput formControlName="allergies" placeholder="Ej. Polvo, polen, ácaros">
@@ -244,7 +244,7 @@
                                 <span>Antecedentes Heredo-Familiares</span>
                                 <small>DM, HTA, Cardiopatías, Asma, Alergias</small>
                             </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Madre</mat-label>
                                     <input matInput formControlName="family_history_mother" placeholder="Niega">
@@ -272,7 +272,7 @@
                                 <mat-icon>health_and_safety</mat-icon>
                                 <span>Antecedentes Personales No Patológicos</span>
                             </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Tabaquismo</mat-label>
                                     <mat-select formControlName="smoking">
@@ -335,7 +335,7 @@
                                 <mat-icon>watch</mat-icon>
                                 <span>Dispositivos y Foto</span>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-1">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-4">
                                 <mat-form-field appearance="outline" class="w-full">
                                     <mat-label>Espirométro (ID)</mat-label>
                                     <input matInput formControlName="spirometer_id"

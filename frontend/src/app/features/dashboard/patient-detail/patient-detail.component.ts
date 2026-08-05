@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrateg
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { forkJoin, Subject, takeUntil, catchError, of, debounceTime, finalize } from 'rxjs';
+import { forkJoin, Subject, takeUntil, catchError, of, debounceTime, finalize, interval } from 'rxjs';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -234,6 +234,9 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
     latestPrediction: PredictionResponse | null = null;
     ginaControlStatus: 'controlled' | 'partially_controlled' | 'uncontrolled' = 'controlled';
 
+    isRefreshing = false;
+    lastLiveSync: string = '—';
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -259,6 +262,7 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
             } else {
                 this.loadPatientData(+id);
                 this.setupRealtimeUpdates(+id);
+                this.startLiveRefresh(+id);
             }
         }
     }
@@ -270,7 +274,7 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                 debounceTime(2000) // Evita recargas en cascada cuando IoT envía datos rápidamente
             )
             .subscribe(msg => {
-                if ((msg.type === 'pef_update' || msg.type === 'new_symptom' || msg.type === 'risk_update') && 
+                if ((msg.type === 'pef_update' || msg.type === 'new_symptom' || msg.type === 'risk_update' || msg.type === 'vital_signs') && 
                     msg.patientId && Number(msg.patientId) === Number(patientId)) {
                     this.loadPatientData(patientId);
                 }
@@ -353,30 +357,7 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                         this.interventions = result.interventions || [];
                         this.predictions = result.predictions || [];
                         this.latestPrediction = this.predictions.length > 0 ? this.predictions[0] : null;
-
-                        // Build chart data and history timeline from recent_measurements
-                        const chartData = this.buildChartDataFromMeasurements(
-                            this.patient.recent_measurements || []
-                        );
-                        this.history = this.buildHistoryFromMeasurements(
-                            this.patient.recent_measurements || []
-                        );
-
-                        this.processHistory(this.history);
-                        this.calculateGinaStatus();
-                        this.setupRealCharts(chartData, this.patient?.personal_best_pef || 500);
-
-                        // Update vitals from most recent measurement
-                        if (chartData.pef?.length) {
-                            const lastPef = chartData.pef[chartData.pef.length - 1].y;
-                            if (this.patient) this.patient.latest_pef = lastPef;
-                        }
-                        if (chartData.spo2?.length) {
-                            const lastSpo2 = chartData.spo2[chartData.spo2.length - 1].y;
-                            if (this.patient) this.patient.currentSpO2 = lastSpo2;
-                        }
-
-                        this.processVitalMetrics(this.patient);
+                        this.applyPatientData();
 
                         if (typeof this.patient.id === 'number') {
                             this.loadNextAppointment(this.patient.id);
@@ -406,6 +387,63 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
                     console.error('Error loading patient data:', err);
                 }
             });
+    }
+
+    /** Aplica el paciente actual a las gráficas, métricas y estado derivado (sin recargar todo) */
+    private applyPatientData(): void {
+        if (!this.patient) return;
+
+        const chartData = this.buildChartDataFromMeasurements(
+            this.patient.recent_measurements || []
+        );
+        this.history = this.buildHistoryFromMeasurements(
+            this.patient.recent_measurements || []
+        );
+
+        this.processHistory(this.history);
+        this.calculateGinaStatus();
+        this.setupRealCharts(chartData, this.patient.personal_best_pef || 500);
+
+        // Update vitals from most recent measurement
+        if (chartData.pef?.length) {
+            const lastPef = chartData.pef[chartData.pef.length - 1].y;
+            this.patient.latest_pef = lastPef;
+        }
+        if (chartData.spo2?.length) {
+            const lastSpo2 = chartData.spo2[chartData.spo2.length - 1].y;
+            this.patient.currentSpO2 = lastSpo2;
+        }
+
+        this.processVitalMetrics(this.patient);
+    }
+
+    /** Sincronización en vivo: recarga ligera del paciente mientras la vista está abierta */
+    startLiveRefresh(patientId: number): void {
+        interval(5000)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+                if (this.loading || this.isRefreshing || !this.patient) return;
+                this.refreshPatientData(patientId);
+            });
+    }
+
+    /** Recarga ligera: solo paciente + derivados, sin spinner a pantalla completa */
+    refreshPatientData(id: number | string): void {
+        this.isRefreshing = true;
+        this.patientService.getPatientById(id).pipe(
+            takeUntil(this.destroy$),
+            catchError(() => of(null))
+        ).subscribe(res => {
+            this.isRefreshing = false;
+            if (res) {
+                this.patient = res;
+                this.applyPatientData();
+                this.lastLiveSync = new Date().toLocaleTimeString('es-MX', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     calculateGinaStatus(): void {

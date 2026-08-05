@@ -174,7 +174,7 @@ $gray-900: #111827;
 }
 
 // Dark mode hero
-.dark {
+:host-context(body.dark) {
   .hero-id { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
   .hero-name { color: white; }
   .hero-chip { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); mat-icon { color: rgba(255,255,255,0.4); } }
@@ -1008,7 +1008,7 @@ $gray-900: #111827;
 }
 
 // ─── Dark mode ────────────────────────────────────────────────────────────────
-.dark {
+:host-context(body.dark) {
   .segmented-tabs-rail {
     background: rgba(255,255,255,0.08);
 

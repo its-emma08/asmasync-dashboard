@@ -66,10 +66,7 @@ export class PatientService {
         const recentMeasurements: any[] = b.recent_measurements || [];
         const latestMeasurement = recentMeasurements[0] || {};
 
-        const latestPef = b.current_pef
-            || latestMeasurement.pef
-            || b.personal_best_pef
-            || 0;
+        const latestPef = b.current_pef || latestMeasurement.pef || 0;
         const latestSpo2 = b.current_spo2
             || latestMeasurement.spo2
             || 0;
@@ -85,7 +82,7 @@ export class PatientService {
             full_name: b.full_name,
             date_of_birth: b.date_of_birth || b.dob || b.birth_date || null,
             age: b.age || null,
-            gender: b.gender || 'other',
+            gender: ({ M: 'male', F: 'female', O: 'other' } as any)[b.gender] || (['male', 'female', 'other'].includes(b.gender) ? b.gender : 'other'),
             asthma_type: b.asthma_type || 'allergic',
             email: b.email,
             phone: b.phone || b.phone_number || null,
@@ -94,10 +91,10 @@ export class PatientService {
             personal_best_pef: b.personal_best_pef || 500,
             currentSpO2: latestSpo2,
             respiratoryRate: b.respiratory_rate || latestMeasurement.respiratory_rate || 0,
-            lastUpdate: b.updated_at || b.last_prediction_at || new Date().toISOString(),
+            lastUpdate: b.updated_at || b.last_prediction_at || b.created_at || new Date().toISOString(),
             lastCrisis: b.last_crisis_date || null,
             adherence: b.adherence ?? null,
-            status: mappedRisk === 'high' ? 'Crítico' : mappedRisk === 'moderate' ? 'Moderado' : 'Estable',
+            status: mappedRisk === 'high' ? 'Crítico' : mappedRisk === 'moderate' ? 'Moderado' : mappedRisk === 'low' ? 'Estable' : 'Sin datos',
 
             probability: b.probability || null,
             profilePicture: b.avatar_seed
@@ -317,12 +314,13 @@ export class PatientService {
         return this.http.get<any>(`${this.DASHBOARD_URL}/metrics`).pipe(
             map(m => ({
                 totalPatients: m.total_patients,
-                activePatients: (m.critical_alerts || 0) + (m.moderate_risk || 0),
+                activePatients: (m.risk_distribution || []).filter((r: any) => ['red', 'yellow', 'high', 'moderate'].includes(r.level))
+                    .reduce((s: number, r: any) => s + (r.count || 0), 0),
                 criticalAlerts: m.critical_alerts,
                 moderateRisk: m.moderate_risk,
                 interventionsToday: m.interventions_today || 0,
-                adherenceRate: null,
-                averagePef: 0,
+                adherenceRate: m.adherence_rate ?? null,
+                averagePef: m.average_pef ?? 0,
                 riskDistribution: m.risk_distribution || []
             })),
             tap(metrics => {
@@ -425,8 +423,8 @@ export class PatientService {
 
     // GET /api/dashboard/priority-patients
     getPriorityPatients(): Observable<Patient[]> {
-        return this.http.get<any[]>(`${this.DASHBOARD_URL}/priority-patients`).pipe(
-            map(list => (list || []).map(p => this.mapToFrontend(p))),
+        return this.http.get<any>(`${this.DASHBOARD_URL}/priority-patients`).pipe(
+            map(res => ((res && res.patients) || []).map((p: any) => this.mapToFrontend(p))),
             catchError(() => of([]))
         );
     }
