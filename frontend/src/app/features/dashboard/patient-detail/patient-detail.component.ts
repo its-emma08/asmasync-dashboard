@@ -276,10 +276,43 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
             .subscribe(msg => {
                 if ((msg.type === 'pef_update' || msg.type === 'new_symptom' || msg.type === 'risk_update' || msg.type === 'vital_signs') && 
                     msg.patientId && Number(msg.patientId) === Number(patientId)) {
-                    this.loadPatientData(patientId);
+                    this.applyMeasurementPayload(msg);
                     this.notifyNewMeasurement(msg);
                 }
             });
+    }
+
+    /** Pinta la medición del push WS al instante (gráfica, métricas y badge) sin recargar */
+    private applyMeasurementPayload(msg: any): void {
+        const m = msg.measurement;
+        if (!m || !this.patient) return;
+
+        const measuredAt = m.measured_at || new Date().toISOString();
+        const entry: HistoryEntry = {
+            date: measuredAt,
+            measured_at: measuredAt,
+            value: m.pef ?? m.spo2 ?? m.heart_rate ?? 0,
+            type: 'pef',
+            pef: m.pef ?? undefined,
+            spo2: m.spo2 ?? undefined,
+            heart_rate: m.heart_rate ?? undefined,
+            symptoms: m.symptoms || null,
+            symptom_intensity: m.symptom_intensity || null,
+            notes: m.notes || null
+        };
+
+        const recent = this.patient.recent_measurements || [];
+        this.patient.recent_measurements = [entry, ...recent].slice(0, 20);
+
+        if (m.pef != null) this.patient.latest_pef = m.pef;
+        if (m.spo2 != null) this.patient.currentSpO2 = m.spo2;
+
+        this.applyPatientData();
+
+        this.lastLiveSync = new Date().toLocaleTimeString('es-MX', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+        this.cdr.detectChanges();
     }
 
     private notifyNewMeasurement(msg: any): void {
