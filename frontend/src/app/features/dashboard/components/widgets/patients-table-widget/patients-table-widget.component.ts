@@ -22,6 +22,8 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
     filteredPatients: Patient[] = [];
     localSearchTerm = '';
     selectedRiskFilter: 'all' | 'high' | 'moderate' | 'low' = 'all';
+    sortBy: 'name' | 'adherence' | 'pef' = 'name';
+    sortDir: 'asc' | 'desc' = 'asc';
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -65,6 +67,37 @@ export class PatientsTableWidgetComponent implements OnInit, OnChanges, OnDestro
             const matchesLocal = !local || name.includes(local);
             const matchesRisk = this.selectedRiskFilter === 'all' || p.riskLevel === this.selectedRiskFilter;
             return matchesGlobal && matchesLocal && matchesRisk;
+        });
+        this.applySort();
+    }
+
+    sort(by: 'name' | 'adherence' | 'pef'): void {
+        if (this.sortBy === by) {
+            this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortBy = by;
+            this.sortDir = 'asc';
+        }
+        this.applySort();
+    }
+
+    sortIcon(by: 'name' | 'adherence' | 'pef'): string {
+        if (this.sortBy !== by) return 'unfold_more';
+        return this.sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward';
+    }
+
+    private applySort(): void {
+        const dir = this.sortDir === 'asc' ? 1 : -1;
+        this.filteredPatients = [...this.filteredPatients].sort((a, b) => {
+            let r = 0;
+            if (this.sortBy === 'name') {
+                r = (a.full_name || '').localeCompare(b.full_name || '');
+            } else if (this.sortBy === 'adherence') {
+                r = (a.adherence ?? 0) - (b.adherence ?? 0);
+            } else {
+                r = (a.latest_pef ?? 0) - (b.latest_pef ?? 0);
+            }
+            return r * dir;
         });
     }
 

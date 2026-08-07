@@ -40,12 +40,31 @@
 
 /* ─── Table Structure ─── */
 .table-header-row {
-    span {
+    span, button {
         font-size: 10px;
         font-weight: 800;
         color: var(--text-muted);
         letter-spacing: 0.1em;
+        background: transparent;
+        border: none;
     }
+}
+
+/* Highlight for critical-risk rows (subtle red ring) */
+.critical-row {
+    border-color: rgba(255, 59, 48, 0.22) !important;
+    background: rgba(255, 59, 48, 0.035) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 59, 48, 0.06);
+
+    &:hover {
+        border-color: rgba(255, 59, 48, 0.3) !important;
+        box-shadow: 0 4px 16px rgba(255, 59, 48, 0.08);
+    }
+}
+
+:host-context(body.dark) .critical-row {
+    background: rgba(255, 69, 58, 0.08) !important;
+    border-color: rgba(255, 69, 58, 0.28) !important;
 }
 
 .table-row-item {

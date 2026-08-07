@@ -695,7 +695,30 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
             config.value = this.kpis[3].value;
             config.progressValue = this.kpis[3].progress;
         }
+        // Sparkline real: volúmen de mediciones PEF por día (no fabricado)
+        config.sparkline = this.buildActivitySparkline();
         return config;
+    }
+
+    private buildActivitySparkline(): number[] {
+        const counts: number[] = [];
+        const now = new Date();
+        const dayStart = (offsetDays: number) => {
+            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offsetDays);
+            return d.getTime();
+        };
+        for (let d = 6; d >= 0; d--) {
+            const lo = dayStart(-d);
+            const hi = dayStart(-d + 1);
+            const c = this.rawMeasurements.filter(m => {
+                try {
+                    const t = new Date(m.measured_at).getTime();
+                    return t >= lo && t < hi;
+                } catch { return false; }
+            }).length;
+            counts.push(c);
+        }
+        return counts;
     }
 
     ngOnDestroy(): void {

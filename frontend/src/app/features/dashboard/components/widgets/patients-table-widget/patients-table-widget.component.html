@@ -57,9 +57,18 @@
     <div class="flex-1 overflow-hidden flex flex-col">
         <!-- Columns -->
         <div class="table-header-row grid grid-cols-[1fr_auto_40px] sm:grid-cols-[1fr_90px_110px_40px] md:grid-cols-[1.8fr_1fr_90px_110px_40px] gap-4 px-6 py-3">
-            <span>PACIENTE</span>
-            <span class="hidden md:block">ADHERENCIA</span>
-            <span class="text-right hidden sm:block">PEF</span>
+            <button (click)="sort('name')" class="flex items-center gap-1 text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                PACIENTE
+                <mat-icon class="text-[12px] w-[12px] h-[12px] leading-[12px] opacity-70">{{ sortIcon('name') }}</mat-icon>
+            </button>
+            <button (click)="sort('adherence')" class="hidden md:flex items-center gap-1 text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                ADHERENCIA
+                <mat-icon class="text-[12px] w-[12px] h-[12px] leading-[12px] opacity-70">{{ sortIcon('adherence') }}</mat-icon>
+            </button>
+            <button (click)="sort('pef')" class="text-right hidden sm:flex items-center justify-end gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                PEF
+                <mat-icon class="text-[12px] w-[12px] h-[12px] leading-[12px] opacity-70">{{ sortIcon('pef') }}</mat-icon>
+            </button>
             <span class="text-center">RIESGO</span>
             <span class="text-right">FICHA</span>
         </div>
@@ -69,7 +78,8 @@
             <div class="flex flex-col gap-1">
                 <a *ngFor="let p of filteredPatients"
                     [routerLink]="['/dashboard/patients', p.id]"
-                    class="table-row-item grid grid-cols-[1fr_auto_40px] sm:grid-cols-[1fr_90px_110px_40px] md:grid-cols-[1.8fr_1fr_90px_110px_40px] items-center gap-4 px-4 py-3 rounded-2xl transition-all">
+                    class="table-row-item grid grid-cols-[1fr_auto_40px] sm:grid-cols-[1fr_90px_110px_40px] md:grid-cols-[1.8fr_1fr_90px_110px_40px] items-center gap-4 px-4 py-3 rounded-2xl transition-all"
+                    [class.critical-row]="p.riskLevel === 'high'">
                     
                     <!-- Patient -->
                     <div class="flex items-center gap-3 min-w-0">

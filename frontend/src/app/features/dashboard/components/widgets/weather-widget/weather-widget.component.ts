@@ -72,18 +72,27 @@ import { WeatherService, WeatherData } from '../../../../../core/services/weathe
         </div>
 
         <!-- Stats row -->
-        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700/50 z-10 relative bg-transparent">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700/50 z-10 relative bg-transparent">
             <div class="stat-cell">
                 <span class="stat-label">Humedad</span>
                 <span class="stat-value" [class.text-amber-500]="weather.humidity > 80">{{ weather.humidity }}%</span>
             </div>
-            <div class="stat-cell border-l border-slate-100 dark:border-slate-700/50">
+            <div class="stat-cell md:border-l border-slate-100 dark:border-slate-700/50">
                 <span class="stat-label">Viento</span>
                 <span class="stat-value">{{ weather.wind }}<span class="text-[8px] font-bold text-slate-400 ml-0.5">km/h</span></span>
             </div>
-            <div class="stat-cell border-l border-slate-100 dark:border-slate-700/50">
+            <div class="stat-cell md:border-l border-slate-100 dark:border-slate-700/50">
                 <span class="stat-label">Ind. UV</span>
                 <span class="stat-value">{{ weather.uvIndex ?? '—' }}</span>
+            </div>
+            <div class="stat-cell md:border-l border-slate-100 dark:border-slate-700/50">
+                <span class="stat-label">Cal. Aire</span>
+                <span *ngIf="weather.aqi != null"
+                    class="stat-value"
+                    [ngClass]="{'text-emerald-500': aqiBracket(weather.aqi) <= 1, 'text-amber-500': aqiBracket(weather.aqi) === 2, 'text-red-500': aqiBracket(weather.aqi) >= 3}">
+                    {{ weather.aqi }}<span class="text-[8px] font-bold text-slate-400 ml-0.5">AQI</span>
+                </span>
+                <span *ngIf="weather.aqi == null" class="stat-value text-slate-400">—</span>
             </div>
         </div>
     </div>
@@ -123,5 +132,13 @@ export class WeatherWidgetComponent {
 
     get weather(): WeatherData | null {
         return this.weatherService.currentWeather();
+    }
+
+    // 0=Buena, 1=Moderada, 2=Dañina~sensibles, 3+=Dañina
+    aqiBracket(aqi: number): number {
+        if (aqi <= 50) return 0;
+        if (aqi <= 100) return 1;
+        if (aqi <= 150) return 2;
+        return 3;
     }
 }
