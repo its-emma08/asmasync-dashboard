@@ -2347,8 +2347,8 @@ body.dark .emergency-modal-panel {
   --mdc-dialog-container-shape: 20px;
 }
 
-.cdk-global-overlay-wrapper {
-  align-items: center !important;
-  justify-content: center !important;
+.cdk-global-overlay-wrapper:not(:has(.mat-mdc-snack-bar-container)) {
+  align-items: center;
+  justify-content: center;
 }
 
