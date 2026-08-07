@@ -892,29 +892,31 @@ body.dark {
 
     /* Angular Material Cards */
     .mat-mdc-card {
-        background: rgba(30, 41, 59, 0.95) !important;
-        /* bg-slate-800/95 */
-        border: 1px solid #334155 !important;
-        /* border-slate-700 */
+        background: rgba(15, 23, 42, 0.82) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         color: var(--text-primary) !important;
-        box-shadow: none !important;
-        /* dark:shadow-none */
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
     }
 
     /* Glass Cards */
     .glass-card {
-        background: rgba(30, 41, 59, 0.7) !important;
-        /* Slightly more transparent Slate 800 */
-        border-color: rgba(255, 255, 255, 0.05) !important;
+        background: rgba(15, 23, 42, 0.68) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
         color: var(--text-primary) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
     }
 
     .glass-card-premium {
-        background: rgba(30, 41, 59, 0.75) !important; /* Slate 800 Glass */
+        background: rgba(15, 23, 42, 0.72) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         color: var(--text-primary) !important;
-        box-shadow: var(--shadow-sm), 0 10px 40px rgba(0, 0, 0, 0.3) !important;
-        
+        box-shadow: var(--shadow-sm), 0 14px 44px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(22px) saturate(170%);
+        -webkit-backdrop-filter: blur(22px) saturate(170%);
+
         &::before {
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent) !important;
         }
@@ -962,23 +964,31 @@ body.dark {
         color: var(--text-muted) !important;
     }
 
-    /* Material Select Panels & Autocomplete */
+    /* Material Select Panels & Autocomplete — Frosted */
     .mat-mdc-select-panel,
     .mat-mdc-autocomplete-panel {
-        background-color: #1e293b !important;
+        background-color: rgba(15, 23, 42, 0.9) !important;
         color: #f1f5f9 !important;
-        border: 1px solid var(--border-color) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5) !important;
+        padding: 6px !important;
     }
 
     .mat-mdc-option {
         color: #f1f5f9 !important;
+        border-radius: 10px !important;
+        margin: 2px 4px;
+        min-height: 44px;
     }
 
     .mat-mdc-option:hover:not(.mdc-list-item--disabled),
     .mat-mdc-option:focus:not(.mdc-list-item--disabled),
     .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
-        background-color: #334155 !important;
-        color: #ffffff !important;
+        background-color: rgba(26, 111, 232, 0.18) !important;
+        color: #5AC8FA !important;
     }
 
     /* Table */
@@ -1001,28 +1011,37 @@ body.dark {
         background: var(--bg-hover) !important;
     }
 
-    /* Dialogs / Modals */
+    /* Dialogs / Modals — Frosted */
     .mat-mdc-dialog-container .mdc-dialog__surface {
-        background-color: #1e293b !important;
+        background-color: rgba(15, 23, 42, 0.86) !important;
         color: #f1f5f9 !important;
-        border: 1px solid var(--border-color) !important;
-        box-shadow: var(--shadow-xl) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(34px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(34px) saturate(180%) !important;
+        border-radius: 24px !important;
+        box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
     }
 
-    /* Menus */
+    /* Menus — Frosted */
     .mat-mdc-menu-panel {
-        background-color: #1e293b !important;
+        background-color: rgba(15, 23, 42, 0.9) !important;
         color: #f1f5f9 !important;
-        border: 1px solid var(--border-color) !important;
-        box-shadow: var(--shadow-lg) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5) !important;
+        padding: 6px !important;
     }
 
     .mat-mdc-menu-item {
         color: #f1f5f9 !important;
+        border-radius: 12px !important;
+        margin: 2px 0;
     }
 
     .mat-mdc-menu-item:hover {
-        background-color: #334155 !important;
+        background-color: rgba(255, 255, 255, 0.06) !important;
         color: #ffffff !important;
     }
 
@@ -1031,7 +1050,7 @@ body.dark {
     }
 
     .mat-mdc-menu-item:hover .mat-icon {
-        color: #ffffff !important;
+        color: #5AC8FA !important;
     }
 
     /* Stepper */
@@ -1102,6 +1121,21 @@ body.dark {
   color: #2563eb !important; /* Azul Médico para el botón 'Entendido' */
   font-weight: 700 !important;
   text-transform: none !important;
+}
+
+body.dark .glass-toast .mdc-snackbar__surface {
+  background: rgba(30, 41, 59, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.dark .glass-toast .mdc-snackbar__label,
+body.dark .glass-toast .mat-mdc-snack-bar-label {
+  color: #f1f5f9 !important;
+}
+
+body.dark .glass-toast .mat-mdc-snack-bar-action {
+  color: #5AC8FA !important;
 }
 
 /* ============================================
