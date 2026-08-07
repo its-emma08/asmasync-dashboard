@@ -1,5 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { StorageService } from './storage.service';
+import { UserSettings } from '../models/settings.types';
 
 @Injectable({
     providedIn: 'root'
@@ -10,27 +12,23 @@ export class ThemeService {
     private mediaQuery: MediaQueryList | null = null;
     private mediaListener: ((e: MediaQueryListEvent) => void) | null = null;
 
-    constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    constructor(@Inject(PLATFORM_ID) private platformId: Object, private storageService: StorageService) {
         this.initTheme();
     }
 
     private initTheme() {
         if (isPlatformBrowser(this.platformId)) {
-            // Check for full settings JSON first
-            const savedSettingsStr = localStorage.getItem('asmasync_settings');
             let theme: 'light' | 'dark' | 'system' = 'light';
-            let accentColor = '#3b82f6'; // default tailwind blue
+            let accentColor: string | undefined;
             let compactMode = false;
 
-            if (savedSettingsStr) {
-                try {
-                    const settings = JSON.parse(savedSettingsStr);
-                    theme = settings.theme || 'light';
-                    accentColor = settings.accentColor || '#3b82f6';
-                    compactMode = !!settings.compactMode;
-                } catch (e) {
-                    theme = (localStorage.getItem(this.THEME_KEY) as 'light' | 'dark' | 'system') || 'light';
-                }
+            // Read through StorageService so encrypted settings are decrypted
+            // (falling back to legacy plain text if needed)
+            const settings = this.storageService.getItem('asmasync_settings') as UserSettings | null;
+            if (settings) {
+                theme = settings.theme || 'light';
+                accentColor = settings.accentColor || undefined;
+                compactMode = !!settings.compactMode;
             } else {
                 theme = (localStorage.getItem(this.THEME_KEY) as 'light' | 'dark' | 'system') || 'light';
             }
@@ -91,17 +89,9 @@ export class ThemeService {
 
     setTheme(theme: 'light' | 'dark' | 'system') {
         if (isPlatformBrowser(this.platformId)) {
-            const savedSettingsStr = localStorage.getItem('asmasync_settings');
-            let accentColor = '#3b82f6';
-            let compactMode = false;
-
-            if (savedSettingsStr) {
-                try {
-                    const settings = JSON.parse(savedSettingsStr);
-                    accentColor = settings.accentColor || '#3b82f6';
-                    compactMode = !!settings.compactMode;
-                } catch (e) {}
-            }
+            const settings = this.storageService.getItem('asmasync_settings') as UserSettings | null;
+            const accentColor = settings?.accentColor || undefined;
+            const compactMode = !!settings?.compactMode;
             this.applyThemeSettings(theme, accentColor, compactMode);
         } else {
             this.currentTheme = theme;
