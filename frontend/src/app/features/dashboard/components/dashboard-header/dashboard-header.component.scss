@@ -88,17 +88,9 @@
 }
 
 .profile-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    background: var(--brand-primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* Geometría/color delegados al sistema global .app-avatar --brand squircle */
     font-weight: 700;
     font-size: 14px;
-    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
 
     img {

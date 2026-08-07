@@ -45,7 +45,7 @@
 
                 <div class="flex justify-between items-start">
                     <div class="flex items-center gap-3">
-                        <div class="avatar-wrap">
+                        <div class="app-avatar app-avatar--lg app-avatar--soft app-avatar--squircle-md avatar-wrap">
                             <img *ngIf="p.profilePicture" [src]="p.profilePicture" (error)="p.profilePicture = ''" alt="Avatar">
                             <span *ngIf="!p.profilePicture">{{ (p.full_name || '').charAt(0).toUpperCase() || '?' }}</span>
                         </div>
@@ -107,7 +107,7 @@
                 <div class="flex items-center gap-4 p-3 rounded-2xl transition-all hover:bg-white dark:hover:bg-slate-700/50 hover:shadow-sm">
                     <div class="list-risk-indicator" [class]="p.riskLevel"></div>
                     
-                    <div class="avatar-mini">
+                    <div class="app-avatar app-avatar--sm app-avatar--surface app-avatar--squircle avatar-mini">
                         <img *ngIf="p.profilePicture" [src]="p.profilePicture" (error)="p.profilePicture = ''" alt="Avatar">
                         <span *ngIf="!p.profilePicture">{{ (p.full_name || '').charAt(0).toUpperCase() || '?' }}</span>
                     </div>

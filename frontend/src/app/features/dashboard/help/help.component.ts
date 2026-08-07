@@ -26,8 +26,8 @@ import { RouterModule } from '@angular/router';
                     <mat-icon>arrow_back</mat-icon>
                 </button>
                 <div>
-                    <h1>Centro de Ayuda</h1>
-                    <p>Encuentra respuestas a preguntas frecuentes y guías de uso</p>
+                    <h1 class="page-title">Centro de Ayuda</h1>
+                    <p class="page-subtitle">Encuentra respuestas a preguntas frecuentes y guías de uso</p>
                 </div>
             </div>
 
@@ -146,7 +146,6 @@ import { RouterModule } from '@angular/router';
             border-radius: 12px !important;
         }
         .help-header h1 {
-            font-size: 26px;
             font-weight: 800;
             color: var(--text-primary);
             margin: 0;

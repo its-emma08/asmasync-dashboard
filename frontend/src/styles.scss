@@ -266,6 +266,90 @@ body.dark .glass-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
 }
 
 /* ============================================
+   Page Titles — Cabeceras de página uniformes
+   ============================================ */
+.page-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: var(--text-primary);
+}
+.page-subtitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   Avatar System — Centralizado (chips comunes)
+   ============================================ */
+.app-avatar {
+    --av: 40px;
+    --av-radius: 50%;
+    width: var(--av);
+    height: var(--av);
+    border-radius: var(--av-radius);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    font-weight: 800;
+    line-height: 1;
+    user-select: none;
+    letter-spacing: 0.01em;
+}
+
+.app-avatar--xs  { --av: 24px; font-size: 10px; }
+.app-avatar--sm  { --av: 28px; font-size: 12px; }
+.app-avatar--md  { --av: 36px; font-size: 14px; }
+.app-avatar--lg  { --av: 48px; font-size: 17px; }
+.app-avatar--xl  { --av: 96px; font-size: 34px; }
+
+.app-avatar--squircle    { --av-radius: 10px; }
+.app-avatar--squircle-md { --av-radius: 14px; }
+.app-avatar--squircle-lg { --av-radius: 28px; }
+
+.app-avatar--brand    { background: var(--brand-primary); color: #fff; }
+.app-avatar--gradient { background: linear-gradient(135deg, var(--brand-primary), var(--brand-teal)); color: #fff; box-shadow: var(--shadow-sm); }
+.app-avatar--soft     { background: var(--brand-primary-light); color: var(--brand-primary); }
+.app-avatar--surface  { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border-color); }
+
+body.dark .app-avatar--soft    { background: rgba(255, 255, 255, 0.06); color: #cbd5e1; }
+body.dark .app-avatar--surface { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+
+/* ============================================
+   Status Chip — Pills/Badges de estado unificados
+   ============================================ */
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    user-select: none;
+}
+.status-chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+.status-chip--high     { background: rgba(229, 50, 62, 0.10);  color: var(--brand-danger); }
+.status-chip--moderate { background: rgba(224, 123, 18, 0.10); color: var(--brand-warning); }
+.status-chip--low      { background: rgba(18, 161, 80, 0.10);  color: var(--brand-success); }
+.status-chip--unknown  { background: rgba(138, 151, 166, 0.12); color: var(--text-muted); }
+.status-chip--info     { background: var(--brand-primary-light); color: var(--brand-primary); }
+
+/* ============================================
    Utilities — Scrollbar Hide
    ============================================ */
 .scrollbar-hide {

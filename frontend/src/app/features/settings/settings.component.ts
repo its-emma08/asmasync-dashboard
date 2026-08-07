@@ -77,7 +77,7 @@ import { ThemeService } from '../../core/services/theme.service';
 
           <!-- Profile Card -->
           <div class="glass-card-premium profile-card-apple mb-8">
-            <div class="profile-avatar shadow-lg">{{ userInitials }}</div>
+            <div class="app-avatar app-avatar--gradient profile-avatar shadow-lg" style="--av:64px;">{{ userInitials }}</div>
             <div class="profile-info-apple" *ngIf="currentUser">
               <h4 class="text-xl font-bold">{{ currentUser.full_name || 'Usuario' }}</h4>
               <p class="text-sm opacity-60">{{ currentUser.email }}</p>
@@ -671,14 +671,7 @@ import { ThemeService } from '../../core/services/theme.service';
     }
 
     .profile-avatar {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: #8e8e93;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      /* Geometría delegada al sistema global .app-avatar (round) */
       font-size: 24px;
       font-weight: 600;
     }

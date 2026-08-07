@@ -53,13 +53,7 @@
 }
 
 .avatar-large {
-  width: 120px;
-  height: 120px;
-  border-radius: 32px;
-  background: linear-gradient(135deg, #0071e3, #40a9ff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Geometría/color delegados al sistema global .app-avatar --gradient (120px) */
   font-size: 40px;
   font-weight: 700;
   color: white;
@@ -311,7 +305,7 @@
 /* Dark Mode Overrides */
 :host-context(body.dark) {
   .hero-card-apple { border-color: rgba(255, 255, 255, 0.1); }
-  .avatar-large { background: #1e293b; border-color: rgba(255, 255, 255, 0.1); }
+  .avatar-large { box-shadow: 0 20px 40px rgba(0, 113, 227, 0.25); }
   .cert-row-apple { background: rgba(255, 255, 255, 0.05); }
 }
 

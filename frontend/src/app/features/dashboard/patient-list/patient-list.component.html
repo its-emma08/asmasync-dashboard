@@ -75,7 +75,7 @@
                         <td mat-cell *matCellDef="let row">
                             <div class="flex items-center gap-3">
                                 <div class="avatar-ring" [class]="row.riskLevel">
-                                    <div class="avatar-inner">
+                                    <div class="app-avatar app-avatar--md app-avatar--surface avatar-inner">
                                         <img *ngIf="row.profilePicture" [src]="row.profilePicture" (error)="row.profilePicture = null">
                                         <span *ngIf="!row.profilePicture">{{ getInitials(row.full_name) }}</span>
                                     </div>
@@ -100,7 +100,7 @@
                     <ng-container matColumnDef="riskLevel">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header>ESTADO</th>
                         <td mat-cell *matCellDef="let row">
-                            <span class="status-pill" [class]="row.riskLevel">
+                            <span class="status-chip status-pill" [ngClass]="row.riskLevel">
                                 {{ getRiskLabel(row.riskLevel) }}
                             </span>
                         </td>

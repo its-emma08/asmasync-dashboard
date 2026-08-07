@@ -83,7 +83,7 @@
                     
                     <!-- Patient -->
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="avatar-circle relative flex-shrink-0">
+                        <div class="app-avatar app-avatar--md app-avatar--soft avatar-circle relative flex-shrink-0">
                             <img *ngIf="p.profilePicture" [src]="p.profilePicture" (error)="p.profilePicture = ''" alt="Avatar">
                             <span *ngIf="!p.profilePicture">{{ (p.full_name || '?').charAt(0).toUpperCase() }}</span>
 
@@ -127,7 +127,7 @@
 
                     <!-- Riesgo -->
                     <div class="flex justify-center">
-                        <span class="risk-glow-pill" [class]="p.riskLevel">
+                        <span class="status-chip risk-glow-pill" [ngClass]="p.riskLevel">
                             {{ p.riskLevel === 'high' ? 'Crítico' : p.riskLevel === 'moderate' ? 'En Riesgo' : p.riskLevel === 'low' ? 'Estable' : 'Sin datos' }}
                         </span>
                     </div>
