@@ -1,5 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage.service';
 import { UserSettings } from '../models/settings.types';
 
@@ -11,6 +12,9 @@ export class ThemeService {
     private currentTheme: 'light' | 'dark' | 'system' = 'light';
     private mediaQuery: MediaQueryList | null = null;
     private mediaListener: ((e: MediaQueryListEvent) => void) | null = null;
+
+    /** Emite el estado efectivo de modo oscuro (true = dark) al cambiar, para superficies JS (p. ej. Chart.js). */
+    readonly darkMode$ = new BehaviorSubject<boolean>(false);
 
     constructor(@Inject(PLATFORM_ID) private platformId: Object, private storageService: StorageService) {
         this.initTheme();
@@ -106,6 +110,7 @@ export class ThemeService {
             document.body.classList.remove('dark');
             document.documentElement.classList.remove('dark');
         }
+        this.darkMode$.next(isDark);
     }
 
     getTheme(): 'light' | 'dark' | 'system' {

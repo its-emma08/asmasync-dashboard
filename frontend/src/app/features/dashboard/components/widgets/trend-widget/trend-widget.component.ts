@@ -1,7 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { BaseChartDirective } from 'ng2-charts';
+import { takeUntil, Subject } from 'rxjs';
+import { ThemeService } from '../../../../../core/services/theme.service';
+import { chartPalette } from '../../../../../shared/utils/chart-palette';
 
 @Component({
     selector: 'app-trend-widget',
@@ -46,10 +49,22 @@ import { BaseChartDirective } from 'ng2-charts';
     </div>
   `
 })
-export class TrendWidgetComponent implements OnChanges {
+export class TrendWidgetComponent implements OnChanges, OnDestroy {
     @Input() data: any;
     @Input() options: any;
     @Output() periodChange = new EventEmitter<string>();
+
+    private destroy$ = new Subject<void>();
+    private palette = chartPalette(false);
+
+    constructor(private theme: ThemeService, private cdr: ChangeDetectorRef) {
+        this.theme.darkMode$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(isDark => {
+                this.palette = chartPalette(isDark);
+                this.cdr.markForCheck();
+            });
+    }
 
     activePeriod = '7d';
 
@@ -77,8 +92,9 @@ export class TrendWidgetComponent implements OnChanges {
     }
 
     get chartOptions() {
-        // Merge with incoming options, applying responsive defaults
-        return {
+        // Merge with incoming options, applying responsive defaults and
+        // forcing theme-aware axis colors (palette applied last on purpose).
+        const merged = {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -92,10 +108,27 @@ export class TrendWidgetComponent implements OnChanges {
             elements: { line: { tension: 0.4 }, point: { radius: 3, hoverRadius: 6 } },
             animation: { duration: 600, easing: 'easeInOutQuart' },
             ...this.options
+        } as any;
+        return {
+            ...merged,
+            scales: {
+                ...merged.scales,
+                x: { ...merged.scales.x, ticks: { ...merged.scales.x.ticks, color: this.palette.tickColor } },
+                y: {
+                    ...merged.scales.y,
+                    grid: { ...merged.scales.y.grid, color: this.palette.gridColor },
+                    ticks: { ...merged.scales.y.ticks, color: this.palette.tickColor }
+                }
+            }
         };
     }
 
     ngOnChanges(_: SimpleChanges): void { }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
 
     selectPeriod(key: string): void {
         this.activePeriod = key;

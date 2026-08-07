@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, Subject, takeUntil, catchError, of, debounceTime, finalize, interval } from 'rxjs';
+import { ThemeService } from '../../../core/services/theme.service';
+import { chartPalette } from '../../../shared/utils/chart-palette';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -250,10 +252,14 @@ export class PatientDetailComponent implements OnInit, OnDestroy {
         private pdfExport: PdfExportService,
         private cdr: ChangeDetectorRef,
         private authService: AuthService,
-        private predictionService: PredictionService
+        private predictionService: PredictionService,
+        private themeService: ThemeService
     ) { }
 
     ngOnInit(): void {
+        this.themeService.darkMode$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(isDark => this.applyChartPalette(isDark));
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.patientId = id;
@@ -1167,6 +1173,31 @@ FEM Actual: ${this.patient.latest_pef} L/min
                 this.loadPatientData(this.patient.id);
             }
         });
+    }
+
+    applyChartPalette(isDark: boolean): void {
+        const palette = chartPalette(isDark);
+        const scales = this.pefChartOptions.scales as any;
+        const y = scales?.y ?? {};
+        const x = scales?.x ?? {};
+        (scales ?? {}).y = {
+            ...y,
+            grid: { ...y.grid, color: palette.gridColor },
+            title: { ...y.title, color: palette.axisTitleColor },
+            ticks: { ...y.ticks, color: palette.tickColor }
+        };
+        (scales ?? {}).x = {
+            ...x,
+            ticks: { ...x.ticks, color: palette.tickColor }
+        };
+        this.pefChartOptions = { ...this.pefChartOptions, scales };
+
+        if (this.pefChartData?.datasets?.[0]) {
+            this.pefChartData = {
+                ...this.pefChartData,
+                datasets: this.pefChartData.datasets.map((d, i) => i === 0 ? { ...d, pointBackgroundColor: palette.pointBorder } : d)
+            };
+        }
     }
 
     ngOnDestroy(): void {
