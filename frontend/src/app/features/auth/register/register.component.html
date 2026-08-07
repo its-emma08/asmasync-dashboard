@@ -150,6 +150,16 @@
             </div>
           </div>
 
+          <div *ngIf="currentStep() === 5" class="step-slide flex flex-col gap-4 animate-fade-in text-center">
+            <mat-icon class="mx-auto" style="font-size:44px;height:44px;width:44px;color:#f59e0b;">verified_user</mat-icon>
+            <div class="section-label">¡Cuenta creada!</div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Tu solicitud de registro como médico quedó <b>pendiente de verificación</b>.
+              Un administrador revisará tu <b>cédula profesional</b> y especialidad.
+              Recibirás acceso al panel en cuanto sea aprobada. Puedes cerrar esta página.
+            </p>
+          </div>
+
         </div>
 
         <!-- Navigation -->

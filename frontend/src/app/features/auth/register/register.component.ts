@@ -199,12 +199,17 @@ export class RegisterComponent implements OnInit, OnDestroy {
                     email: supabaseUser?.email ?? email,
                     full_name: fullName,
                     role: 'doctor',
-                    id: supabaseUser?.id ?? ''
+                    id: supabaseUser?.id ?? '',
+                    specialty: this.registerForm.get('specialty')?.value,
+                    license_number: this.registerForm.get('license_number')?.value
                 });
 
                 this.isLoading.set(false);
                 this.toastService.showSuccess('¡Cuenta creada con éxito!');
-                this.router.navigate(['/dashboard']);
+                // El doctor queda pendiente de verificación por un administrador:
+                // mostramos confirmación sin entrar al panel todavía.
+                this.currentStep.set(5);
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.isLoading.set(false);

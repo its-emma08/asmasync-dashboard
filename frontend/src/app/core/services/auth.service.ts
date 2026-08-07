@@ -322,6 +322,8 @@ export class AuthService implements OnDestroy {
         full_name: string;
         role: string;
         id: string;
+        specialty?: string;
+        license_number?: string;
     }): void {
         if (!this.isBrowser) return;
 
@@ -344,7 +346,12 @@ export class AuthService implements OnDestroy {
         // Sincronizar rol en la BD. Si es doctor, ESPERAR a que el register termine
         // antes de pedir el perfil (evita race condition con _ensure_doctor_profile).
         this.http.post<any>(`${environment.apiUrl}/auth/register`,
-            { full_name: payload.full_name, role: payload.role },
+            {
+                full_name: payload.full_name,
+                role: payload.role,
+                specialty: payload.specialty,
+                license_number: payload.license_number
+            },
             { headers: { Authorization: `Bearer ${payload.access_token}` } }
         ).pipe(
             catchError(() => of(null)),
