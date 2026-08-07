@@ -56,7 +56,7 @@
         height: 36px;
         min-width: 0;
         padding: 0 16px;
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         opacity: 1;
         transition: background 0.2s ease;
 
@@ -165,7 +165,7 @@
 .photo-circle {
     width: 100px;
     height: 100px;
-    border-radius: 24px;
+    border-radius: var(--radius-xl);
     overflow: hidden;
     border: 1.5px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
@@ -217,7 +217,7 @@
     .device-assign-icon {
         width: 52px;
         height: 52px;
-        border-radius: 14px;
+        border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -280,7 +280,7 @@
     gap: 6px;
     height: 44px !important;
     padding: 0 20px !important;
-    border-radius: 14px !important;
+    border-radius: var(--radius-md) !important;
     font-weight: 600 !important;
     font-size: 14px !important;
     letter-spacing: -0.01em;
@@ -312,7 +312,7 @@
 .step-nav-save {
     height: 44px !important;
     padding: 0 24px !important;
-    border-radius: 14px !important;
+    border-radius: var(--radius-md) !important;
     font-weight: 700 !important;
     display: flex;
     align-items: center;

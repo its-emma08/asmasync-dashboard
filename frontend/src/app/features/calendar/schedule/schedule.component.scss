@@ -32,7 +32,7 @@
 .cal-logo {
     width: 44px;
     height: 44px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     background: var(--brand-primary);
     display: flex;
     align-items: center;
@@ -173,7 +173,7 @@
     color: var(--text-primary);
     width: 26px;
     height: 26px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,7 +276,7 @@ $hour-h: 60px;
     position: absolute;
     left: 4px;
     right: 4px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 4px 8px;
     overflow: hidden;
     cursor: pointer;
@@ -303,7 +303,7 @@ $hour-h: 60px;
     color: var(--text-primary);
     width: 50px;
     height: 50px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;

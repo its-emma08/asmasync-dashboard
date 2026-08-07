@@ -342,7 +342,7 @@ $gray-900: #111827;
   mat-icon { font-size: 18px; color: $gray-600; }
 
   &:hover { background: rgba(0,0,0,0.1); }
-  &.small { width: 32px; height: 32px; border-radius: 8px; mat-icon { font-size: 16px; } }
+  &.small { width: 32px; height: 32px; border-radius: var(--radius-sm); mat-icon { font-size: 16px; } }
 }
 
 // ─── Adherence Card (donut) ────────────────────────────────────────────────────
@@ -436,7 +436,7 @@ $gray-900: #111827;
 .segmented-tabs-rail {
   display: inline-flex;
   background: rgba(0,0,0,0.05);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 4px;
   gap: 2px;
 
@@ -563,7 +563,7 @@ $gray-900: #111827;
   justify-content: center;
   width: 50px;
   height: 54px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: linear-gradient(135deg, $blue 0%, color.adjust($blue, $lightness: -10%) 100%);
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba($blue, 0.3);
@@ -664,7 +664,7 @@ $gray-900: #111827;
   align-items: center;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: rgba($teal, 0.08);
   color: $teal;
   font-size: 11px;
@@ -861,7 +861,7 @@ $gray-900: #111827;
   textarea {
     width: 100%;
     border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     padding: 14px 16px;
     font-size: 14px;
     font-weight: 500;
@@ -953,7 +953,7 @@ $gray-900: #111827;
   .med-delete-btn {
     width: 28px;
     height: 28px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     border: none;
     background: transparent;
     cursor: pointer;

@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.04);
-    border-radius: 14px; /* More Apple */
+    border-radius: var(--radius-md); /* More Apple */
     padding: 0 16px;
     height: 42px; /* Standard Apple Height */
     width: 280px;
@@ -181,7 +181,7 @@
     margin-top: 8px !important;
 
     .notification-item {
-        border-radius: 14px;
+        border-radius: var(--radius-md);
         margin: 4px;
         width: calc(100% - 8px);
         
