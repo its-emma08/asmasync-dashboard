@@ -828,6 +828,11 @@ body.dark {
 
     color: var(--text-primary);
     background-color: var(--bg-body);
+    color-scheme: dark;
+    accent-color: #5AC8FA;
+    background-image: radial-gradient(1200px 600px at 100% -10%, rgba(26, 111, 232, 0.08), transparent 60%),
+        radial-gradient(1000px 500px at -10% 0%, rgba(14, 165, 201, 0.06), transparent 55%);
+    background-attachment: fixed;
 
     /* Sidebar overrides */
     --sidebar: #050a14;
