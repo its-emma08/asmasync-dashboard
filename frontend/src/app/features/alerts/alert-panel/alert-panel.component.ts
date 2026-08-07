@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AgePipe } from '../../../shared/pipes/age-pipe';
 import { SafeDatePipe } from '../../../shared/pipes/safe-date.pipe';
 import { PatientService } from '../../../core/services/patient.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 import { Patient } from '../../../core/models/patient.model';
 import * as riskHelper from '../../../core/utils/risk.helper';
 
@@ -40,11 +41,24 @@ export class AlertPanelComponent implements OnInit, OnDestroy {
     constructor(
         private patientService: PatientService,
         private router: Router,
-        private cd: ChangeDetectorRef
+        private cd: ChangeDetectorRef,
+        private wsService: WebSocketService
     ) { }
 
     ngOnInit(): void {
         this.loadPatients();
+        this.setupWebSocketListener();
+    }
+
+    private setupWebSocketListener(): void {
+        this.wsService.messages$.pipe(takeUntil(this.destroy$)).subscribe(msg => {
+            if (!msg) return;
+            const type = msg.type ?? msg.event ?? '';
+            const relevant = ['risk_update', 'emergency_alert', 'pef_update', 'vital_signs', 'new_symptom'];
+            if (relevant.includes(type)) {
+                this.loadPatients();
+            }
+        });
     }
 
     loadPatients(): void {
