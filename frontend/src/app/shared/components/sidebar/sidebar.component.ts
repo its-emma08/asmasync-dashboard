@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
+import { ChatService } from '../../../core/services/chat.service';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -30,11 +31,13 @@ export class SidebarComponent implements OnInit {
     @Output() collapsedChange = new EventEmitter<boolean>();
 
     unreadAlerts$: Observable<number>;
+    unreadChat$: Observable<number>;
     isCollapsed = false;
 
     _navItems = [
         { label: 'Tablero', icon: 'grid_view', route: '/dashboard', exact: true },
-        { label: 'Alertas', icon: 'notifications', route: '/dashboard/alerts', badge: true },
+        { label: 'Alertas', icon: 'notifications', route: '/dashboard/alerts', badge: true, badgeType: 'alerts' },
+        { label: 'Mensajes', icon: 'chat_bubble', route: '/dashboard/chat', badge: true, badgeType: 'chat', roles: ['admin', 'doctor', 'nurse'] },
         { label: 'Pacientes', icon: 'people', route: '/dashboard/patients' },
         { label: 'Reportes', icon: 'description', route: '/dashboard/reports', roles: ['admin', 'doctor', 'nurse'] },
         { label: 'Calendario', icon: 'calendar_month', route: '/dashboard/calendar' },
@@ -56,16 +59,21 @@ export class SidebarComponent implements OnInit {
 
     constructor(
         private alertService: AlertService,
+        private chatService: ChatService,
         private authService: AuthService,
         private router: Router
     ) {
         this.unreadAlerts$ = this.alertService.unreadCount$;
+        this.unreadChat$ = this.chatService.unreadCount$;
     }
 
     ngOnInit(): void {
         const saved = localStorage.getItem('sidebar_collapsed');
         this.isCollapsed = saved === 'true';
         this.collapsedChange.emit(this.isCollapsed);
+        // Activa contador de no-leídos del chat de forma global (no requiere abrir la página)
+        this.chatService.connect();
+        this.chatService.loadConversations();
     }
 
     toggleCollapse(): void {

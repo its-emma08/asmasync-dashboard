@@ -46,6 +46,12 @@ export const DASHBOARD_ROUTES: Routes = [
                 loadComponent: () => import('../calendar/schedule/schedule.component').then(m => m.ScheduleComponent)
             },
             {
+                path: 'chat',
+                data: { breadcrumb: 'Mensajes' },
+                canActivate: [roleGuard(['admin', 'doctor', 'nurse'])],
+                loadComponent: () => import('../messages/messages-page.component').then(m => m.MessagesPageComponent)
+            },
+            {
                 path: 'alerts',
                 data: { breadcrumb: 'Alertas' },
                 loadComponent: () => import('../alerts/alert-panel/alert-panel.component').then(m => m.AlertPanelComponent)

@@ -27,7 +27,10 @@
                 matTooltipPosition="right">
                 <mat-icon>{{ item.icon }}</mat-icon>
                 <span>{{ item.label }}</span>
-                <ng-container *ngIf="item.badge && (unreadAlerts$ | async) as count">
+                <ng-container *ngIf="item.badgeType === 'chat' && (unreadChat$ | async) as chatCount">
+                    <span *ngIf="chatCount > 0" class="nav-badge">{{ chatCount > 99 ? '99+' : chatCount }}</span>
+                </ng-container>
+                <ng-container *ngIf="item.badge && item.badgeType !== 'chat' && (unreadAlerts$ | async) as count">
                     <span *ngIf="count > 0" class="nav-badge">{{ count > 99 ? '99+' : count }}</span>
                 </ng-container>
             </a>
