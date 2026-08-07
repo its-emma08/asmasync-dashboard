@@ -159,8 +159,8 @@
         </div>
       </div>
       <div class="preview-meta">
-        <div class="pmeta-row"><mat-icon class="scale-75">schedule</mat-icon> {{ previewAppt.date | date:'HH:mm' }} · {{ previewAppt.durationMinutes }} min</div>
-        <div class="pmeta-row" *ngIf="previewAppt.notes"><mat-icon class="scale-75">notes</mat-icon> {{ previewAppt.notes | slice:0:60 }}</div>
+        <div class="pmeta-row"><mat-icon class="text-[14px] w-[14px] h-[14px] leading-[14px]">schedule</mat-icon> {{ previewAppt.date | date:'HH:mm' }} · {{ previewAppt.durationMinutes }} min</div>
+        <div class="pmeta-row" *ngIf="previewAppt.notes"><mat-icon class="text-[14px] w-[14px] h-[14px] leading-[14px]">notes</mat-icon> {{ previewAppt.notes | slice:0:60 }}</div>
       </div>
       <button class="preview-cta apple-btn-mini" (click)="openAppointmentDetail(previewAppt)">Ver detalles <mat-icon>arrow_forward</mat-icon></button>
     </div>

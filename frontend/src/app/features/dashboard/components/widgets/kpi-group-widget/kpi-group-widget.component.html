@@ -19,7 +19,7 @@
             <!-- Trend pill (top right) -->
             <span *ngIf="kpi?.progress != null" class="trend-pill"
                 [ngClass]="kpi?.progressColorClass === 'fill-red' ? 'trend-down' : 'trend-up'">
-                <mat-icon>{{ kpi?.progressColorClass === 'fill-red' ? 'south' : 'north' }}</mat-icon>
+                <mat-icon class="text-[12px] w-[12px] h-[12px] leading-[12px]">{{ kpi?.progressColorClass === 'fill-red' ? 'south' : 'north' }}</mat-icon>
                 {{ kpi?.progress ?? 0 }}%
             </span>
         </div>
@@ -46,14 +46,14 @@
                         : 'bg-gradient-to-r from-[#1A6FE8] to-[#0EA5C9]'">
                 </div>
             </div>
-            <p class="mt-2 text-[10px] font-medium" style="color: var(--text-muted);">
+            <p class="mt-2 text-[10px] font-medium pr-8" style="color: var(--text-muted);">
                 {{ kpi?.subtitle || ('Meta ' + (kpi?.timeframe || 'Mensual')) }}
             </p>
         </div>
 
         <!-- Context Menu -->
         <button mat-icon-button [matMenuTriggerFor]="timeMenu" (click)="$event.stopPropagation()"
-            class="!absolute bottom-2 right-2 !scale-75 opacity-0 group-hover:opacity-100 transition-opacity"
+            class="!absolute bottom-2 right-2 !w-8 !h-8 !min-w-0 opacity-0 group-hover:opacity-100 transition-opacity"
             style="color: var(--text-muted);">
             <mat-icon>more_horiz</mat-icon>
         </button>

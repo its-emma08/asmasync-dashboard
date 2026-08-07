@@ -1,7 +1,7 @@
 <div class="table-container h-full flex flex-col !bg-transparent">
 
     <!-- Header (Apple Style) -->
-    <div class="flex-shrink-0 flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100/50">
+    <div class="flex-shrink-0 flex items-center justify-between gap-3 flex-wrap px-6 py-4 border-b border-gray-100/50">
         <div class="flex items-center gap-3">
             <div class="title-icon">
                 <mat-icon>groups</mat-icon>
@@ -40,14 +40,14 @@
 
         <!-- Search bar inside header -->
         <div class="flex items-center gap-4 flex-1 max-w-[160px] sm:max-w-[220px] relative">
-            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 scale-90">search</mat-icon>
+            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[16px] w-[16px] h-[16px] leading-[16px]">search</mat-icon>
             <input type="text" 
                 (input)="onLocalSearch($event)"
                 placeholder="Buscar paciente..." 
                 class="w-full text-xs bg-slate-50 dark:bg-slate-800/40 text-gray-700 dark:text-gray-200 pl-9 pr-3 py-1.5 rounded-full border border-gray-200/50 dark:border-slate-700/50 focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-800 transition-all">
         </div>
 
-        <a routerLink="/dashboard/patients" class="view-all-link flex-shrink-0">
+        <a routerLink="/dashboard/patients" class="view-all-link flex-shrink-0 hidden sm:flex">
             Ver todos
             <mat-icon>arrow_forward</mat-icon>
         </a>

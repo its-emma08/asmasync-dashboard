@@ -25,8 +25,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
                 <!-- Trend Indicator -->
                 <span *ngIf="config.trend"
                     [class]="(config.trend.includes('+') ? 'text-green-500 bg-green-50 dark:bg-green-500/10' : (config.trend === '0' || config.trend === '0%') ? 'text-slate-500 bg-slate-100 dark:bg-slate-700/50' : 'text-red-500 bg-red-50 dark:bg-red-500/10') + ' rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5 min-w-min'">
-                    <mat-icon class="scale-50 w-4 h-4" *ngIf="config.trend !== '0' && config.trend !== '0%'">{{ config.trend.includes('+') ? 'north' : 'south' }}</mat-icon>
-                    <mat-icon class="scale-50 w-4 h-4" *ngIf="config.trend === '0' || config.trend === '0%'">horizontal_rule</mat-icon>
+                    <mat-icon class="text-[12px] w-[12px] h-[12px] leading-[12px]" *ngIf="config.trend !== '0' && config.trend !== '0%'">{{ config.trend.includes('+') ? 'north' : 'south' }}</mat-icon>
+                    <mat-icon class="text-[12px] w-[12px] h-[12px] leading-[12px]" *ngIf="config.trend === '0' || config.trend === '0%'">horizontal_rule</mat-icon>
                     {{ config.trend }}
                 </span>
             </div>
