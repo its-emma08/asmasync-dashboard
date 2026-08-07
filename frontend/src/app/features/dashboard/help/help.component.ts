@@ -148,12 +148,12 @@ import { RouterModule } from '@angular/router';
         .help-header h1 {
             font-size: 26px;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--text-primary);
             margin: 0;
         }
         .help-header p {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-muted);
             margin: 2px 0 0;
         }
 
@@ -165,18 +165,21 @@ import { RouterModule } from '@angular/router';
             margin-bottom: 32px;
         }
         .action-card {
-            background: white;
-            border: 1px solid #f1f5f9;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 28px 24px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            box-shadow: var(--shadow-sm), inset 0 1px 0 var(--glass-border);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             cursor: pointer;
         }
         .action-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+            border-color: var(--border-medium);
+            box-shadow: var(--shadow-apple);
         }
         .action-icon {
             width: 52px;
@@ -195,12 +198,12 @@ import { RouterModule } from '@angular/router';
         .action-card h3 {
             font-size: 16px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-primary);
             margin: 0 0 4px;
         }
         .action-card p {
             font-size: 13px;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin: 0;
         }
 
@@ -211,15 +214,17 @@ import { RouterModule } from '@angular/router';
         .faq-section h2 {
             font-size: 20px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-primary);
             margin: 0 0 16px;
         }
 
         ::ng-deep .faq-section .mat-expansion-panel {
-            background: white !important;
+            background: var(--glass-bg) !important;
             border-radius: 18px !important;
-            border: 1px solid #f1f5f9 !important;
-            box-shadow: none !important;
+            border: 1px solid var(--border-color) !important;
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            box-shadow: var(--shadow-sm) !important;
             margin-bottom: 8px !important;
         }
         ::ng-deep .faq-section .mat-expansion-panel::before {
@@ -228,19 +233,19 @@ import { RouterModule } from '@angular/router';
         ::ng-deep .faq-section .mat-expansion-panel-header {
             font-weight: 600 !important;
             font-size: 14px !important;
-            color: #0f172a !important;
+            color: var(--text-primary) !important;
             border-radius: 18px !important;
             padding: 0 20px !important;
         }
         ::ng-deep .faq-section .mat-expansion-panel-header:hover {
-            background: #f8fafc !important;
+            background: var(--bg-hover) !important;
         }
         ::ng-deep .faq-section .mat-expansion-panel-body {
             padding: 0 20px 16px !important;
         }
         ::ng-deep .faq-section .mat-expansion-panel-body p {
             font-size: 14px;
-            color: #475569;
+            color: var(--text-secondary);
             line-height: 1.7;
             margin: 0;
         }
@@ -250,28 +255,30 @@ import { RouterModule } from '@angular/router';
             display: flex;
             align-items: center;
             gap: 16px;
-            background: white;
-            border: 1px solid #f1f5f9;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 28px 32px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            box-shadow: var(--shadow-sm);
         }
         .contact-card > mat-icon {
             font-size: 36px;
             width: 36px;
             height: 36px;
-            color: #00B5AD;
+            color: var(--brand-teal);
         }
         .contact-card > div { flex: 1; }
         .contact-card h3 {
             font-size: 16px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--text-primary);
             margin: 0 0 2px;
         }
         .contact-card p {
             font-size: 13px;
-            color: #64748b;
+            color: var(--text-muted);
             margin: 0;
         }
     `]
